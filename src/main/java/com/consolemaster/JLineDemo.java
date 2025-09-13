@@ -220,11 +220,10 @@ public class JLineDemo {
             // Render the screen
             screen.render();
 
-            // Keep the application running
+            // Show completion message without waiting for input
             System.out.println("\nJLine-enhanced demo rendered! Check your console for improved ANSI styling.");
             System.out.println("This version uses JLine's AttributedStyle for better performance and compatibility.");
-            System.out.println("Press Enter to exit...");
-            System.in.read();
+            System.out.println("Demo completed successfully.");
 
             // Clean up
             screen.close();

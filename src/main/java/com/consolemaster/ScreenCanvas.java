@@ -102,6 +102,46 @@ public class ScreenCanvas extends CompositeCanvas {
                     graphics.fillRect(0, 0, getWidth(), getHeight(), '!');
                 }
             }
+
+            @Override
+            public void paint(JLineGraphics graphics) {
+                String message = "Console too small!";
+                String requirement = String.format("Required: %dx%d", minWidth, minHeight);
+                String current = String.format("Current: %dx%d", getWidth(), getHeight());
+
+                if (getWidth() > 10 && getHeight() > 5) {
+                    int centerX = getWidth() / 2;
+                    int centerY = getHeight() / 2;
+
+                    // Draw border with red color for warning
+                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
+                        .foreground(org.jline.utils.AttributedStyle.RED)
+                        .bold());
+                    graphics.drawRect(0, 0, getWidth(), getHeight(), '#');
+
+                    // Draw warning message in bright red
+                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
+                        .foreground(org.jline.utils.AttributedStyle.BRIGHT + org.jline.utils.AttributedStyle.RED)
+                        .bold());
+                    graphics.drawString(Math.max(1, centerX - message.length() / 2), centerY - 1, message);
+
+                    // Draw requirement in yellow
+                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
+                        .foreground(org.jline.utils.AttributedStyle.YELLOW));
+                    graphics.drawString(Math.max(1, centerX - requirement.length() / 2), centerY, requirement);
+
+                    // Draw current size in white
+                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
+                        .foreground(org.jline.utils.AttributedStyle.WHITE));
+                    graphics.drawString(Math.max(1, centerX - current.length() / 2), centerY + 1, current);
+                } else {
+                    // For very small terminals, fill with warning character
+                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
+                        .foreground(org.jline.utils.AttributedStyle.BRIGHT + org.jline.utils.AttributedStyle.RED)
+                        .bold());
+                    graphics.fillRect(0, 0, getWidth(), getHeight(), '!');
+                }
+            }
         };
     }
 
