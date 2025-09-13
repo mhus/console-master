@@ -87,9 +87,10 @@ a warning Canvas is displayed instead of the actual content.
 
 ### Process Loop and Event System
 - **ProcessLoop**: Main processing loop for continuous rendering and non-blocking input handling
-- **Event System**: Complete event-driven architecture with keyboard input processing
+- **Event System**: Complete event-driven architecture with keyboard and mouse input processing
 - **Input Handler**: Non-blocking input processing in separate thread with terminal raw mode
 - **Keyboard Events**: Full keyboard support including special keys, modifiers, and shortcuts
+- **Mouse Events**: Complete mouse support including buttons, movement, drag, and wheel events
 - **Event Chain**: Hierarchical event processing (Shortcuts → Built-in Navigation → Focused Canvas)
 
 ### Event Management
@@ -99,8 +100,24 @@ a warning Canvas is displayed instead of the actual content.
   - Modifier keys (Shift, Ctrl, Alt) with combination support
   - String representation for shortcuts ("Ctrl+S", "Shift+TAB", "F1")
   - Event consumption to prevent further processing
-- **EventHandler Interface**: Components can implement to receive events
+- **MouseEvent**: Complete mouse event handling with:
+  - Mouse buttons (LEFT, RIGHT, MIDDLE, NONE)
+  - Mouse actions (PRESS, RELEASE, CLICK, DOUBLE_CLICK, MOVE, DRAG, WHEEL_UP, WHEEL_DOWN)
+  - Mouse coordinates and modifier key support
+  - Event consumption and timing-based double-click detection
+- **EventHandler Interface**: Components can implement to receive keyboard and mouse events
 - **Shortcut Registration**: Global shortcut system with customizable key combinations
+
+### Mouse Management System
+- **MouseManager Interface**: Strategy pattern for different mouse event handling approaches
+- **DefaultMouseManager**: Canvas hierarchy integration with automatic event forwarding
+- **Mouse Event Processing**: 
+  - Canvas hit-testing to find target components at mouse coordinates
+  - Automatic focus management on mouse clicks
+  - Hover enter/leave events for visual feedback
+  - Click and double-click detection with configurable thresholds
+  - Drag and drop support with press/release tracking
+- **Terminal Mouse Reporting**: ANSI escape sequence parsing for cross-platform mouse support
 
 ### ProcessLoop Features
 - **Continuous Rendering**: Configurable FPS with performance monitoring

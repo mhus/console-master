@@ -6,7 +6,9 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,6 +29,8 @@ public class ScreenCanvas extends CompositeCanvas {
     private Canvas contentCanvas;
     private FocusManager focusManager;
     private final Map<String, Runnable> shortcuts = new HashMap<>();
+    private final List<MouseManager> mouseManagers = new ArrayList<>();
+    private boolean mouseReportingEnabled = false;
 
     /**
      * Creates a new ScreenCanvas with default minimum size requirements.
@@ -352,5 +356,85 @@ public class ScreenCanvas extends CompositeCanvas {
         if (canvas instanceof EventHandler eventHandler) {
             eventHandler.handleEvent(event);
         }
+    }
+
+    // Mouse management methods
+
+    /**
+     * Adds a mouse manager to handle mouse events.
+     *
+     * @param mouseManager the mouse manager to add
+     */
+    public void addMouseManager(MouseManager mouseManager) {
+        if (mouseManager != null && !mouseManagers.contains(mouseManager)) {
+            mouseManagers.add(mouseManager);
+            // Sort by priority (higher priority first)
+            mouseManagers.sort((m1, m2) -> Integer.compare(m2.getPriority(), m1.getPriority()));
+            mouseManager.initialize(this);
+        }
+    }
+
+    /**
+     * Removes a mouse manager.
+     *
+     * @param mouseManager the mouse manager to remove
+     */
+    public void removeMouseManager(MouseManager mouseManager) {
+        if (mouseManager != null && mouseManagers.remove(mouseManager)) {
+            mouseManager.cleanup(this);
+        }
+    }
+
+    /**
+     * Processes a mouse event through all registered mouse managers.
+     *
+     * @param mouseEvent the mouse event to process
+     */
+    public void processMouseEvent(MouseEvent mouseEvent) {
+        if (mouseEvent.isConsumed()) {
+            return;
+        }
+
+        // Process through all mouse managers in priority order
+        for (MouseManager mouseManager : mouseManagers) {
+            if (!mouseEvent.isConsumed() && mouseManager.canHandle(mouseEvent)) {
+                mouseManager.processMouseEvent(mouseEvent, this);
+            }
+        }
+    }
+
+    /**
+     * Enables mouse reporting in the terminal.
+     */
+    public void enableMouseReporting() {
+        if (!mouseReportingEnabled) {
+            mouseReportingEnabled = true;
+
+            // Add default mouse manager if none exists
+            if (mouseManagers.isEmpty()) {
+                addMouseManager(new DefaultMouseManager());
+            }
+        }
+    }
+
+    /**
+     * Disables mouse reporting in the terminal.
+     */
+    public void disableMouseReporting() {
+        if (mouseReportingEnabled) {
+            mouseReportingEnabled = false;
+
+            // Clean up all mouse managers
+            for (MouseManager mouseManager : new ArrayList<>(mouseManagers)) {
+                removeMouseManager(mouseManager);
+            }
+        }
+    }
+
+    /**
+     * Checks if mouse reporting is currently enabled.
+     */
+    public boolean isMouseReportingEnabled() {
+        return mouseReportingEnabled;
     }
 }

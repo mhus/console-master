@@ -210,6 +210,7 @@ public class ProcessLoop {
      * Processes all pending input events.
      */
     private void processInputEvents() {
+        // Process keyboard events
         while (inputHandler.hasEvents()) {
             KeyEvent keyEvent = inputHandler.pollEvent();
             if (keyEvent != null) {
@@ -217,6 +218,19 @@ public class ProcessLoop {
 
                 // Request redraw if event might have changed display
                 if (!keyEvent.isConsumed()) {
+                    requestRedraw();
+                }
+            }
+        }
+
+        // Process mouse events
+        while (inputHandler.hasMouseEvents()) {
+            MouseEvent mouseEvent = inputHandler.pollMouseEvent();
+            if (mouseEvent != null) {
+                screenCanvas.processMouseEvent(mouseEvent);
+
+                // Request redraw if event might have changed display
+                if (!mouseEvent.isConsumed()) {
                     requestRedraw();
                 }
             }
@@ -279,6 +293,29 @@ public class ProcessLoop {
 
         // Register F5 to force redraw
         screenCanvas.registerShortcut("F5", this::requestRedraw);
+    }
+
+    /**
+     * Enables mouse reporting for this process loop.
+     */
+    public void enableMouseReporting() {
+        screenCanvas.enableMouseReporting();
+        inputHandler.enableMouseReporting();
+    }
+
+    /**
+     * Disables mouse reporting for this process loop.
+     */
+    public void disableMouseReporting() {
+        inputHandler.disableMouseReporting();
+        screenCanvas.disableMouseReporting();
+    }
+
+    /**
+     * Checks if mouse reporting is enabled.
+     */
+    public boolean isMouseReportingEnabled() {
+        return screenCanvas.isMouseReportingEnabled();
     }
 
     /**
