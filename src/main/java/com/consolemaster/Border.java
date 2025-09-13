@@ -58,7 +58,7 @@ public interface Border {
     default void drawBorder(JLineGraphics graphics, int x, int y, int width, int height) {
         // Default implementation: create a legacy Graphics wrapper
         char[][] charBuffer = new char[height][width];
-        Graphics legacyGraphics = new Graphics(charBuffer, width, height);
+        LegacyGraphics legacyGraphics = new LegacyGraphics(charBuffer, width, height);
         drawBorder(legacyGraphics, 0, 0, width, height);
 
         // Copy the result to JLine graphics

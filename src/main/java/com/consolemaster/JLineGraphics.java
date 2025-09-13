@@ -6,15 +6,13 @@ import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
 /**
- * Enhanced Graphics context using JLine's AttributedString for better ANSI support.
- * Provides methods to draw text and simple graphics elements with JLine styling.
+ * Enhanced Graphics implementation using JLine's AttributedString for better ANSI support.
+ * Extends the base Graphics class with JLine-specific functionality.
  */
 @Getter
-public class JLineGraphics {
+public class JLineGraphics extends Graphics {
 
     private final AttributedString[][] buffer;
-    private final int width;
-    private final int height;
 
     // Current drawing style using JLine's AttributedStyle
     private AttributedStyle currentStyle = AttributedStyle.DEFAULT;
@@ -23,8 +21,7 @@ public class JLineGraphics {
      * Creates a JLine Graphics context.
      */
     public JLineGraphics(int width, int height) {
-        this.width = width;
-        this.height = height;
+        super(width, height);
         this.buffer = new AttributedString[height][width];
         clear();
     }
@@ -50,6 +47,40 @@ public class JLineGraphics {
         this.currentStyle = currentStyle.background(color);
     }
 
+    @Override
+    public void setForegroundColor(AnsiColor color) {
+        if (color != null) {
+            this.currentStyle = currentStyle.foreground(mapAnsiColorToJLine(color));
+        }
+    }
+
+    @Override
+    public void setBackgroundColor(AnsiColor color) {
+        if (color != null) {
+            this.currentStyle = currentStyle.background(mapAnsiColorToJLine(color));
+        }
+    }
+
+    @Override
+    public void setFormats(AnsiFormat... formats) {
+        AttributedStyle style = AttributedStyle.DEFAULT;
+        if (formats != null) {
+            for (AnsiFormat format : formats) {
+                style = switch (format) {
+                    case BOLD -> style.bold();
+                    case ITALIC -> style.italic();
+                    case UNDERLINE -> style.underline();
+                    case STRIKETHROUGH -> style.crossedOut();
+                    case DIM -> style.faint();
+                    case REVERSE -> style.inverse();
+                    case BLINK -> style.blink();
+                    default -> style; // Für unbekannte oder nicht unterstützte Formate
+                };
+            }
+        }
+        this.currentStyle = style;
+    }
+
     /**
      * Sets text to bold.
      */
@@ -71,46 +102,48 @@ public class JLineGraphics {
         this.currentStyle = underline ? currentStyle.underline() : currentStyle.underlineOff();
     }
 
-    /**
-     * Resets style to default.
-     */
+    @Override
     public void resetStyle() {
         this.currentStyle = AttributedStyle.DEFAULT;
     }
 
-    /**
-     * Draws a character at the specified position with current style.
-     */
+    @Override
+    public void clear() {
+        for (int y = 0; y < getHeight(); y++) {
+            for (int x = 0; x < getWidth(); x++) {
+                buffer[y][x] = new AttributedString(" ");
+            }
+        }
+    }
+
+    @Override
     public void drawChar(int x, int y, char c) {
         if (isValid(x, y)) {
             buffer[y][x] = new AttributedString(String.valueOf(c), currentStyle);
         }
     }
 
-    /**
-     * Draws a string starting at the specified position with current style.
-     */
+    @Override
     public void drawString(int x, int y, String text) {
-        if (text == null || y < 0 || y >= height) {
+        if (text == null || y < 0 || y >= getHeight()) {
             return;
         }
 
-        for (int i = 0; i < text.length() && x + i < width; i++) {
+        for (int i = 0; i < text.length() && x + i < getWidth(); i++) {
             if (x + i >= 0) {
                 buffer[y][x + i] = new AttributedString(String.valueOf(text.charAt(i)), currentStyle);
             }
         }
     }
 
-    /**
-     * Draws a string with explicit style.
-     */
-    public void drawStyledString(int x, int y, String text, AttributedStyle style) {
-        if (text == null || y < 0 || y >= height) {
+    @Override
+    public void drawStyledString(int x, int y, String text, AnsiColor foregroundColor, AnsiColor backgroundColor, AnsiFormat... formats) {
+        if (text == null || y < 0 || y >= getHeight()) {
             return;
         }
 
-        for (int i = 0; i < text.length() && x + i < width; i++) {
+        AttributedStyle style = createStyle(foregroundColor, backgroundColor, formats);
+        for (int i = 0; i < text.length() && x + i < getWidth(); i++) {
             if (x + i >= 0) {
                 buffer[y][x + i] = new AttributedString(String.valueOf(text.charAt(i)), style);
             }
@@ -118,89 +151,56 @@ public class JLineGraphics {
     }
 
     /**
-     * Draws a horizontal line with current style.
+     * Draws a string with explicit JLine style.
      */
-    public void drawHorizontalLine(int x1, int x2, int y, char c) {
-        if (y < 0 || y >= height) {
+    public void drawStyledString(int x, int y, String text, AttributedStyle style) {
+        if (text == null || y < 0 || y >= getHeight()) {
             return;
         }
 
-        int startX = Math.max(0, Math.min(x1, x2));
-        int endX = Math.min(width - 1, Math.max(x1, x2));
-
-        for (int x = startX; x <= endX; x++) {
-            buffer[y][x] = new AttributedString(String.valueOf(c), currentStyle);
-        }
-    }
-
-    /**
-     * Draws a vertical line with current style.
-     */
-    public void drawVerticalLine(int x, int y1, int y2, char c) {
-        if (x < 0 || x >= width) {
-            return;
-        }
-
-        int startY = Math.max(0, Math.min(y1, y2));
-        int endY = Math.min(height - 1, Math.max(y1, y2));
-
-        for (int y = startY; y <= endY; y++) {
-            buffer[y][x] = new AttributedString(String.valueOf(c), currentStyle);
-        }
-    }
-
-    /**
-     * Draws a rectangle outline with current style.
-     */
-    public void drawRect(int x, int y, int width, int height, char c) {
-        // Top and bottom borders
-        drawHorizontalLine(x, x + width - 1, y, c);
-        drawHorizontalLine(x, x + width - 1, y + height - 1, c);
-
-        // Left and right borders
-        drawVerticalLine(x, y, y + height - 1, c);
-        drawVerticalLine(x + width - 1, y, y + height - 1, c);
-    }
-
-    /**
-     * Fills a rectangular area with the specified character and current style.
-     */
-    public void fillRect(int x, int y, int width, int height, char c) {
-        for (int row = y; row < y + height && row < this.height; row++) {
-            if (row >= 0) {
-                for (int col = x; col < x + width && col < this.width; col++) {
-                    if (col >= 0) {
-                        buffer[row][col] = new AttributedString(String.valueOf(c), currentStyle);
-                    }
-                }
+        for (int i = 0; i < text.length() && x + i < getWidth(); i++) {
+            if (x + i >= 0) {
+                buffer[y][x + i] = new AttributedString(String.valueOf(text.charAt(i)), style);
             }
         }
     }
 
     /**
-     * Clears the entire graphics buffer with spaces.
+     * Gets an AttributedString at the specified position.
      */
-    public void clear() {
-        AttributedString space = new AttributedString(" ", AttributedStyle.DEFAULT);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                buffer[y][x] = space;
-            }
+    public AttributedString getAttributedString(int x, int y) {
+        if (isValid(x, y)) {
+            return buffer[y][x];
+        }
+        return null;
+    }
+
+    /**
+     * Sets an AttributedString at the specified position.
+     */
+    public void setAttributedString(int x, int y, AttributedString attributedString) {
+        if (isValid(x, y)) {
+            buffer[y][x] = attributedString;
         }
     }
 
     /**
-     * Converts the buffer to JLine's AttributedString for efficient terminal output.
+     * Converts the graphics buffer to a single AttributedString for terminal output.
      */
     public AttributedString toAttributedString() {
         AttributedStringBuilder builder = new AttributedStringBuilder();
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                builder.append(buffer[y][x]);
+        for (int y = 0; y < getHeight(); y++) {
+            for (int x = 0; x < getWidth(); x++) {
+                AttributedString str = buffer[y][x];
+                if (str != null) {
+                    builder.append(str);
+                } else {
+                    builder.append(" ");
+                }
             }
-            if (y < height - 1) {
-                builder.append('\n');
+            if (y < getHeight() - 1) {
+                builder.append("\n");
             }
         }
 
@@ -208,17 +208,59 @@ public class JLineGraphics {
     }
 
     /**
-     * Converts the buffer to a plain string (for compatibility).
+     * Creates an AttributedStyle from AnsiColor and AnsiFormat parameters.
      */
-    @Override
-    public String toString() {
-        return toAttributedString().toString();
+    private AttributedStyle createStyle(AnsiColor foregroundColor, AnsiColor backgroundColor, AnsiFormat... formats) {
+        AttributedStyle style = AttributedStyle.DEFAULT;
+
+        if (foregroundColor != null) {
+            style = style.foreground(mapAnsiColorToJLine(foregroundColor));
+        }
+
+        if (backgroundColor != null) {
+            style = style.background(mapAnsiColorToJLine(backgroundColor));
+        }
+
+        if (formats != null) {
+            for (AnsiFormat format : formats) {
+                style = switch (format) {
+                    case BOLD -> style.bold();
+                    case ITALIC -> style.italic();
+                    case UNDERLINE -> style.underline();
+                    case STRIKETHROUGH -> style.crossedOut();
+                    case DIM -> style.faint();
+                    case REVERSE -> style.inverse();
+                    case BLINK -> style.blink();
+                    default -> style; // Für unbekannte oder nicht unterstützte Formate
+                };
+            }
+        }
+
+        return style;
     }
 
     /**
-     * Checks if the given coordinates are valid within the buffer.
+     * Maps AnsiColor to JLine color constants.
      */
-    private boolean isValid(int x, int y) {
-        return x >= 0 && x < width && y >= 0 && y < height;
+    private int mapAnsiColorToJLine(AnsiColor color) {
+        return switch (color) {
+            case BLACK -> AttributedStyle.BLACK;
+            case RED -> AttributedStyle.RED;
+            case GREEN -> AttributedStyle.GREEN;
+            case YELLOW -> AttributedStyle.YELLOW;
+            case BLUE -> AttributedStyle.BLUE;
+            case MAGENTA -> AttributedStyle.MAGENTA;
+            case CYAN -> AttributedStyle.CYAN;
+            case WHITE -> AttributedStyle.WHITE;
+            case BRIGHT_BLACK -> AttributedStyle.BRIGHT + AttributedStyle.BLACK;
+            case BRIGHT_RED -> AttributedStyle.BRIGHT + AttributedStyle.RED;
+            case BRIGHT_GREEN -> AttributedStyle.BRIGHT + AttributedStyle.GREEN;
+            case BRIGHT_YELLOW -> AttributedStyle.BRIGHT + AttributedStyle.YELLOW;
+            case BRIGHT_BLUE -> AttributedStyle.BRIGHT + AttributedStyle.BLUE;
+            case BRIGHT_MAGENTA -> AttributedStyle.BRIGHT + AttributedStyle.MAGENTA;
+            case BRIGHT_CYAN -> AttributedStyle.BRIGHT + AttributedStyle.CYAN;
+            case BRIGHT_WHITE -> AttributedStyle.BRIGHT + AttributedStyle.WHITE;
+            default -> AttributedStyle.WHITE;
+        };
     }
 }

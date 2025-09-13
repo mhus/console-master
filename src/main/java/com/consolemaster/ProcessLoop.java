@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Main process loop class that handles continuous rendering and non-blocking input processing.
  * Provides a complete processing loop with configurable frame rate and automatic event handling.
+ * Includes output capture functionality to redirect stdout and stderr.
  */
 @Getter
 @Setter
@@ -18,6 +19,10 @@ public class ProcessLoop {
     private final InputHandler inputHandler;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean needsRedraw = new AtomicBoolean(true);
+
+    // Output capture
+    private final OutputCapture outputCapture = new OutputCapture();
+    private boolean captureOutput = false;
 
     // Performance settings
     private int targetFPS = 30;
@@ -108,11 +113,21 @@ public class ProcessLoop {
      */
     public void stop() {
         if (running.compareAndSet(true, false)) {
+            // Stop output capture if it's enabled
+            if (captureOutput) {
+                outputCapture.stopCapture();
+            }
+
             inputHandler.stop();
             try {
                 screenCanvas.close();
             } catch (IOException e) {
-                System.err.println("Error closing screen canvas: " + e.getMessage());
+                // Use original error stream since we might have stopped capture
+                if (captureOutput && outputCapture.isCapturing()) {
+                    outputCapture.writeToOriginalErr("Error closing screen canvas: " + e.getMessage() + "\n");
+                } else {
+                    System.err.println("Error closing screen canvas: " + e.getMessage());
+                }
             }
         }
     }
@@ -293,6 +308,54 @@ public class ProcessLoop {
 
         // Register F5 to force redraw
         screenCanvas.registerShortcut("F5", this::requestRedraw);
+    }
+
+    /**
+     * Enables or disables output capture.
+     *
+     * @param capture true to enable output capture, false to disable
+     */
+    public void setCaptureOutput(boolean capture) {
+        this.captureOutput = capture;
+        if (capture) {
+            outputCapture.startCapture();
+        } else {
+            outputCapture.stopCapture();
+        }
+    }
+
+    /**
+     * Checks if output capture is enabled.
+     */
+    public boolean isOutputCaptureEnabled() {
+        return captureOutput;
+    }
+
+    /**
+     * Gets the output capture instance.
+     */
+    public OutputCapture getOutputCapture() {
+        return outputCapture;
+    }
+
+    /**
+     * Clears all captured output.
+     */
+    public void clearCapturedOutput() {
+        outputCapture.clear();
+    }
+
+    /**
+     * Creates a ConsoleOutput canvas that displays the captured output.
+     *
+     * @param x the x position
+     * @param y the y position
+     * @param width the width
+     * @param height the height
+     * @return a new ConsoleOutput canvas
+     */
+    public ConsoleOutput createConsoleOutputCanvas(int x, int y, int width, int height) {
+        return new ConsoleOutput(x, y, width, height, outputCapture);
     }
 
     /**

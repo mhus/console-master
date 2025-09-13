@@ -56,6 +56,73 @@ a warning Canvas is displayed instead of the actual content.
   - **ScreenCanvas.pack()**: Updates screen requirements based on content
 - **Dynamic Sizing**: Layouts and components automatically adapt to content requirements
 
+### Graphics and Rendering (Refactored Architecture)
+- **Graphics (Abstract Base Class)**: Unified abstract base class for all graphics contexts
+  - Common interface for `drawChar()`, `drawString()`, `drawStyledString()`, `clear()`, etc.
+  - Shared utility methods: `drawHorizontalLine()`, `drawVerticalLine()`, `drawRect()`, `fillRect()`
+  - Abstract methods for styling: `setForegroundColor()`, `setBackgroundColor()`, `setFormats()`
+- **JLineGraphics (extends Graphics)**: Enhanced graphics implementation using JLine's AttributedString
+  - Superior ANSI support with AttributedStyle for rich text formatting
+  - Polymorphic compatibility with base Graphics interface
+  - Additional JLine-specific methods: `setStyle(AttributedStyle)`, `toAttributedString()`
+  - Automatic AnsiColor to JLine color mapping
+- **LegacyGraphics (extends Graphics)**: Backward-compatible implementation using StyledChar buffer
+  - Maintains compatibility with existing char[][] based code
+  - StyledChar buffer for color and formatting information
+  - Legacy support methods: `toCharArray()`, `getStyledChar()`, `setStyledChar()`
+- **Polymorphic Design**: Single `paint(Graphics graphics)` method works with both implementations
+- **AnsiColor**: Enum for ANSI foreground/background colors (standard + bright variants)
+- **AnsiFormat**: Enum for ANSI text formatting (bold, italic, underline, strikethrough, dim, reverse, blink)
+
+### Output Capture System
+- **OutputCapture**: Thread-safe stdout/stderr stream redirection system
+  - Redirects `System.out` and `System.err` to internal buffers during ProcessLoop execution
+  - Configurable line limits with automatic trimming (default: 1000 lines per stream)
+  - Thread-safe access using `CopyOnWriteArrayList` and `ReadWriteLock`
+  - Preserves access to original streams for emergency output
+  - Automatic line processing with proper \n/\r handling
+- **ConsoleOutput Canvas**: Specialized canvas for displaying captured console output
+  - Multiple display modes: STDOUT_ONLY, STDERR_ONLY, BOTH (interleaved), SEPARATED
+  - Configurable styling: colors, prefixes, line numbers
+  - Scroll functionality: auto-scroll or manual scrolling with scroll indicators
+  - Real-time display updates of captured output
+- **ProcessLoop Integration**: Built-in output capture management
+  - `setCaptureOutput(true)` enables stream redirection
+  - `createConsoleOutputCanvas()` convenience method for output display
+  - `clearCapturedOutput()` for runtime output clearing
+  - Automatic cleanup on ProcessLoop termination
+
+### Enhanced Canvas System
+- **Unified Paint Method**: Single `paint(Graphics graphics)` method for all components
+  - Polymorphic design eliminates need for separate JLine implementations
+  - Automatic delegation: `paint(JLineGraphics)` calls `paint((Graphics)graphics)`
+  - Simplified component development with reduced code duplication
+- **Legacy Compatibility**: `paintLegacy(char[][])` method for backward compatibility
+- **Border System Enhancement**: Updated to work with new Graphics hierarchy
+  - Automatic LegacyGraphics wrapper creation for legacy border implementations
+  - Seamless integration with both Graphics implementations
+
+### Focus Management System
+- **Focus Support**: Canvas components can receive and manage focus
+- **FocusManager**: Central focus management for ScreenCanvas with automatic traversal
+- **Focus Navigation**: 
+  - `focusNext()` - Navigate to next focusable component (TAB functionality)
+  - `focusPrevious()` - Navigate to previous focusable component (SHIFT+TAB functionality)
+  - `focusFirst()` / `focusLast()` - Jump to first/last focusable component
+- **Focus Events**: `onFocusChanged(boolean)` callback for visual feedback
+- **Focus Properties**: 
+  - `canFocus` flag to enable/disable focus capability
+  - `hasFocus` flag indicating current focus state
+- **Automatic Discovery**: Recursive detection of focusable components in canvas tree
+
+### Size Management and Pack System
+- **Canvas Constraints**: minWidth/maxWidth and minHeight/maxHeight with automatic validation
+- **Pack System**: `pack()` method for automatic size calculation
+  - **Canvas.pack()**: Base implementation (no-op, overrideable)
+  - **CompositeCanvas.pack()**: Calculates minimum size based on children
+  - **ScreenCanvas.pack()**: Updates screen requirements based on content
+- **Dynamic Sizing**: Layouts and components automatically adapt to content requirements
+
 ### Graphics and Rendering
 - **Graphics**: Legacy graphics context using char[][] buffer
 - **JLineGraphics**: Enhanced graphics context using JLine's AttributedString for ANSI support
@@ -135,235 +202,99 @@ a warning Canvas is displayed instead of the actual content.
 - **BoxDemo**: Border and Box component showcase
 - **FocusDemo**: Focus management system demonstration with interactive components
 - **ProcessLoopDemo**: Interactive ProcessLoop system demonstration with real-time updates
+- **OutputCaptureDemo**: Output capture system demonstration with stdout/stderr redirection
 
-### Testing
-- 40+ unit tests covering all major components
-- Canvas size constraints and layout constraint integration
-- Layout system functionality
-- Mock-based testing for complex interactions
+### Modern Graphics Development (Updated)
+When creating new components, use the unified Graphics approach:
 
-### Key Design Patterns
-- Strategy Pattern: Layout and Border interfaces
-- Composite Pattern: CompositeCanvas containing children
-- Template Method: Canvas paint() methods with Graphics/JLineGraphics variants
-- Builder Pattern: Various constraint creation methods
-- Observer Pattern: Focus change notifications
-
-### Modern Component Development
-When creating new components, prefer the modern approach:
-
-#### Text Component Usage
+#### Unified Paint Method Implementation
 ```java
-// Modern Text component with styling
-Text styledText = new Text(0, 0, width, height, "Content", Text.Alignment.CENTER);
-styledText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
-styledText.setBold(true);
-styledText.setBackgroundColor(AnsiColor.BLUE);
-```
-
-#### Box Component with Focus
-```java
-// Box with focus capability and visual feedback
-Box focusableBox = new Box(x, y, width, height, new SimpleBorder()) {
+// Modern component development - single paint method works for all Graphics types
+public class ModernComponent extends Canvas {
     @Override
-    protected void onFocusChanged(boolean focused) {
-        super.onFocusChanged(focused);
-        Text content = (Text) getChild();
-        if (content != null) {
-            if (focused) {
-                content.setBackgroundColor(AnsiColor.BLUE);
-                content.setForegroundColor(AnsiColor.BRIGHT_WHITE);
-            } else {
-                content.setBackgroundColor(null);
-                content.setForegroundColor(AnsiColor.WHITE);
-            }
-        }
+    public void paint(Graphics graphics) {
+        // This method works with both JLineGraphics and LegacyGraphics
+        graphics.clear();
+        graphics.setForegroundColor(AnsiColor.BRIGHT_CYAN);
+        graphics.drawStyledString(0, 0, "Modern Component", AnsiColor.CYAN, null, AnsiFormat.BOLD);
+        graphics.drawRect(0, 0, getWidth(), getHeight(), '#');
     }
-};
-focusableBox.setCanFocus(true);
+    
+    // No need for separate paint(JLineGraphics) implementation!
+    // The framework automatically handles polymorphic dispatch
+}
 ```
 
-#### Layout Integration
+#### Output Capture Integration
 ```java
-// BorderLayout with modern components
-CompositeCanvas main = new CompositeCanvas(0, 0, width, height, new BorderLayout(1));
-
-// Header
-Box header = new Box(0, 0, 0, 3, new SimpleBorder());
-header.setChild(new Text(0, 0, 0, 0, "Header", Text.Alignment.CENTER));
-header.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
-
-// Content with FlowLayout
-CompositeCanvas content = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
-content.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
-
-main.addChild(header);
-main.addChild(content);
-```
-
-#### Focus Management Integration
-```java
-// Setup focus management
-ScreenCanvas screen = new ScreenCanvas(80, 25);
-screen.setContentCanvas(mainContent);
-
-// Focus navigation
-screen.focusFirst();        // Set initial focus
-screen.focusNext();         // TAB functionality
-screen.focusPrevious();     // SHIFT+TAB functionality
-
-// Automatic size calculation
-screen.pack();              // Recalculate minimum sizes
-```
-
-#### ProcessLoop Integration
-```java
-// ProcessLoop setup with event handling and continuous rendering
-ScreenCanvas screen = new ScreenCanvas(80, 25);
+// ProcessLoop with output capture for debugging and logging visualization
 ProcessLoop processLoop = new ProcessLoop(screen);
-processLoop.setTargetFPS(60);
+processLoop.setCaptureOutput(true); // Enable stdout/stderr capture
 
-// Register custom shortcuts
-screen.registerShortcut("Ctrl+S", () -> saveGame());
-screen.registerShortcut("F1", () -> showHelp());
-screen.registerShortcut("SPACE", () -> performAction());
+// Create split-screen layout with console output display
+CompositeCanvas main = new CompositeCanvas(0, 0, 100, 30, new BorderLayout(1));
 
-// Update callback for continuous logic updates
-processLoop.setUpdateCallback(() -> {
-    updateGameState();
-    updateAnimations();
-});
+// Application content on the left
+CompositeCanvas appContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
+appContent.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_LEFT));
 
-// Render callback for custom rendering
-processLoop.setRenderCallback(() -> {
-    drawCustomOverlays();
-});
+// Console output display on the right
+ConsoleOutput consoleOutput = processLoop.createConsoleOutputCanvas(0, 0, 40, 0);
+consoleOutput.setDisplayMode(ConsoleOutput.DisplayMode.BOTH);
+consoleOutput.setShowLineNumbers(true);
+consoleOutput.setStdoutColor(AnsiColor.GREEN);
+consoleOutput.setStderrColor(AnsiColor.BRIGHT_RED);
 
-// Start the process loop (blocks until stopped)
-processLoop.start();
+Box outputBox = new Box(0, 0, 0, 0, new SimpleBorder());
+outputBox.setChild(consoleOutput);
+outputBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_RIGHT));
+
+main.addChild(appContent);
+main.addChild(outputBox);
+
+// Now all System.out.println() and System.err.println() calls are captured and displayed
+System.out.println("This appears in the console output display!");
+System.err.println("Errors are shown in red!");
+
+// Interactive control shortcuts
+screen.registerShortcut("c", processLoop::clearCapturedOutput);
+screen.registerShortcut("1", () -> consoleOutput.setDisplayMode(ConsoleOutput.DisplayMode.STDOUT_ONLY));
+screen.registerShortcut("2", () -> consoleOutput.setDisplayMode(ConsoleOutput.DisplayMode.STDERR_ONLY));
+screen.registerShortcut("3", () -> consoleOutput.setDisplayMode(ConsoleOutput.DisplayMode.BOTH));
+screen.registerShortcut("4", () -> consoleOutput.setDisplayMode(ConsoleOutput.DisplayMode.SEPARATED));
 ```
 
-### Event-Driven Component Development
+#### Advanced Graphics Usage
 ```java
-// Component with custom event handling
-Box interactiveBox = new Box(x, y, width, height, new SimpleBorder()) {
+// Leveraging the new Graphics hierarchy for maximum compatibility
+public class AdvancedComponent extends Canvas {
     @Override
-    protected void onFocusChanged(boolean focused) {
-        super.onFocusChanged(focused);
-        updateVisualState(focused);
-    }
-} implements EventHandler {
-    @Override
-    public void handleEvent(Event event) {
-        if (event instanceof KeyEvent keyEvent) {
-            if (keyEvent.isSpecialKey() && 
-                keyEvent.getSpecialKey() == KeyEvent.SpecialKey.ENTER) {
-                performAction();
-                keyEvent.consume(); // Prevent further processing
-            }
+    public void paint(Graphics graphics) {
+        graphics.clear();
+        
+        // Basic drawing operations work with any Graphics implementation
+        graphics.drawString(0, 0, "Basic Text");
+        graphics.fillRect(0, 2, getWidth(), 3, '=');
+        
+        // Styled text with automatic color mapping
+        graphics.drawStyledString(0, 6, "Styled Text", 
+            AnsiColor.BRIGHT_YELLOW, AnsiColor.BLUE, AnsiFormat.BOLD, AnsiFormat.UNDERLINE);
+        
+        // Use JLine-specific features when available
+        if (graphics instanceof JLineGraphics jlineGraphics) {
+            // Advanced JLine styling
+            AttributedStyle customStyle = AttributedStyle.DEFAULT
+                .foreground(AttributedStyle.CYAN)
+                .background(AttributedStyle.BLACK)
+                .bold();
+            jlineGraphics.drawStyledString(0, 8, "JLine Enhanced", customStyle);
         }
+        
+        // Complex shapes using utility methods
+        graphics.drawRectangle(2, 10, 20, 5, '*');
+        graphics.drawHorizontalLine(0, getWidth()-1, 16, '-');
+        graphics.drawVerticalLine(10, 0, getHeight()-1, '|');
     }
-};
-interactiveBox.setCanFocus(true);
+}
 ```
 
-#### Keyboard Event Processing
-```java
-// Custom keyboard event handling
-screen.registerShortcut("Ctrl+Q", processLoop::stop);
-screen.registerShortcut("Shift+TAB", () -> screen.focusPrevious());
-screen.registerShortcut("F5", () -> processLoop.requestRedraw());
-
-// KeyEvent properties and methods
-KeyEvent keyEvent = // ... received from input
-String keyString = keyEvent.getKeyString(); // "Ctrl+S", "TAB", "F1"
-boolean hasModifier = keyEvent.hasModifier(KeyEvent.Modifier.CTRL);
-boolean isSpecial = keyEvent.isSpecialKey();
-boolean isChar = keyEvent.isCharacter();
-```
-
-### ProcessLoop Lifecycle Management
-```java
-// Synchronous ProcessLoop (blocks current thread)
-ProcessLoop processLoop = new ProcessLoop(screen);
-processLoop.start(); // Blocks until stopped
-
-// Asynchronous ProcessLoop (runs in separate thread)
-Thread processThread = processLoop.startAsync();
-// ... do other work
-processLoop.stop(); // Stop the loop
-processThread.join(); // Wait for cleanup
-
-// Convenience methods
-ProcessLoop processLoop = ProcessLoop.createAndStart(screen, updateCallback);
-ProcessLoop asyncLoop = ProcessLoop.createAndStartAsync(screen, updateCallback);
-```
-
-### Advanced Event System Features
-```java
-// Event consumption chain
-screen.processKeyEvent(keyEvent); // Processes through:
-// 1. Registered shortcuts (screen.registerShortcut())
-// 2. Built-in navigation (TAB/SHIFT+TAB for focus)
-// 3. Focused canvas event handler (EventHandler.handleEvent())
-
-// Global event monitoring
-processLoop.setUpdateCallback(() -> {
-    // Check for custom conditions
-    if (shouldShowNotification()) {
-        processLoop.requestRedraw();
-    }
-});
-
-// Performance monitoring
-int currentFPS = processLoop.getCurrentFPS();
-long totalFrames = processLoop.getFrameCount();
-boolean isRunning = processLoop.isRunning();
-```
-
-### Terminal and Display Management
-```java
-// Automatic terminal size handling
-processLoop.checkTerminalSizeChange(); // Built-in, called automatically
-screen.updateSize(); // Updates canvas dimensions
-screen.pack(); // Recalculates layout requirements
-
-// Manual redraw requests
-processLoop.requestRedraw(); // Forces render on next frame
-processLoop.setTargetFPS(30); // Adjusts rendering frequency
-processLoop.setLimitFrameRate(false); // Unlimited rendering
-```
-
-### Best Practices
-- Use modern Text component instead of legacy TextCanvas
-- Implement focus support for interactive components
-- Use pack() after content changes for optimal sizing
-- Combine BorderLayout and FlowLayout for complex layouts
-- Provide visual feedback for focus changes
-- Use PositionConstraint for layout positioning
-- Leverage automatic canvas discovery for focus management
-- **Use ProcessLoop for interactive applications requiring continuous updates**
-- **Implement EventHandler interface for components needing keyboard input**
-- **Register global shortcuts at the ScreenCanvas level for application-wide commands**
-- **Use event consumption to control event propagation through the component hierarchy**
-- **Monitor performance metrics for optimization in complex applications**
-
-### Production-Ready Features
-The framework is production-ready for console-based development with:
-- **Interactive Console Games**: Real-time input, continuous rendering, focus management
-- **Terminal User Interfaces (TUI)**: Professional UI components with keyboard navigation
-- **Development Tools**: Interactive dashboards, file browsers, text editors
-- **System Monitoring Applications**: Real-time data display with user interaction
-- **Educational Software**: Interactive tutorials and learning applications
-
-### Framework Architecture Summary
-The Console Master framework provides a complete solution for modern console application development:
-- **Component-Based Architecture**: Modular canvas system with hierarchical composition
-- **Event-Driven Design**: Complete keyboard input processing with customizable shortcuts
-- **Real-Time Rendering**: Continuous display updates with performance optimization
-- **Focus Management**: Professional keyboard navigation with visual feedback
-- **Layout System**: Automatic component arrangement with flexible constraints
-- **Modern Styling**: ANSI color support with rich text formatting
-- **Cross-Platform**: JLine integration for terminal compatibility
-
-The framework is production-ready for console-based game development and interactive UI applications with full focus management, automatic sizing capabilities, and professional-grade event processing.

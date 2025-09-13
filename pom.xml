@@ -56,7 +56,21 @@
             <artifactId>jline-style</artifactId>
             <version>${jline.version}</version>
         </dependency>
+        <!-- For JNI support (recommended for Java < 22) -->
+        <dependency>
+            <groupId>org.jline</groupId>
+            <artifactId>jline-terminal-jni</artifactId>
+            <version>3.30.6</version>
+        </dependency>
 
+        <!-- For FFM support (recommended for Java 22+) -->
+        <!--
+        <dependency>
+            <groupId>org.jline</groupId>
+            <artifactId>jline-terminal-ffm</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        -->
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

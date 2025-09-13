@@ -1,0 +1,222 @@
+package com.consolemaster;
+
+import java.io.IOException;
+
+/**
+ * Demo application showcasing the ScrollerCanvas functionality.
+ * Creates a large content area within a smaller viewport with scrolling capabilities.
+ */
+public class ScrollerDemo {
+
+    public static void main(String[] args) throws IOException {
+        new ScrollerDemo().run();
+    }
+
+    public void run() throws IOException {
+        // Create main screen
+        ScreenCanvas screen = new ScreenCanvas(80, 25);
+
+        // Create main layout
+        CompositeCanvas mainContainer = new CompositeCanvas(0, 0, 80, 25, new BorderLayout(1));
+
+        // Create header
+        Box headerBox = new Box(0, 0, 0, 3, new SimpleBorder());
+        Text headerText = new Text(0, 0, 0, 0,
+            "ScrollerCanvas Demo - Use Arrow Keys, Page Up/Down, Mouse Wheel, Click Scrollbars",
+            Text.Alignment.CENTER);
+        headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
+        headerText.setBold(true);
+        headerBox.setChild(headerText);
+        headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
+
+        // Create footer with instructions
+        Box footerBox = new Box(0, 0, 0, 4, new SimpleBorder());
+        CompositeCanvas footerContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(0, 0));
+
+        String[] instructions = {
+            "Controls: ← → ↑ ↓ (scroll)  |  Page Up/Down (page scroll)  |  Home/End (horizontal)",
+            "Mouse: Wheel (vertical)  |  Shift+Wheel (horizontal)  |  Click scrollbars (jump)",
+            "Shortcuts: Ctrl+Home (top-left)  |  Ctrl+End (bottom-right)  |  ESC (exit)"
+        };
+
+        for (String instruction : instructions) {
+            Text instructionText = new Text(0, 0, 0, 1, instruction, Text.Alignment.CENTER);
+            instructionText.setForegroundColor(AnsiColor.YELLOW);
+            footerContent.addChild(instructionText);
+        }
+
+        footerBox.setChild(footerContent);
+        footerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
+
+        // Create large content canvas (much larger than viewport)
+        CompositeCanvas largeContent = createLargeContent();
+
+        // Create scroller canvas with smaller viewport
+        ScrollerCanvas scroller = new ScrollerCanvas(0, 0, 60, 15, largeContent);
+        scroller.setScrollEnabled(true, true); // Enable both horizontal and vertical scrolling
+        scroller.setScrollStep(2, 1); // Customize scroll steps
+        scroller.setMouseScrollStep(3, 2); // Customize mouse scroll steps
+        scroller.setScrollbarsVisible(true, true); // Show both scrollbars
+
+        // Wrap scroller in a box for visual distinction
+        Box scrollerBox = new Box(0, 0, 0, 0, new SimpleBorder());
+        scrollerBox.setChild(scroller);
+        scrollerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
+
+        // Add all components
+        mainContainer.addChild(headerBox);
+        mainContainer.addChild(scrollerBox);
+        mainContainer.addChild(footerBox);
+
+        // Set up screen
+        screen.setContentCanvas(mainContainer);
+        screen.pack();
+
+        // Create process loop
+        ProcessLoop processLoop = new ProcessLoop(screen);
+        processLoop.setTargetFPS(30);
+
+        // Register shortcuts
+        screen.registerShortcut("ESC", processLoop::stop);
+        screen.registerShortcut("Ctrl+Q", processLoop::stop);
+
+        // Set initial focus on scroller
+        scroller.setCanFocus(true);
+        screen.setContentCanvas(mainContainer);
+        screen.focusFirst();
+
+        // Start the demo
+        processLoop.start();
+    }
+
+    /**
+     * Creates a large content canvas that's bigger than the viewport.
+     */
+    private CompositeCanvas createLargeContent() {
+        // Create a 120x40 content area (larger than 60x15 viewport)
+        CompositeCanvas content = new CompositeCanvas(0, 0, 120, 40, NoLayout.INSTANCE);
+
+        // Add grid pattern for visual reference
+        for (int y = 0; y < 40; y += 2) {
+            for (int x = 0; x < 120; x += 10) {
+                Text gridText = new Text(x, y, 8, 1,
+                    String.format("(%d,%d)", x, y), Text.Alignment.LEFT);
+                gridText.setForegroundColor(AnsiColor.BRIGHT_BLACK);
+                content.addChild(gridText);
+            }
+        }
+
+        // Add some colored content areas
+        addColoredArea(content, 10, 5, 20, 8, "Red Area", AnsiColor.RED, AnsiColor.WHITE);
+        addColoredArea(content, 40, 10, 25, 6, "Blue Area", AnsiColor.BLUE, AnsiColor.BRIGHT_WHITE);
+        addColoredArea(content, 70, 15, 30, 10, "Green Area", AnsiColor.GREEN, AnsiColor.BLACK);
+        addColoredArea(content, 20, 25, 35, 8, "Yellow Area", AnsiColor.YELLOW, AnsiColor.BLACK);
+        addColoredArea(content, 80, 30, 25, 6, "Magenta Area", AnsiColor.MAGENTA, AnsiColor.WHITE);
+
+        // Add border around entire content
+        addBorderArea(content, 0, 0, 120, 40, "Large Content Border", AnsiColor.CYAN);
+
+        // Add special markers at corners
+        addCornerMarker(content, 0, 0, "TOP-LEFT", AnsiColor.BRIGHT_RED);
+        addCornerMarker(content, 110, 0, "TOP-RIGHT", AnsiColor.BRIGHT_GREEN);
+        addCornerMarker(content, 0, 35, "BOTTOM-LEFT", AnsiColor.BRIGHT_BLUE);
+        addCornerMarker(content, 105, 35, "BOTTOM-RIGHT", AnsiColor.BRIGHT_YELLOW);
+
+        // Add center marker
+        addCornerMarker(content, 55, 18, "CENTER", AnsiColor.BRIGHT_MAGENTA);
+
+        return content;
+    }
+
+    /**
+     * Adds a colored rectangular area to the content.
+     */
+    private void addColoredArea(CompositeCanvas content, int x, int y, int width, int height,
+                               String title, AnsiColor bgColor, AnsiColor fgColor) {
+        for (int dy = 0; dy < height; dy++) {
+            for (int dx = 0; dx < width; dx++) {
+                Text colorText = new Text(x + dx, y + dy, 1, 1,
+                    (dx == 0 || dx == width-1 || dy == 0 || dy == height-1) ? "█" : " ",
+                    Text.Alignment.CENTER);
+                colorText.setBackgroundColor(bgColor);
+                colorText.setForegroundColor(fgColor);
+                content.addChild(colorText);
+            }
+        }
+
+        // Add title in the center
+        if (title != null && width > title.length() && height > 2) {
+            Text titleText = new Text(x + (width - title.length()) / 2, y + height / 2,
+                title.length(), 1, title, Text.Alignment.CENTER);
+            titleText.setBackgroundColor(bgColor);
+            titleText.setForegroundColor(fgColor);
+            titleText.setBold(true);
+            content.addChild(titleText);
+        }
+    }
+
+    /**
+     * Adds a border around the entire content area.
+     */
+    private void addBorderArea(CompositeCanvas content, int x, int y, int width, int height,
+                              String title, AnsiColor color) {
+        // Top and bottom borders
+        for (int dx = 0; dx < width; dx++) {
+            Text topBorder = new Text(x + dx, y, 1, 1, "═", Text.Alignment.CENTER);
+            topBorder.setForegroundColor(color);
+            content.addChild(topBorder);
+
+            Text bottomBorder = new Text(x + dx, y + height - 1, 1, 1, "═", Text.Alignment.CENTER);
+            bottomBorder.setForegroundColor(color);
+            content.addChild(bottomBorder);
+        }
+
+        // Left and right borders
+        for (int dy = 1; dy < height - 1; dy++) {
+            Text leftBorder = new Text(x, y + dy, 1, 1, "║", Text.Alignment.CENTER);
+            leftBorder.setForegroundColor(color);
+            content.addChild(leftBorder);
+
+            Text rightBorder = new Text(x + width - 1, y + dy, 1, 1, "║", Text.Alignment.CENTER);
+            rightBorder.setForegroundColor(color);
+            content.addChild(rightBorder);
+        }
+
+        // Corners
+        Text topLeft = new Text(x, y, 1, 1, "╔", Text.Alignment.CENTER);
+        topLeft.setForegroundColor(color);
+        content.addChild(topLeft);
+
+        Text topRight = new Text(x + width - 1, y, 1, 1, "╗", Text.Alignment.CENTER);
+        topRight.setForegroundColor(color);
+        content.addChild(topRight);
+
+        Text bottomLeft = new Text(x, y + height - 1, 1, 1, "��", Text.Alignment.CENTER);
+        bottomLeft.setForegroundColor(color);
+        content.addChild(bottomLeft);
+
+        Text bottomRight = new Text(x + width - 1, y + height - 1, 1, 1, "╝", Text.Alignment.CENTER);
+        bottomRight.setForegroundColor(color);
+        content.addChild(bottomRight);
+
+        // Add title at top center
+        if (title != null && width > title.length() + 4) {
+            Text titleText = new Text(x + (width - title.length()) / 2, y,
+                title.length(), 1, title, Text.Alignment.CENTER);
+            titleText.setForegroundColor(color);
+            titleText.setBold(true);
+            content.addChild(titleText);
+        }
+    }
+
+    /**
+     * Adds a corner marker with text.
+     */
+    private void addCornerMarker(CompositeCanvas content, int x, int y, String text, AnsiColor color) {
+        Text marker = new Text(x, y, text.length(), 1, text, Text.Alignment.LEFT);
+        marker.setForegroundColor(color);
+        marker.setBold(true);
+        marker.setBackgroundColor(AnsiColor.BLACK);
+        content.addChild(marker);
+    }
+}

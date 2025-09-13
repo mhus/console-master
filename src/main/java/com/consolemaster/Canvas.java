@@ -291,24 +291,24 @@ public abstract class Canvas {
 
     /**
      * Paint method using JLine's enhanced graphics context.
-     * Default implementation delegates to the standard paint method.
-     * Override this for better JLine integration.
+     * Default implementation is now provided by polymorphism since JLineGraphics extends Graphics.
      *
      * @param graphics the JLine graphics context to draw on
      */
     public void paint(JLineGraphics graphics) {
-        // Default implementation: create a legacy Graphics wrapper
-        char[][] charBuffer = new char[getHeight()][getWidth()];
-        Graphics legacyGraphics = new Graphics(charBuffer, getWidth(), getHeight());
-        paint(legacyGraphics);
+        // Since JLineGraphics now extends Graphics, we can call the same paint method
+        paint((Graphics) graphics);
+    }
 
-        // Copy the result to JLine graphics
-        char[][] result = legacyGraphics.toCharArray();
-        for (int y = 0; y < getHeight() && y < graphics.getHeight(); y++) {
-            for (int x = 0; x < getWidth() && x < graphics.getWidth(); x++) {
-                graphics.drawChar(getX() + x, getY() + y, result[y][x]);
-            }
-        }
+    /**
+     * Legacy paint method for backward compatibility.
+     * Creates a LegacyGraphics wrapper from char buffer.
+     *
+     * @param charBuffer the character buffer to draw on
+     */
+    public void paintLegacy(char[][] charBuffer) {
+        LegacyGraphics legacyGraphics = new LegacyGraphics(charBuffer, getWidth(), getHeight());
+        paint(legacyGraphics);
     }
 
     /**
