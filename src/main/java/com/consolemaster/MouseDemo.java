@@ -90,7 +90,13 @@ public class MouseDemo {
             processLoop.enableMouseReporting();
 
             // Register keyboard shortcuts
-            screen.registerShortcut("Ctrl+Q", processLoop::stop);
+            screen.registerShortcut("Ctrl+Q", () -> {
+                try {
+                    processLoop.stop();
+                } catch (IOException e) {
+                    System.err.println("Error stopping process loop: " + e.getMessage());
+                }
+            });
             screen.registerShortcut("M", () -> {
                 if (processLoop.isMouseReportingEnabled()) {
                     processLoop.disableMouseReporting();
@@ -162,11 +168,6 @@ public class MouseDemo {
 
             @Override
             public void paint(Graphics graphics) {
-                box.paint(graphics);
-            }
-
-            @Override
-            public void paint(JLineGraphics graphics) {
                 box.paint(graphics);
             }
         };

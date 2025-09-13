@@ -1,105 +1,140 @@
 package com.consolemaster;
 
-import org.jline.utils.AttributedStyle;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * A simple single-line border using ASCII characters.
+ * A simple border implementation that can be drawn around a canvas.
+ * Now uses native TextStyle instead of JLine's AttributedStyle.
  */
+@Getter
+@Setter
 public class SimpleBorder implements Border {
 
-    private final char topBottomChar;
-    private final char leftRightChar;
-    private final char cornerChar;
-    private final AttributedStyle style;
+    private char topChar = '-';
+    private char bottomChar = '-';
+    private char leftChar = '|';
+    private char rightChar = '|';
+    private char topLeftChar = '+';
+    private char topRightChar = '+';
+    private char bottomLeftChar = '+';
+    private char bottomRightChar = '+';
 
-    /**
-     * Creates a simple border with default characters and no styling.
-     */
+    // Native styling
+    private TextStyle borderStyle = TextStyle.DEFAULT;
+    private AnsiColor borderColor;
+    private AnsiFormat[] borderFormats;
+
     public SimpleBorder() {
-        this('-', '|', '+', null);
+        // Default border with no special styling
+    }
+
+    public SimpleBorder(char borderChar) {
+        this.topChar = borderChar;
+        this.bottomChar = borderChar;
+        this.leftChar = borderChar;
+        this.rightChar = borderChar;
+        this.topLeftChar = borderChar;
+        this.topRightChar = borderChar;
+        this.bottomLeftChar = borderChar;
+        this.bottomRightChar = borderChar;
+    }
+
+    public SimpleBorder(char horizontal, char vertical, char corner) {
+        this.topChar = horizontal;
+        this.bottomChar = horizontal;
+        this.leftChar = vertical;
+        this.rightChar = vertical;
+        this.topLeftChar = corner;
+        this.topRightChar = corner;
+        this.bottomLeftChar = corner;
+        this.bottomRightChar = corner;
+    }
+
+    public SimpleBorder(AnsiColor color) {
+        this.borderColor = color;
+        updateBorderStyle();
+    }
+
+    public SimpleBorder(AnsiColor color, AnsiFormat... formats) {
+        this.borderColor = color;
+        this.borderFormats = formats;
+        updateBorderStyle();
     }
 
     /**
-     * Creates a simple border with specified characters.
-     *
-     * @param topBottomChar character for top and bottom borders
-     * @param leftRightChar character for left and right borders
-     * @param cornerChar character for corners
+     * Sets the border color.
      */
-    public SimpleBorder(char topBottomChar, char leftRightChar, char cornerChar) {
-        this(topBottomChar, leftRightChar, cornerChar, null);
+    public void setBorderColor(AnsiColor color) {
+        this.borderColor = color;
+        updateBorderStyle();
     }
 
     /**
-     * Creates a simple border with specified characters and styling.
-     *
-     * @param topBottomChar character for top and bottom borders
-     * @param leftRightChar character for left and right borders
-     * @param cornerChar character for corners
-     * @param style JLine AttributedStyle for the border
+     * Sets the border formats.
      */
-    public SimpleBorder(char topBottomChar, char leftRightChar, char cornerChar, AttributedStyle style) {
-        this.topBottomChar = topBottomChar;
-        this.leftRightChar = leftRightChar;
-        this.cornerChar = cornerChar;
-        this.style = style;
+    public void setBorderFormats(AnsiFormat... formats) {
+        this.borderFormats = formats;
+        updateBorderStyle();
     }
 
-    @Override
-    public int getTopThickness() { return 1; }
+    /**
+     * Updates the border style based on current color and format settings.
+     */
+    private void updateBorderStyle() {
+        this.borderStyle = new TextStyle(borderColor, null, borderFormats);
+    }
 
-    @Override
-    public int getBottomThickness() { return 1; }
-
-    @Override
-    public int getLeftThickness() { return 1; }
-
-    @Override
-    public int getRightThickness() { return 1; }
+    /**
+     * Sets the border style directly.
+     */
+    public void setBorderStyle(TextStyle style) {
+        this.borderStyle = style != null ? style : TextStyle.DEFAULT;
+    }
 
     @Override
     public void drawBorder(Graphics graphics, int x, int y, int width, int height) {
-        // Draw corners
-        graphics.drawChar(x, y, cornerChar);
-        graphics.drawChar(x + width - 1, y, cornerChar);
-        graphics.drawChar(x, y + height - 1, cornerChar);
-        graphics.drawChar(x + width - 1, y + height - 1, cornerChar);
-
-        // Draw top and bottom borders
-        for (int i = 1; i < width - 1; i++) {
-            graphics.drawChar(x + i, y, topBottomChar);
-            graphics.drawChar(x + i, y + height - 1, topBottomChar);
+        if (width < 2 || height < 2) {
+            return; // Too small to draw a border
         }
 
-        // Draw left and right borders
-        for (int i = 1; i < height - 1; i++) {
-            graphics.drawChar(x, y + i, leftRightChar);
-            graphics.drawChar(x + width - 1, y + i, leftRightChar);
+        // Draw corners
+        drawStyledChar(graphics, x, y, topLeftChar);
+        drawStyledChar(graphics, x + width - 1, y, topRightChar);
+        drawStyledChar(graphics, x, y + height - 1, bottomLeftChar);
+        drawStyledChar(graphics, x + width - 1, y + height - 1, bottomRightChar);
+
+        // Draw horizontal borders
+        for (int i = x + 1; i < x + width - 1; i++) {
+            drawStyledChar(graphics, i, y, topChar);
+            drawStyledChar(graphics, i, y + height - 1, bottomChar);
+        }
+
+        // Draw vertical borders
+        for (int i = y + 1; i < y + height - 1; i++) {
+            drawStyledChar(graphics, x, i, leftChar);
+            drawStyledChar(graphics, x + width - 1, i, rightChar);
+        }
+    }
+
+    /**
+     * Draws a single character with the border style.
+     */
+    private void drawStyledChar(Graphics graphics, int x, int y, char c) {
+        if (borderStyle.hasFormatting()) {
+            graphics.drawStyledString(x, y, String.valueOf(c), borderColor, null, borderFormats);
+        } else {
+            graphics.drawChar(x, y, c);
         }
     }
 
     @Override
-    public void drawBorder(JLineGraphics graphics, int x, int y, int width, int height) {
-        if (style != null) {
-            graphics.setStyle(style);
-        }
+    public int getBorderWidth() {
+        return 1; // Simple border is always 1 character wide
+    }
 
-        // Draw corners
-        graphics.drawChar(x, y, cornerChar);
-        graphics.drawChar(x + width - 1, y, cornerChar);
-        graphics.drawChar(x, y + height - 1, cornerChar);
-        graphics.drawChar(x + width - 1, y + height - 1, cornerChar);
-
-        // Draw top and bottom borders
-        for (int i = 1; i < width - 1; i++) {
-            graphics.drawChar(x + i, y, topBottomChar);
-            graphics.drawChar(x + i, y + height - 1, topBottomChar);
-        }
-
-        // Draw left and right borders
-        for (int i = 1; i < height - 1; i++) {
-            graphics.drawChar(x, y + i, leftRightChar);
-            graphics.drawChar(x + width - 1, y + i, leftRightChar);
-        }
+    @Override
+    public int getBorderHeight() {
+        return 1; // Simple border is always 1 character high
     }
 }

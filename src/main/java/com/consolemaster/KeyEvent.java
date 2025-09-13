@@ -12,7 +12,7 @@ public class KeyEvent implements Event {
      * Special key constants for non-printable keys.
      */
     public enum SpecialKey {
-        TAB, ENTER, ESCAPE, BACKSPACE, DELETE,
+        TAB, ENTER, ESCAPE, ESC, BACKSPACE, DELETE, INSERT,
         ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT,
         HOME, END, PAGE_UP, PAGE_DOWN,
         F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12
@@ -54,6 +54,30 @@ public class KeyEvent implements Event {
         this.hasShift = hasShift;
         this.hasCtrl = hasCtrl;
         this.hasAlt = hasAlt;
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * Simplified constructor for special keys without modifiers.
+     */
+    public KeyEvent(SpecialKey specialKey, char character) {
+        this.character = character;
+        this.specialKey = specialKey;
+        this.hasShift = false;
+        this.hasCtrl = false;
+        this.hasAlt = false;
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * Constructor with modifiers array.
+     */
+    public KeyEvent(SpecialKey specialKey, char character, Modifier[] modifiers) {
+        this.character = character;
+        this.specialKey = specialKey;
+        this.hasShift = modifiers != null && java.util.Arrays.asList(modifiers).contains(Modifier.SHIFT);
+        this.hasCtrl = modifiers != null && java.util.Arrays.asList(modifiers).contains(Modifier.CTRL);
+        this.hasAlt = modifiers != null && java.util.Arrays.asList(modifiers).contains(Modifier.ALT);
         this.timestamp = System.currentTimeMillis();
     }
 
@@ -114,5 +138,24 @@ public class KeyEvent implements Event {
     @Override
     public String toString() {
         return "KeyEvent{" + getKeyString() + "}";
+    }
+
+    @Override
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * Alias for hasShift.
+     */
+    public boolean isHasShift() {
+        return hasShift;
+    }
+
+    /**
+     * Gets the special key.
+     */
+    public SpecialKey getSpecialKey() {
+        return specialKey;
     }
 }

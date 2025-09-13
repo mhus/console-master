@@ -2,11 +2,11 @@ package com.consolemaster;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jline.utils.AttributedStyle;
 
 /**
  * A Canvas implementation for displaying formatted text with various alignment options.
  * Supports multi-line text, different text alignments, and styling options.
+ * Now uses native TextStyle instead of JLine's AttributedStyle.
  */
 @Getter
 @Setter
@@ -26,8 +26,8 @@ public class Text extends Canvas {
     private boolean wordWrap = true;
     private String lineBreak = "\n";
 
-    // JLine styling properties
-    private AttributedStyle textStyle;
+    // Native styling properties
+    private TextStyle textStyle = TextStyle.DEFAULT;
     private AnsiColor foregroundColor;
     private AnsiColor backgroundColor;
     private AnsiFormat[] formats = new AnsiFormat[0];
@@ -39,7 +39,7 @@ public class Text extends Canvas {
      * @param y      the y-coordinate
      * @param width  the width of the text area
      * @param height the height of the text area
-     * @param text   the text content to display
+     * @param text   the text content
      */
     public Text(int x, int y, int width, int height, String text) {
         super(x, y, width, height);
@@ -47,24 +47,22 @@ public class Text extends Canvas {
     }
 
     /**
-     * Creates a Text canvas with alignment.
+     * Creates a Text canvas with specified position, size, text content and alignment.
      *
      * @param x         the x-coordinate
      * @param y         the y-coordinate
      * @param width     the width of the text area
      * @param height    the height of the text area
-     * @param text      the text content to display
+     * @param text      the text content
      * @param alignment the text alignment
      */
     public Text(int x, int y, int width, int height, String text, Alignment alignment) {
         this(x, y, width, height, text);
-        this.alignment = alignment;
+        this.alignment = alignment != null ? alignment : Alignment.LEFT;
     }
 
     /**
-     * Sets the foreground color for the text.
-     *
-     * @param color the foreground color
+     * Sets the foreground color.
      */
     public void setForegroundColor(AnsiColor color) {
         this.foregroundColor = color;
@@ -72,9 +70,7 @@ public class Text extends Canvas {
     }
 
     /**
-     * Sets the background color for the text.
-     *
-     * @param color the background color
+     * Sets the background color.
      */
     public void setBackgroundColor(AnsiColor color) {
         this.backgroundColor = color;
@@ -82,9 +78,7 @@ public class Text extends Canvas {
     }
 
     /**
-     * Sets the text formatting.
-     *
-     * @param formats the formatting options
+     * Sets the text formats.
      */
     public void setFormats(AnsiFormat... formats) {
         this.formats = formats != null ? formats : new AnsiFormat[0];
@@ -92,9 +86,21 @@ public class Text extends Canvas {
     }
 
     /**
-     * Sets bold formatting.
-     *
-     * @param bold whether text should be bold
+     * Updates the internal text style based on current color and format settings.
+     */
+    private void updateTextStyle() {
+        this.textStyle = new TextStyle(foregroundColor, backgroundColor, formats);
+    }
+
+    /**
+     * Sets the text style directly.
+     */
+    public void setTextStyle(TextStyle style) {
+        this.textStyle = style != null ? style : TextStyle.DEFAULT;
+    }
+
+    /**
+     * Sets the text to bold (convenience method).
      */
     public void setBold(boolean bold) {
         if (bold) {
@@ -105,9 +111,7 @@ public class Text extends Canvas {
     }
 
     /**
-     * Sets italic formatting.
-     *
-     * @param italic whether text should be italic
+     * Sets the text to italic (convenience method).
      */
     public void setItalic(boolean italic) {
         if (italic) {
@@ -118,12 +122,10 @@ public class Text extends Canvas {
     }
 
     /**
-     * Sets underline formatting.
-     *
-     * @param underline whether text should be underlined
+     * Sets the text to underlined (convenience method).
      */
-    public void setUnderline(boolean underline) {
-        if (underline) {
+    public void setUnderlined(boolean underlined) {
+        if (underlined) {
             setFormats(AnsiFormat.UNDERLINE);
         } else {
             setFormats(); // Clear formats
@@ -131,183 +133,160 @@ public class Text extends Canvas {
     }
 
     /**
-     * Updates the JLine AttributedStyle based on current color and format settings.
+     * TODO remove these alias methods in future versions
+     * Sets the text to underlined (alias for setUnderlined).
      */
-    private void updateTextStyle() {
-        AttributedStyle style = AttributedStyle.DEFAULT;
-
-        if (foregroundColor != null) {
-            // Convert AnsiColor to JLine color constants
-            style = style.foreground(getJLineColor(foregroundColor, true));
-        }
-
-        if (backgroundColor != null) {
-            style = style.background(getJLineColor(backgroundColor, false));
-        }
-
-        for (AnsiFormat format : formats) {
-            style = switch (format) {
-                case BOLD -> style.bold();
-                case ITALIC -> style.italic();
-                case UNDERLINE -> style.underline();
-                case DIM -> style.faint();
-                case REVERSE -> style.inverse();
-                default -> style;
-            };
-        }
-
-        this.textStyle = style;
-    }
-
-    /**
-     * Converts AnsiColor to JLine color constants.
-     */
-    private int getJLineColor(AnsiColor color, boolean foreground) {
-        return switch (color) {
-            case BLACK -> foreground ? AttributedStyle.BLACK : AttributedStyle.BLACK;
-            case RED -> foreground ? AttributedStyle.RED : AttributedStyle.RED;
-            case GREEN -> foreground ? AttributedStyle.GREEN : AttributedStyle.GREEN;
-            case YELLOW -> foreground ? AttributedStyle.YELLOW : AttributedStyle.YELLOW;
-            case BLUE -> foreground ? AttributedStyle.BLUE : AttributedStyle.BLUE;
-            case MAGENTA -> foreground ? AttributedStyle.MAGENTA : AttributedStyle.MAGENTA;
-            case CYAN -> foreground ? AttributedStyle.CYAN : AttributedStyle.CYAN;
-            case WHITE -> foreground ? AttributedStyle.WHITE : AttributedStyle.WHITE;
-            case BRIGHT_BLACK -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.BLACK) : (AttributedStyle.BRIGHT | AttributedStyle.BLACK);
-            case BRIGHT_RED -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.RED) : (AttributedStyle.BRIGHT | AttributedStyle.RED);
-            case BRIGHT_GREEN -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.GREEN) : (AttributedStyle.BRIGHT | AttributedStyle.GREEN);
-            case BRIGHT_YELLOW -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.YELLOW) : (AttributedStyle.BRIGHT | AttributedStyle.YELLOW);
-            case BRIGHT_BLUE -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.BLUE) : (AttributedStyle.BRIGHT | AttributedStyle.BLUE);
-            case BRIGHT_MAGENTA -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.MAGENTA) : (AttributedStyle.BRIGHT | AttributedStyle.MAGENTA);
-            case BRIGHT_CYAN -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.CYAN) : (AttributedStyle.BRIGHT | AttributedStyle.CYAN);
-            case BRIGHT_WHITE -> foreground ? (AttributedStyle.BRIGHT | AttributedStyle.WHITE) : (AttributedStyle.BRIGHT | AttributedStyle.WHITE);
-            default -> foreground ? AttributedStyle.WHITE : AttributedStyle.BLACK;
-        };
-    }
-
-    /**
-     * Splits the text into lines based on the canvas width and word wrap settings.
-     *
-     * @return array of text lines
-     */
-    private String[] prepareTextLines() {
-        if (text == null || text.isEmpty()) {
-            return new String[0];
-        }
-
-        // First split by explicit line breaks
-        String[] initialLines = text.split(lineBreak, -1);
-
-        if (!wordWrap) {
-            return initialLines;
-        }
-
-        // Apply word wrapping
-        java.util.List<String> wrappedLines = new java.util.ArrayList<>();
-
-        for (String line : initialLines) {
-            if (line.length() <= getWidth()) {
-                wrappedLines.add(line);
-            } else {
-                // Word wrap this line
-                String[] words = line.split(" ");
-                StringBuilder currentLine = new StringBuilder();
-
-                for (String word : words) {
-                    if (currentLine.length() + word.length() + 1 <= getWidth()) {
-                        if (currentLine.length() > 0) {
-                            currentLine.append(" ");
-                        }
-                        currentLine.append(word);
-                    } else {
-                        if (currentLine.length() > 0) {
-                            wrappedLines.add(currentLine.toString());
-                            currentLine = new StringBuilder(word);
-                        } else {
-                            // Word is longer than width, truncate it
-                            wrappedLines.add(word.substring(0, Math.min(word.length(), getWidth())));
-                        }
-                    }
-                }
-
-                if (currentLine.length() > 0) {
-                    wrappedLines.add(currentLine.toString());
-                }
-            }
-        }
-
-        return wrappedLines.toArray(new String[0]);
-    }
-
-    /**
-     * Applies alignment to a text line.
-     *
-     * @param line the text line
-     * @return the aligned text line with proper spacing
-     */
-    private String alignLine(String line) {
-        if (line.length() >= getWidth()) {
-            return line.substring(0, getWidth());
-        }
-
-        return switch (alignment) {
-            case LEFT -> line;
-            case CENTER -> {
-                int padding = (getWidth() - line.length()) / 2;
-                yield " ".repeat(padding) + line;
-            }
-            case RIGHT -> {
-                int padding = getWidth() - line.length();
-                yield " ".repeat(padding) + line;
-            }
-        };
+    public void setUnderline(boolean underline) {
+        setUnderlined(underline);
     }
 
     @Override
     public void paint(Graphics graphics) {
-        String[] lines = prepareTextLines();
+        graphics.clear();
 
-        // Apply legacy graphics styling if available
-        if (foregroundColor != null) {
-            graphics.setForegroundColor(foregroundColor);
-        }
-        if (backgroundColor != null) {
-            graphics.setBackgroundColor(backgroundColor);
-        }
-        if (formats.length > 0) {
-            graphics.setFormats(formats);
+        if (text == null || text.isEmpty()) {
+            return;
         }
 
-        // Draw each line with proper alignment
-        for (int i = 0; i < lines.length && i < getHeight(); i++) {
-            String alignedLine = alignLine(lines[i]);
-            graphics.drawString(getX(), getY() + i, alignedLine);
-        }
-    }
+        // Split text into lines
+        String[] lines = text.split(lineBreak);
 
-    @Override
-    public void paint(JLineGraphics graphics) {
-        String[] lines = prepareTextLines();
+        int startY = 0;
+        int availableHeight = getHeight();
 
-        // Apply JLine styling if available
-        if (textStyle != null) {
-            graphics.setStyle(textStyle);
-        }
+        // Process each line
+        for (int lineIndex = 0; lineIndex < lines.length && startY < availableHeight; lineIndex++) {
+            String line = lines[lineIndex];
 
-        // Draw each line with proper alignment
-        for (int i = 0; i < lines.length && i < getHeight(); i++) {
-            String alignedLine = alignLine(lines[i]);
-            graphics.drawString(getX(), getY() + i, alignedLine);
+            if (wordWrap && line.length() > getWidth()) {
+                // Handle word wrapping
+                String[] wrappedLines = wrapLine(line, getWidth());
+                for (String wrappedLine : wrappedLines) {
+                    if (startY >= availableHeight) break;
+                    renderLine(graphics, wrappedLine, startY);
+                    startY++;
+                }
+            } else {
+                // Render line as-is (may be truncated if too long)
+                renderLine(graphics, line, startY);
+                startY++;
+            }
         }
     }
 
     /**
-     * Called when the focus state changes.
-     * Updates the text styling to show focus state.
+     * Renders a single line of text with proper alignment.
+     */
+    private void renderLine(Graphics graphics, String line, int y) {
+        if (y >= getHeight() || line.isEmpty()) {
+            return;
+        }
+
+        int x = calculateXPosition(line);
+
+        // Truncate line if it's too long for the available width
+        String displayLine = line.length() > getWidth() ? line.substring(0, getWidth()) : line;
+
+        // Apply styling and draw the text
+        if (textStyle.hasFormatting()) {
+            graphics.drawStyledString(x, y, displayLine, foregroundColor, backgroundColor, formats);
+        } else {
+            graphics.drawString(x, y, displayLine);
+        }
+    }
+
+    /**
+     * Calculates the x position based on alignment.
+     */
+    private int calculateXPosition(String line) {
+        return switch (alignment) {
+            case LEFT -> 0;
+            case CENTER -> Math.max(0, (getWidth() - line.length()) / 2);
+            case RIGHT -> Math.max(0, getWidth() - line.length());
+        };
+    }
+
+    /**
+     * Wraps a line into multiple lines based on available width.
+     */
+    private String[] wrapLine(String line, int maxWidth) {
+        if (maxWidth <= 0) {
+            return new String[]{""};
+        }
+
+        java.util.List<String> wrapped = new java.util.ArrayList<>();
+        String remaining = line;
+
+        while (remaining.length() > maxWidth) {
+            // Find the best break point (prefer word boundaries)
+            int breakPoint = findBreakPoint(remaining, maxWidth);
+            wrapped.add(remaining.substring(0, breakPoint));
+            remaining = remaining.substring(breakPoint).trim();
+        }
+
+        if (!remaining.isEmpty()) {
+            wrapped.add(remaining);
+        }
+
+        return wrapped.toArray(new String[0]);
+    }
+
+    /**
+     * Finds the best break point for line wrapping.
+     */
+    private int findBreakPoint(String text, int maxWidth) {
+        if (text.length() <= maxWidth) {
+            return text.length();
+        }
+
+        // Look for a space to break at
+        for (int i = maxWidth - 1; i > 0; i--) {
+            if (Character.isWhitespace(text.charAt(i))) {
+                return i;
+            }
+        }
+
+        // No good break point found, break at maxWidth
+        return maxWidth;
+    }
+
+    /**
+     * Calculates the preferred size based on text content.
      */
     @Override
-    protected void onFocusChanged(boolean focused) {
-        super.onFocusChanged(focused);
-        // Visual indication of focus could be added here
-        // For example, changing background color or adding a border indicator
+    public void pack() {
+        if (text == null || text.isEmpty()) {
+            setWidth(0);
+            setHeight(1);
+            return;
+        }
+
+        String[] lines = text.split(lineBreak);
+        int maxLineWidth = 0;
+        int totalHeight = 0;
+
+        for (String line : lines) {
+            if (wordWrap && getWidth() > 0 && line.length() > getWidth()) {
+                String[] wrappedLines = wrapLine(line, getWidth());
+                totalHeight += wrappedLines.length;
+                for (String wrappedLine : wrappedLines) {
+                    maxLineWidth = Math.max(maxLineWidth, wrappedLine.length());
+                }
+            } else {
+                totalHeight++;
+                maxLineWidth = Math.max(maxLineWidth, line.length());
+            }
+        }
+
+        if (getWidth() == 0) {
+            setWidth(maxLineWidth);
+        }
+        if (getHeight() == 0) {
+            setHeight(totalHeight);
+        }
+
+        // Update minimum size requirements
+        setMinWidth(Math.max(getMinWidth(), maxLineWidth));
+        setMinHeight(Math.max(getMinHeight(), totalHeight));
     }
 }

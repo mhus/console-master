@@ -55,6 +55,32 @@ public class MouseEvent implements Event {
     }
 
     /**
+     * Simplified constructor for basic mouse events.
+     */
+    public MouseEvent(Button button, Action action, int x, int y) {
+        this(x, y, button, action, false, false, false);
+    }
+
+    @Override
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * Gets the x coordinate.
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * Gets the y coordinate.
+     */
+    public int getY() {
+        return y;
+    }
+
+    /**
      * Checks if this is a button press event.
      */
     public boolean isPress() {

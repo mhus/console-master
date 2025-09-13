@@ -1,76 +1,113 @@
 package com.consolemaster;
 
-import org.jline.utils.AttributedStyle;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * A thick double-line border for emphasis.
+ * A thick border implementation using '#' characters.
+ * Now uses native TextStyle instead of JLine's AttributedStyle.
  */
+@Getter
+@Setter
 public class ThickBorder implements Border {
 
-    private final AttributedStyle style;
+    private char borderChar = '#';
 
-    /**
-     * Creates a thick border with no styling.
-     */
+    // Native styling
+    private TextStyle borderStyle = TextStyle.DEFAULT;
+    private AnsiColor borderColor;
+    private AnsiFormat[] borderFormats;
+
     public ThickBorder() {
-        this(null);
+        // Default thick border
+    }
+
+    public ThickBorder(char borderChar) {
+        this.borderChar = borderChar;
+    }
+
+    public ThickBorder(AnsiColor color) {
+        this.borderColor = color;
+        updateBorderStyle();
+    }
+
+    public ThickBorder(AnsiColor color, AnsiFormat... formats) {
+        this.borderColor = color;
+        this.borderFormats = formats;
+        updateBorderStyle();
     }
 
     /**
-     * Creates a thick border with specified styling.
-     *
-     * @param style JLine AttributedStyle for the border
+     * Sets the border color.
      */
-    public ThickBorder(AttributedStyle style) {
-        this.style = style;
+    public void setBorderColor(AnsiColor color) {
+        this.borderColor = color;
+        updateBorderStyle();
     }
 
-    @Override
-    public int getTopThickness() { return 1; }
+    /**
+     * Sets the border formats.
+     */
+    public void setBorderFormats(AnsiFormat... formats) {
+        this.borderFormats = formats;
+        updateBorderStyle();
+    }
 
-    @Override
-    public int getBottomThickness() { return 1; }
+    /**
+     * Updates the border style based on current color and format settings.
+     */
+    private void updateBorderStyle() {
+        this.borderStyle = new TextStyle(borderColor, null, borderFormats);
+    }
 
-    @Override
-    public int getLeftThickness() { return 1; }
-
-    @Override
-    public int getRightThickness() { return 1; }
+    /**
+     * Sets the border style directly.
+     */
+    public void setBorderStyle(TextStyle style) {
+        this.borderStyle = style != null ? style : TextStyle.DEFAULT;
+    }
 
     @Override
     public void drawBorder(Graphics graphics, int x, int y, int width, int height) {
-        // Draw border using thick characters
-        char borderChar = '#';
-
-        // Draw corners and edges
-        for (int i = 0; i < width; i++) {
-            graphics.drawChar(x + i, y, borderChar);
-            graphics.drawChar(x + i, y + height - 1, borderChar);
+        if (width < 1 || height < 1) {
+            return;
         }
 
-        for (int i = 0; i < height; i++) {
-            graphics.drawChar(x, y + i, borderChar);
-            graphics.drawChar(x + width - 1, y + i, borderChar);
+        // Draw top and bottom borders
+        for (int i = x; i < x + width; i++) {
+            drawStyledChar(graphics, i, y, borderChar);
+            if (height > 1) {
+                drawStyledChar(graphics, i, y + height - 1, borderChar);
+            }
+        }
+
+        // Draw left and right borders
+        for (int i = y; i < y + height; i++) {
+            drawStyledChar(graphics, x, i, borderChar);
+            if (width > 1) {
+                drawStyledChar(graphics, x + width - 1, i, borderChar);
+            }
+        }
+    }
+
+    /**
+     * Draws a single character with the border style.
+     */
+    private void drawStyledChar(Graphics graphics, int x, int y, char c) {
+        if (borderStyle.hasFormatting()) {
+            graphics.drawStyledString(x, y, String.valueOf(c), borderColor, null, borderFormats);
+        } else {
+            graphics.drawChar(x, y, c);
         }
     }
 
     @Override
-    public void drawBorder(JLineGraphics graphics, int x, int y, int width, int height) {
-        if (style != null) {
-            graphics.setStyle(style);
-        }
+    public int getBorderWidth() {
+        return 1;
+    }
 
-        char borderChar = '#';
-
-        // Draw border using thick characters
-        for (int i = 0; i < width; i++) {
-            graphics.drawChar(x + i, y, borderChar);
-            graphics.drawChar(x + i, y + height - 1, borderChar);
-        }
-
-        for (int i = 0; i < height; i++) {
-            graphics.drawChar(x, y + i, borderChar);
-            graphics.drawChar(x + width - 1, y + i, borderChar);
-        }
+    @Override
+    public int getBorderHeight() {
+        return 1;
     }
 }

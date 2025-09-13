@@ -77,8 +77,20 @@ public class ScrollerDemo {
         processLoop.setTargetFPS(30);
 
         // Register shortcuts
-        screen.registerShortcut("ESC", processLoop::stop);
-        screen.registerShortcut("Ctrl+Q", processLoop::stop);
+        screen.registerShortcut("ESC", () -> {
+            try {
+                processLoop.stop();
+            } catch (IOException e) {
+                System.err.println("Error stopping process loop: " + e.getMessage());
+            }
+        });
+        screen.registerShortcut("Ctrl+Q", () -> {
+            try {
+                processLoop.stop();
+            } catch (IOException e) {
+                System.err.println("Error stopping process loop: " + e.getMessage());
+            }
+        });
 
         // Set initial focus on scroller
         scroller.setCanFocus(true);

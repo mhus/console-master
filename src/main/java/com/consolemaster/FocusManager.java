@@ -51,6 +51,15 @@ public class FocusManager {
     }
 
     /**
+     * Gets the currently focused canvas.
+     *
+     * @return the focused canvas, or null if no canvas has focus
+     */
+    public Canvas getFocusedCanvas() {
+        return focusedCanvas;
+    }
+
+    /**
      * Moves focus to the next focusable canvas in the traversal order.
      *
      * @return true if focus was moved, false if no next canvas is available

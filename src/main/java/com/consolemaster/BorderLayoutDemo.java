@@ -11,7 +11,7 @@ public class BorderLayoutDemo {
     public static void main(String[] args) {
         try {
             // Create the main screen canvas
-            ScreenCanvas screen = new ScreenCanvas(80, 25);
+            ScreenCanvas screen = new ScreenCanvas(80, 24);
 
             // Create a composite canvas with BorderLayout
             CompositeCanvas borderContainer = new CompositeCanvas(2, 2,

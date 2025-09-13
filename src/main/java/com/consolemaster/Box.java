@@ -54,6 +54,15 @@ public class Box extends Canvas {
     }
 
     /**
+     * Gets the child content of this box.
+     *
+     * @return the child canvas or null if no child is set
+     */
+    public Canvas getChild() {
+        return child;
+    }
+
+    /**
      * Gets the inner width available for the child (excluding border).
      *
      * @return the width available for content
@@ -137,19 +146,48 @@ public class Box extends Canvas {
         updateChildBounds();
     }
 
-    @Override
-    public void paint(Graphics graphics) {
-        // Draw the border
-        border.drawBorder(graphics, getX(), getY(), getWidth(), getHeight());
+    /**
+     * Gets the border of this box.
+     *
+     * @return the border used by this box
+     */
+    public Border getBorder() {
+        return border;
+    }
 
-        // Draw the child if it exists and is visible
-        if (child != null && child.isVisible()) {
-            child.paint(graphics);
+    /**
+     * Packs the box to fit its child content.
+     * Calculates the minimum size needed based on the child's requirements plus border space.
+     */
+    @Override
+    public void pack() {
+        if (child != null) {
+            // Pack the child first
+            child.pack();
+
+            // Calculate required size including border
+            int requiredWidth = child.getMinWidth() + border.getHorizontalInsets();
+            int requiredHeight = child.getMinHeight() + border.getVerticalInsets();
+
+            // Update our minimum size
+            setMinWidth(requiredWidth);
+            setMinHeight(requiredHeight);
+
+            // If current size is smaller than required, resize
+            if (getWidth() < requiredWidth) {
+                setWidth(requiredWidth);
+            }
+            if (getHeight() < requiredHeight) {
+                setHeight(requiredHeight);
+            }
+
+            // Update child bounds after potential size change
+            updateChildBounds();
         }
     }
 
     @Override
-    public void paint(JLineGraphics graphics) {
+    public void paint(Graphics graphics) {
         // Draw the border
         border.drawBorder(graphics, getX(), getY(), getWidth(), getHeight());
 

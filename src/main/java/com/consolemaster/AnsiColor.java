@@ -49,4 +49,18 @@ public enum AnsiColor {
     public String getBackground() {
         return backgroundCode;
     }
+
+    /**
+     * Gets the ANSI foreground code (alias for getForeground()).
+     */
+    public String getForegroundCode() {
+        return foregroundCode;
+    }
+
+    /**
+     * Gets the ANSI background code (alias for getBackground()).
+     */
+    public String getBackgroundCode() {
+        return backgroundCode;
+    }
 }

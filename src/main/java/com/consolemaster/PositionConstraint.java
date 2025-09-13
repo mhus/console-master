@@ -10,7 +10,9 @@ public class PositionConstraint implements LayoutConstraint {
         TOP_LEFT, TOP_CENTER, TOP_RIGHT,
         CENTER_LEFT, CENTER, CENTER_RIGHT,
         BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT,
-        ABSOLUTE  // Use absolute x, y coordinates
+        ABSOLUTE,  // Use absolute x, y coordinates
+        // BorderLayout compatibility aliases
+        NORTH, SOUTH, EAST, WEST
     }
 
     private final Position position;

@@ -27,7 +27,6 @@
         <!-- Dependency versions -->
         <junit-jupiter.version>5.10.0</junit-jupiter.version>
         <lombok.version>1.18.30</lombok.version>
-        <jline.version>3.24.1</jline.version>
         <mockito.version>5.5.0</mockito.version>
     </properties>
 
@@ -40,37 +39,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JLine for console interaction -->
-        <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline-terminal</artifactId>
-            <version>${jline.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline-reader</artifactId>
-            <version>${jline.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline-style</artifactId>
-            <version>${jline.version}</version>
-        </dependency>
-        <!-- For JNI support (recommended for Java < 22) -->
-        <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline-terminal-jni</artifactId>
-            <version>3.30.6</version>
-        </dependency>
-
-        <!-- For FFM support (recommended for Java 22+) -->
-        <!--
-        <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline-terminal-ffm</artifactId>
-            <version>4.0.0</version>
-        </dependency>
-        -->
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

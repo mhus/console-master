@@ -11,7 +11,6 @@
 - Use lombok for boilerplate code reduction.
 - Use JUnit 5 for unit testing.
 - Use Mockito for mocking dependencies in tests.
-- Use jline for working with console input and output.
 
 ## Project
 

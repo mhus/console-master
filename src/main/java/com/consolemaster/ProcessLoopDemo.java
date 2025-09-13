@@ -114,7 +114,13 @@ public class ProcessLoopDemo {
             processLoop.setTargetFPS(60);
 
             // Register custom shortcuts
-            screen.registerShortcut("Ctrl+Q", processLoop::stop);
+            screen.registerShortcut("Ctrl+Q", () -> {
+                try {
+                    processLoop.stop();
+                } catch (IOException e) {
+                    System.err.println("Error stopping process loop: " + e.getMessage());
+                }
+            });
             screen.registerShortcut("Ctrl+H", () -> {
                 showHelp = !showHelp;
                 updateHelpDisplay(mainContainer);
@@ -199,11 +205,6 @@ public class ProcessLoopDemo {
             }
 
             @Override
-            public void paint(JLineGraphics graphics) {
-                originalBox.paint(graphics);
-            }
-
-            @Override
             protected void onFocusChanged(boolean focused) {
                 originalBox.setHasFocus(focused);
                 if (originalBox instanceof Box boxInstance) {
@@ -223,11 +224,6 @@ public class ProcessLoopDemo {
 
             @Override
             public void paint(Graphics graphics) {
-                box.paint(graphics);
-            }
-
-            @Override
-            public void paint(JLineGraphics graphics) {
                 box.paint(graphics);
             }
         };

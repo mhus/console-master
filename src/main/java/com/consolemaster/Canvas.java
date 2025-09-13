@@ -113,7 +113,7 @@ public abstract class Canvas {
      * @param maxWidth the maximum width
      */
     public void setMaxWidth(int maxWidth) {
-        this.maxWidth = Math.max(1, maxWidth);
+        this.maxWidth = Math.max(1, Math.max(minWidth, maxWidth));
         enforceConstraints();
     }
 
@@ -123,7 +123,7 @@ public abstract class Canvas {
      * @param maxHeight the maximum height
      */
     public void setMaxHeight(int maxHeight) {
-        this.maxHeight = Math.max(1, maxHeight);
+        this.maxHeight = Math.max(1, Math.max(minHeight, maxHeight));
         enforceConstraints();
     }
 
@@ -290,17 +290,6 @@ public abstract class Canvas {
     public abstract void paint(Graphics graphics);
 
     /**
-     * Paint method using JLine's enhanced graphics context.
-     * Default implementation is now provided by polymorphism since JLineGraphics extends Graphics.
-     *
-     * @param graphics the JLine graphics context to draw on
-     */
-    public void paint(JLineGraphics graphics) {
-        // Since JLineGraphics now extends Graphics, we can call the same paint method
-        paint((Graphics) graphics);
-    }
-
-    /**
      * Legacy paint method for backward compatibility.
      * Creates a LegacyGraphics wrapper from char buffer.
      *
@@ -339,5 +328,19 @@ public abstract class Canvas {
      */
     public int getBottom() {
         return y + height;
+    }
+
+    /**
+     * Alias for getCanFocus().
+     */
+    public boolean isCanFocus() {
+        return canFocus;
+    }
+
+    /**
+     * Alias for getHasFocus().
+     */
+    public boolean isHasFocus() {
+        return hasFocus;
     }
 }

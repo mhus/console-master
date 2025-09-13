@@ -2,8 +2,6 @@ package com.consolemaster;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +12,7 @@ import java.util.Map;
 /**
  * The main entry point canvas for the console application.
  * Manages the console terminal and handles minimum size requirements.
+ * Now uses native terminal implementation instead of JLine.
  */
 @Getter
 @Setter
@@ -22,7 +21,7 @@ public class ScreenCanvas extends CompositeCanvas {
     private static final int DEFAULT_MIN_WIDTH = 80;
     private static final int DEFAULT_MIN_HEIGHT = 24;
 
-    private final Terminal terminal;
+    private final NativeTerminal terminal;
     private final int minWidth;
     private final int minHeight;
     private Canvas warningCanvas;
@@ -46,7 +45,7 @@ public class ScreenCanvas extends CompositeCanvas {
         super(0, 0, 0, 0);
         this.minWidth = minWidth;
         this.minHeight = minHeight;
-        this.terminal = TerminalBuilder.builder().system(true).build();
+        this.terminal = new NativeTerminal();
 
         // Initialize screen dimensions
         setWidth(terminal.getWidth());
@@ -73,20 +72,28 @@ public class ScreenCanvas extends CompositeCanvas {
     }
 
     public void updateSize() {
+        terminal.updateSize();
         setWidth(terminal.getWidth());
         setHeight(terminal.getHeight());
         updateDisplay();
     }
 
     public void render() {
-        JLineGraphics graphics = new JLineGraphics(getWidth(), getHeight());
+        NativeGraphics graphics = new NativeGraphics(getWidth(), getHeight());
         graphics.clear();
         paint(graphics);
 
-        // Use JLine's efficient AttributedString output
-        terminal.writer().print("\033[2J\033[H"); // Clear screen and move cursor to top
-        terminal.writer().print(graphics.toAttributedString().toAnsi(terminal));
-        terminal.flush();
+        // Clear screen and render using native ANSI output
+        terminal.clearScreen();
+        terminal.setCursorPosition(0, 0);
+        graphics.toAnsiString(terminal);
+    }
+
+    /**
+     * Gets the content canvas.
+     */
+    public Canvas getContentCanvas() {
+        return contentCanvas;
     }
 
     public void close() throws IOException {
@@ -101,60 +108,46 @@ public class ScreenCanvas extends CompositeCanvas {
         warningCanvas = new Canvas(0, 0, getWidth(), getHeight()) {
             @Override
             public void paint(Graphics graphics) {
-                String message = "Console too small!";
-                String requirement = String.format("Required: %dx%d", minWidth, minHeight);
-                String current = String.format("Current: %dx%d", getWidth(), getHeight());
+                graphics.clear();
 
-                if (getWidth() > 10 && getHeight() > 5) {
-                    int centerX = getWidth() / 2;
-                    int centerY = getHeight() / 2;
+                String[] messages = {
+                    "Terminal too small!",
+                    "Required: " + minWidth + "x" + minHeight,
+                    "Current: " + getWidth() + "x" + getHeight(),
+                    "",
+                    "Please resize your terminal window."
+                };
 
-                    graphics.drawRect(0, 0, getWidth(), getHeight(), '#');
-                    graphics.drawString(Math.max(1, centerX - message.length() / 2), centerY - 1, message);
-                    graphics.drawString(Math.max(1, centerX - requirement.length() / 2), centerY, requirement);
-                    graphics.drawString(Math.max(1, centerX - current.length() / 2), centerY + 1, current);
-                } else {
-                    graphics.fillRect(0, 0, getWidth(), getHeight(), '!');
-                }
-            }
+                int startY = Math.max(0, (getHeight() - messages.length) / 2);
 
-            @Override
-            public void paint(JLineGraphics graphics) {
-                String message = "Console too small!";
-                String requirement = String.format("Required: %dx%d", minWidth, minHeight);
-                String current = String.format("Current: %dx%d", getWidth(), getHeight());
+                for (int i = 0; i < messages.length; i++) {
+                    String message = messages[i];
+                    int x = Math.max(0, (getWidth() - message.length()) / 2);
+                    int y = startY + i;
 
-                if (getWidth() > 10 && getHeight() > 5) {
-                    int centerX = getWidth() / 2;
-                    int centerY = getHeight() / 2;
+                    if (y < getHeight()) {
+                        if (i == 0) {
+                            // Title in bright red
+                            graphics.setForegroundColor(AnsiColor.BRIGHT_RED);
+                            graphics.setFormats(AnsiFormat.BOLD);
+                        } else if (i == 1) {
+                            // Required size in red
+                            graphics.setForegroundColor(AnsiColor.RED);
+                            graphics.setFormats(AnsiFormat.BOLD);
+                        } else if (i == 2) {
+                            // Current size in yellow
+                            graphics.setForegroundColor(AnsiColor.YELLOW);
+                        } else if (i == 4) {
+                            // Help text in white
+                            graphics.setForegroundColor(AnsiColor.WHITE);
+                        } else {
+                            // Reset for empty line
+                            graphics.setForegroundColor(AnsiColor.BRIGHT_RED);
+                            graphics.setFormats(AnsiFormat.BOLD);
+                        }
 
-                    // Draw border with red color for warning
-                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
-                        .foreground(org.jline.utils.AttributedStyle.RED)
-                        .bold());
-                    graphics.drawRect(0, 0, getWidth(), getHeight(), '#');
-
-                    // Draw warning message in bright red
-                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
-                        .foreground(org.jline.utils.AttributedStyle.BRIGHT + org.jline.utils.AttributedStyle.RED)
-                        .bold());
-                    graphics.drawString(Math.max(1, centerX - message.length() / 2), centerY - 1, message);
-
-                    // Draw requirement in yellow
-                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
-                        .foreground(org.jline.utils.AttributedStyle.YELLOW));
-                    graphics.drawString(Math.max(1, centerX - requirement.length() / 2), centerY, requirement);
-
-                    // Draw current size in white
-                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
-                        .foreground(org.jline.utils.AttributedStyle.WHITE));
-                    graphics.drawString(Math.max(1, centerX - current.length() / 2), centerY + 1, current);
-                } else {
-                    // For very small terminals, fill with warning character
-                    graphics.setStyle(org.jline.utils.AttributedStyle.DEFAULT
-                        .foreground(org.jline.utils.AttributedStyle.BRIGHT + org.jline.utils.AttributedStyle.RED)
-                        .bold());
-                    graphics.fillRect(0, 0, getWidth(), getHeight(), '!');
+                        graphics.drawString(x, y, message);
+                    }
                 }
             }
         };

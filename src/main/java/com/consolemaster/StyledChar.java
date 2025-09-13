@@ -29,6 +29,29 @@ public class StyledChar {
     }
 
     /**
+     * Creates a styled character using a TextStyle.
+     */
+    public StyledChar(char character, TextStyle textStyle) {
+        this.character = character;
+        if (textStyle != null) {
+            this.foregroundColor = textStyle.getForegroundColor();
+            this.backgroundColor = textStyle.getBackgroundColor();
+            this.formats = textStyle.getFormats().toArray(new AnsiFormat[0]);
+        } else {
+            this.foregroundColor = null;
+            this.backgroundColor = null;
+            this.formats = new AnsiFormat[0];
+        }
+    }
+
+    /**
+     * Gets the TextStyle representation of this styled character.
+     */
+    public TextStyle getStyle() {
+        return new TextStyle(foregroundColor, backgroundColor, formats);
+    }
+
+    /**
      * Converts this styled character to its ANSI representation.
      */
     public String toAnsiString() {

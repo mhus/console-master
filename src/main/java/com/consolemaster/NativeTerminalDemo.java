@@ -1,0 +1,193 @@
+package com.consolemaster;
+
+import java.io.IOException;
+
+/**
+ * Demo application showcasing the native terminal implementation without JLine dependency.
+ * Demonstrates the replacement of JLine with native ANSI terminal handling.
+ */
+public class NativeTerminalDemo {
+
+    public static void main(String[] args) {
+        try {
+            // Create the main screen canvas using native terminal
+            ScreenCanvas screen = new ScreenCanvas(80, 25);
+
+            // Create a composite canvas with BorderLayout
+            CompositeCanvas borderContainer = new CompositeCanvas(2, 2,
+                                                                 screen.getWidth() - 4,
+                                                                 screen.getHeight() - 4,
+                                                                 new BorderLayout(1));
+
+            // Create NORTH component (Header)
+            Box northBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Text northText = new Text(0, 0, 0, 0, "NORTH - Native Terminal Demo", Text.Alignment.CENTER);
+            northText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
+            northText.setFormats(AnsiFormat.BOLD);
+            northBox.setChild(northText);
+            northBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.NORTH));
+
+            // Create SOUTH component (Footer)
+            Box southBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Text southText = new Text(0, 0, 0, 0, "SOUTH - Press 'q' to quit, TAB to navigate", Text.Alignment.CENTER);
+            southText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
+            southBox.setChild(southText);
+            southBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.SOUTH));
+
+            // Create WEST component (Sidebar)
+            Box westBox = new Box(0, 0, 20, 0, new SimpleBorder());
+            CompositeCanvas westContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(1, 1));
+
+            Text westTitle = new Text(0, 0, 0, 1, "WEST Sidebar:", Text.Alignment.LEFT);
+            westTitle.setForegroundColor(AnsiColor.YELLOW);
+            westTitle.setFormats(AnsiFormat.BOLD);
+            westTitle.setCanFocus(true);
+            westContent.addChild(westTitle);
+
+            Text westInfo1 = new Text(0, 0, 0, 1, "• Native ANSI", Text.Alignment.LEFT);
+            westInfo1.setForegroundColor(AnsiColor.WHITE);
+            westContent.addChild(westInfo1);
+
+            Text westInfo2 = new Text(0, 0, 0, 1, "• No JLine deps", Text.Alignment.LEFT);
+            westInfo2.setForegroundColor(AnsiColor.WHITE);
+            westContent.addChild(westInfo2);
+
+            Text westInfo3 = new Text(0, 0, 0, 1, "• Full keyboard", Text.Alignment.LEFT);
+            westInfo3.setForegroundColor(AnsiColor.WHITE);
+            westContent.addChild(westInfo3);
+
+            Text westInfo4 = new Text(0, 0, 0, 1, "• Mouse support", Text.Alignment.LEFT);
+            westInfo4.setForegroundColor(AnsiColor.WHITE);
+            westContent.addChild(westInfo4);
+
+            westBox.setChild(westContent);
+            westBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.WEST));
+
+            // Create EAST component (Status)
+            Box eastBox = new Box(0, 0, 20, 0, new SimpleBorder());
+            CompositeCanvas eastContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(1, 1));
+
+            Text eastTitle = new Text(0, 0, 0, 1, "EAST Status:", Text.Alignment.LEFT);
+            eastTitle.setForegroundColor(AnsiColor.MAGENTA);
+            eastTitle.setFormats(AnsiFormat.BOLD);
+            eastTitle.setCanFocus(true);
+            eastContent.addChild(eastTitle);
+
+            Text statusText = new Text(0, 0, 0, 1, "Terminal Ready", Text.Alignment.LEFT);
+            statusText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
+            eastContent.addChild(statusText);
+
+            Text sizeText = new Text(0, 0, 0, 1,
+                "Size: " + screen.getWidth() + "x" + screen.getHeight(), Text.Alignment.LEFT);
+            sizeText.setForegroundColor(AnsiColor.CYAN);
+            eastContent.addChild(sizeText);
+
+            eastBox.setChild(eastContent);
+            eastBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.EAST));
+
+            // Create CENTER component (Main content)
+            Box centerBox = new Box(0, 0, 0, 0, new SimpleBorder());
+            CompositeCanvas centerContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
+
+            Text centerTitle = new Text(0, 0, 0, 2, "CENTER - Native Terminal Implementation", Text.Alignment.CENTER);
+            centerTitle.setForegroundColor(AnsiColor.BRIGHT_WHITE);
+            centerTitle.setFormats(AnsiFormat.BOLD, AnsiFormat.UNDERLINE);
+            centerTitle.setCanFocus(true);
+            centerContent.addChild(centerTitle);
+
+            Text infoText1 = new Text(0, 0, 0, 1, "This demo shows the framework running completely", Text.Alignment.CENTER);
+            infoText1.setForegroundColor(AnsiColor.WHITE);
+            centerContent.addChild(infoText1);
+
+            Text infoText2 = new Text(0, 0, 0, 1, "without JLine dependencies!", Text.Alignment.CENTER);
+            infoText2.setForegroundColor(AnsiColor.BRIGHT_GREEN);
+            infoText2.setFormats(AnsiFormat.BOLD);
+            centerContent.addChild(infoText2);
+
+            Text controlsTitle = new Text(0, 0, 0, 2, "Controls:", Text.Alignment.CENTER);
+            controlsTitle.setForegroundColor(AnsiColor.YELLOW);
+            controlsTitle.setFormats(AnsiFormat.BOLD);
+            centerContent.addChild(controlsTitle);
+
+            Text control1 = new Text(0, 0, 0, 1, "TAB/Shift+TAB - Navigate focus", Text.Alignment.CENTER);
+            control1.setForegroundColor(AnsiColor.CYAN);
+            centerContent.addChild(control1);
+
+            Text control2 = new Text(0, 0, 0, 1, "Arrow keys - Navigate", Text.Alignment.CENTER);
+            control2.setForegroundColor(AnsiColor.CYAN);
+            centerContent.addChild(control2);
+
+            Text control3 = new Text(0, 0, 0, 1, "F1-F12 - Function keys", Text.Alignment.CENTER);
+            control3.setForegroundColor(AnsiColor.CYAN);
+            centerContent.addChild(control3);
+
+            Text control4 = new Text(0, 0, 0, 1, "'q' or ESC - Quit", Text.Alignment.CENTER);
+            control4.setForegroundColor(AnsiColor.BRIGHT_RED);
+            control4.setFormats(AnsiFormat.BOLD);
+            centerContent.addChild(control4);
+
+            centerBox.setChild(centerContent);
+            centerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
+
+            // Add all components to border layout
+            borderContainer.addChild(northBox);
+            borderContainer.addChild(southBox);
+            borderContainer.addChild(westBox);
+            borderContainer.addChild(eastBox);
+            borderContainer.addChild(centerBox);
+
+            // Set the border container as the main content
+            screen.setContentCanvas(borderContainer);
+
+            // Create and start the process loop with native terminal
+            ProcessLoop processLoop = new ProcessLoop(screen);
+
+            // Enable mouse reporting
+            processLoop.enableMouseReporting();
+
+            // Register keyboard shortcuts
+            screen.registerShortcut("q", () -> {
+                try {
+                    processLoop.stop();
+                } catch (IOException e) {
+                    System.err.println("Error stopping process loop: " + e.getMessage());
+                }
+            });
+
+            screen.registerShortcut("ESC", () -> {
+                try {
+                    processLoop.stop();
+                } catch (IOException e) {
+                    System.err.println("Error stopping process loop: " + e.getMessage());
+                }
+            });
+
+            // Add update callback to show dynamic content
+            processLoop.setUpdateCallback(() -> {
+                // Update terminal size display
+                sizeText.setText("Size: " + screen.getWidth() + "x" + screen.getHeight());
+
+                // Update status based on focus
+                Canvas focused = screen.getFocusedCanvas();
+                if (focused != null) {
+                    statusText.setText("Focus: " + focused.getClass().getSimpleName());
+                } else {
+                    statusText.setText("No Focus");
+                }
+            });
+
+            // Start the process loop
+            System.out.println("Starting Native Terminal Demo...");
+            System.out.println("Framework is now running without JLine!");
+            processLoop.start();
+
+            // Cleanup
+            screen.close();
+            System.out.println("\nNative Terminal Demo finished.");
+
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
