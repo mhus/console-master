@@ -1,5 +1,10 @@
+com/consolemaster/JLineDemo$3.class
+com/consolemaster/JLineDemo.class
 com/consolemaster/ScreenCanvas$1.class
+com/consolemaster/JLineDemo$2.class
 com/consolemaster/TextCanvas.class
+com/consolemaster/JLineGraphics.class
+com/consolemaster/JLineDemo$4.class
 com/consolemaster/Graphics.class
 com/consolemaster/ConsoleMasterDemo.class
 com/consolemaster/ScreenCanvas.class
@@ -11,4 +16,5 @@ com/consolemaster/AnsiFormat.class
 com/consolemaster/StyledChar.class
 com/consolemaster/ConsoleMasterDemo$3.class
 com/consolemaster/ConsoleMasterDemo$4.class
+com/consolemaster/JLineDemo$1.class
 com/consolemaster/Canvas.class

@@ -43,6 +43,28 @@ public abstract class Canvas {
     public abstract void paint(Graphics graphics);
 
     /**
+     * Paint method using JLine's enhanced graphics context.
+     * Default implementation delegates to the standard paint method.
+     * Override this for better JLine integration.
+     *
+     * @param graphics the JLine graphics context to draw on
+     */
+    public void paint(JLineGraphics graphics) {
+        // Default implementation: create a legacy Graphics wrapper
+        char[][] charBuffer = new char[getHeight()][getWidth()];
+        Graphics legacyGraphics = new Graphics(charBuffer, getWidth(), getHeight());
+        paint(legacyGraphics);
+
+        // Copy the result to JLine graphics
+        char[][] result = legacyGraphics.toCharArray();
+        for (int y = 0; y < getHeight() && y < graphics.getHeight(); y++) {
+            for (int x = 0; x < getWidth() && x < graphics.getWidth(); x++) {
+                graphics.drawChar(getX() + x, getY() + y, result[y][x]);
+            }
+        }
+    }
+
+    /**
      * Checks if the given coordinates are within the bounds of this canvas.
      *
      * @param x the x-coordinate to check

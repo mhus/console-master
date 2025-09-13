@@ -77,4 +77,19 @@ public class CompositeCanvas extends Canvas {
             }
         }
     }
+
+    /**
+     * Paints this composite canvas using JLine graphics by rendering all visible child canvases
+     * in the order they were added.
+     *
+     * @param graphics the JLine graphics context to draw on
+     */
+    @Override
+    public void paint(JLineGraphics graphics) {
+        for (Canvas child : children) {
+            if (child.isVisible()) {
+                child.paint(graphics);
+            }
+        }
+    }
 }

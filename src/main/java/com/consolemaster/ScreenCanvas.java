@@ -64,14 +64,13 @@ public class ScreenCanvas extends CompositeCanvas {
     }
 
     public void render() {
-        StyledChar[][] buffer = new StyledChar[getHeight()][getWidth()];
-        Graphics graphics = new Graphics(buffer, getWidth(), getHeight());
+        JLineGraphics graphics = new JLineGraphics(getWidth(), getHeight());
         graphics.clear();
         paint(graphics);
 
-        // Output ANSI-styled content to terminal
-        terminal.writer().print("\033[2J\033[H");
-        terminal.writer().print(graphics.toAnsiString());
+        // Use JLine's efficient AttributedString output
+        terminal.writer().print("\033[2J\033[H"); // Clear screen and move cursor to top
+        terminal.writer().print(graphics.toAttributedString().toAnsi(terminal));
         terminal.flush();
     }
 
