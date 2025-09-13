@@ -77,12 +77,164 @@ class CanvasTest {
         assertTrue(canvas.isVisible());
     }
 
+    @Test
+    void shouldSetAndEnforceSizeConstraints() {
+        // Set constraints
+        canvas.setMinWidth(10);
+        canvas.setMinHeight(15);
+        canvas.setMaxWidth(100);
+        canvas.setMaxHeight(80);
+
+        assertEquals(10, canvas.getMinWidth());
+        assertEquals(15, canvas.getMinHeight());
+        assertEquals(100, canvas.getMaxWidth());
+        assertEquals(80, canvas.getMaxHeight());
+
+        // Current size should be adjusted to meet minimum requirements
+        assertTrue(canvas.getWidth() >= 10);
+        assertTrue(canvas.getHeight() >= 15);
+    }
+
+    @Test
+    void shouldEnforceMinimumSizeWhenSettingDimensions() {
+        canvas.setMinWidth(20);
+        canvas.setMinHeight(25);
+
+        // Try to set size below minimum
+        canvas.setWidth(10);
+        canvas.setHeight(15);
+
+        // Should be clamped to minimum
+        assertEquals(20, canvas.getWidth());
+        assertEquals(25, canvas.getHeight());
+    }
+
+    @Test
+    void shouldEnforceMaximumSizeWhenSettingDimensions() {
+        canvas.setMaxWidth(80);
+        canvas.setMaxHeight(60);
+
+        // Try to set size above maximum
+        canvas.setWidth(120);
+        canvas.setHeight(100);
+
+        // Should be clamped to maximum
+        assertEquals(80, canvas.getWidth());
+        assertEquals(60, canvas.getHeight());
+    }
+
+    @Test
+    void shouldCreateCanvasWithConstraints() {
+        TestCanvas constrainedCanvas = new TestCanvas(5, 10, 30, 40, 20, 25, 100, 80);
+
+        assertEquals(5, constrainedCanvas.getX());
+        assertEquals(10, constrainedCanvas.getY());
+        assertEquals(30, constrainedCanvas.getWidth()); // Within constraints
+        assertEquals(40, constrainedCanvas.getHeight()); // Within constraints
+        assertEquals(20, constrainedCanvas.getMinWidth());
+        assertEquals(25, constrainedCanvas.getMinHeight());
+        assertEquals(100, constrainedCanvas.getMaxWidth());
+        assertEquals(80, constrainedCanvas.getMaxHeight());
+    }
+
+    @Test
+    void shouldEnforceConstraintsInConstructor() {
+        // Create canvas with size below minimum
+        TestCanvas smallCanvas = new TestCanvas(0, 0, 5, 8, 15, 12, 100, 80);
+
+        // Size should be adjusted to minimum
+        assertEquals(15, smallCanvas.getWidth());
+        assertEquals(12, smallCanvas.getHeight());
+    }
+
+    @Test
+    void shouldCheckSizeValidation() {
+        canvas.setMinSize(10, 15);
+        canvas.setMaxSize(80, 60);
+
+        // Set valid size
+        canvas.setWidth(40);
+        canvas.setHeight(30);
+
+        assertTrue(canvas.meetsMinimumSize());
+        assertTrue(canvas.withinMaximumSize());
+        assertTrue(canvas.isValidSize());
+
+        // Test with size at minimum boundary
+        canvas.setWidth(10);
+        canvas.setHeight(15);
+
+        assertTrue(canvas.meetsMinimumSize());
+        assertTrue(canvas.isValidSize());
+
+        // Test with size at maximum boundary
+        canvas.setWidth(80);
+        canvas.setHeight(60);
+
+        assertTrue(canvas.withinMaximumSize());
+        assertTrue(canvas.isValidSize());
+    }
+
+    @Test
+    void shouldSetMinAndMaxSizeTogether() {
+        canvas.setMinSize(20, 25);
+        assertEquals(20, canvas.getMinWidth());
+        assertEquals(25, canvas.getMinHeight());
+
+        canvas.setMaxSize(100, 80);
+        assertEquals(100, canvas.getMaxWidth());
+        assertEquals(80, canvas.getMaxHeight());
+    }
+
+    @Test
+    void shouldHandleInvalidConstraints() {
+        // Negative minimum should be clamped to 0
+        canvas.setMinWidth(-5);
+        canvas.setMinHeight(-10);
+        assertEquals(0, canvas.getMinWidth());
+        assertEquals(0, canvas.getMinHeight());
+
+        // Maximum below 1 should be clamped to 1
+        canvas.setMaxWidth(0);
+        canvas.setMaxHeight(-5);
+        assertEquals(1, canvas.getMaxWidth());
+        assertEquals(1, canvas.getMaxHeight());
+    }
+
+    @Test
+    void shouldSetAndGetLayoutConstraint() {
+        assertNull(canvas.getLayoutConstraint());
+
+        PositionConstraint constraint = new PositionConstraint(PositionConstraint.Position.CENTER);
+        canvas.setLayoutConstraint(constraint);
+
+        assertEquals(constraint, canvas.getLayoutConstraint());
+    }
+
+    @Test
+    void shouldAllowNullLayoutConstraint() {
+        PositionConstraint constraint = new PositionConstraint(PositionConstraint.Position.TOP_LEFT);
+        canvas.setLayoutConstraint(constraint);
+        assertNotNull(canvas.getLayoutConstraint());
+
+        canvas.setLayoutConstraint(null);
+        assertNull(canvas.getLayoutConstraint());
+    }
+
     /**
      * Test implementation of Canvas for testing purposes.
      */
     private static class TestCanvas extends Canvas {
         public TestCanvas(int x, int y, int width, int height) {
             super(x, y, width, height);
+        }
+
+        public TestCanvas(int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
+            super(x, y, width, height);
+            setMinWidth(minWidth);
+            setMinHeight(minHeight);
+            setMaxWidth(maxWidth);
+            setMaxHeight(maxHeight);
         }
 
         @Override

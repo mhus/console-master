@@ -18,6 +18,15 @@ public abstract class Canvas {
     private int height;
     private boolean visible = true;
 
+    // Size constraints
+    private int minWidth = 0;
+    private int minHeight = 0;
+    private int maxWidth = Integer.MAX_VALUE;
+    private int maxHeight = Integer.MAX_VALUE;
+
+    // Layout constraint for positioning hints
+    private LayoutConstraint layoutConstraint;
+
     /**
      * Creates a new Canvas with the specified position and dimensions.
      *
@@ -31,6 +40,164 @@ public abstract class Canvas {
         this.y = y;
         this.width = width;
         this.height = height;
+    }
+
+    /**
+     * Creates a new Canvas with position, dimensions and size constraints.
+     *
+     * @param x         the x-coordinate of the canvas
+     * @param y         the y-coordinate of the canvas
+     * @param width     the width of the canvas
+     * @param height    the height of the canvas
+     * @param minWidth  the minimum width constraint
+     * @param minHeight the minimum height constraint
+     * @param maxWidth  the maximum width constraint
+     * @param maxHeight the maximum height constraint
+     */
+    public Canvas(int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
+        this(x, y, width, height);
+        this.minWidth = minWidth;
+        this.minHeight = minHeight;
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+
+        // Ensure current size respects constraints
+        enforceConstraints();
+    }
+
+    /**
+     * Sets the width and enforces size constraints.
+     *
+     * @param width the new width
+     */
+    public void setWidth(int width) {
+        this.width = Math.max(minWidth, Math.min(maxWidth, width));
+    }
+
+    /**
+     * Sets the height and enforces size constraints.
+     *
+     * @param height the new height
+     */
+    public void setHeight(int height) {
+        this.height = Math.max(minHeight, Math.min(maxHeight, height));
+    }
+
+    /**
+     * Sets the minimum width constraint.
+     *
+     * @param minWidth the minimum width
+     */
+    public void setMinWidth(int minWidth) {
+        this.minWidth = Math.max(0, minWidth);
+        enforceConstraints();
+    }
+
+    /**
+     * Sets the minimum height constraint.
+     *
+     * @param minHeight the minimum height
+     */
+    public void setMinHeight(int minHeight) {
+        this.minHeight = Math.max(0, minHeight);
+        enforceConstraints();
+    }
+
+    /**
+     * Sets the maximum width constraint.
+     *
+     * @param maxWidth the maximum width
+     */
+    public void setMaxWidth(int maxWidth) {
+        this.maxWidth = Math.max(1, maxWidth);
+        enforceConstraints();
+    }
+
+    /**
+     * Sets the maximum height constraint.
+     *
+     * @param maxHeight the maximum height
+     */
+    public void setMaxHeight(int maxHeight) {
+        this.maxHeight = Math.max(1, maxHeight);
+        enforceConstraints();
+    }
+
+    /**
+     * Sets both minimum width and height constraints.
+     *
+     * @param minWidth  the minimum width
+     * @param minHeight the minimum height
+     */
+    public void setMinSize(int minWidth, int minHeight) {
+        this.minWidth = Math.max(0, minWidth);
+        this.minHeight = Math.max(0, minHeight);
+        enforceConstraints();
+    }
+
+    /**
+     * Sets both maximum width and height constraints.
+     *
+     * @param maxWidth  the maximum width
+     * @param maxHeight the maximum height
+     */
+    public void setMaxSize(int maxWidth, int maxHeight) {
+        this.maxWidth = Math.max(1, maxWidth);
+        this.maxHeight = Math.max(1, maxHeight);
+        enforceConstraints();
+    }
+
+    /**
+     * Checks if the canvas meets its minimum size requirements.
+     *
+     * @return true if width >= minWidth and height >= minHeight
+     */
+    public boolean meetsMinimumSize() {
+        return width >= minWidth && height >= minHeight;
+    }
+
+    /**
+     * Checks if the canvas exceeds its maximum size constraints.
+     *
+     * @return true if width <= maxWidth and height <= maxHeight
+     */
+    public boolean withinMaximumSize() {
+        return width <= maxWidth && height <= maxHeight;
+    }
+
+    /**
+     * Checks if the canvas size is within all constraints.
+     *
+     * @return true if size meets minimum and maximum constraints
+     */
+    public boolean isValidSize() {
+        return meetsMinimumSize() && withinMaximumSize();
+    }
+
+    /**
+     * Enforces size constraints on the current width and height.
+     */
+    private void enforceConstraints() {
+        this.width = Math.max(minWidth, Math.min(maxWidth, this.width));
+        this.height = Math.max(minHeight, Math.min(maxHeight, this.height));
+    }
+
+    /**
+     * Gets the layout constraint for this canvas.
+     *
+     * @return the layout constraint or null if not set
+     */
+    public LayoutConstraint getLayoutConstraint() {
+        return layoutConstraint;
+    }
+
+    /**
+     * Sets the layout constraint for this canvas.
+     *
+     * @param layoutConstraint the layout constraint for positioning hints
+     */
+    public void setLayoutConstraint(LayoutConstraint layoutConstraint) {
+        this.layoutConstraint = layoutConstraint;
     }
 
     /**
