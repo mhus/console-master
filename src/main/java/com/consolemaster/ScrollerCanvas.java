@@ -209,8 +209,8 @@ public class ScrollerCanvas extends Canvas implements EventHandler {
         int contentWidth = getContentWidth();
         int contentHeight = getContentHeight();
 
-        // Create a clipped graphics context for the content area
-        ClippedGraphics clippedGraphics = new ClippedGraphics(graphics, 0, 0, contentWidth, contentHeight);
+        // Create a ClippingGraphics context for the content area
+        ClippingGraphics clippedGraphics = new ClippingGraphics(graphics, 0, 0, contentWidth, contentHeight);
 
         // Translate the child canvas position based on scroll offset
         int childOriginalX = child.getX();
@@ -493,101 +493,5 @@ public class ScrollerCanvas extends Canvas implements EventHandler {
         super.onFocusChanged(focused);
         // Visual feedback for focus state could be added here
         // For example, change scrollbar colors when focused
-    }
-
-    /**
-     * A graphics wrapper that clips drawing to a specific rectangle.
-     */
-    private static class ClippedGraphics extends Graphics {
-        private final Graphics delegate;
-        private final int clipX, clipY, clipWidth, clipHeight;
-
-        public ClippedGraphics(Graphics delegate, int clipX, int clipY, int clipWidth, int clipHeight) {
-            super(delegate.getWidth(), delegate.getHeight());
-            this.delegate = delegate;
-            this.clipX = clipX;
-            this.clipY = clipY;
-            this.clipWidth = clipWidth;
-            this.clipHeight = clipHeight;
-        }
-
-        @Override
-        public void clear() {
-            // Clear only the clipped area
-            for (int y = clipY; y < clipY + clipHeight && y < delegate.getHeight(); y++) {
-                for (int x = clipX; x < clipX + clipWidth && x < delegate.getWidth(); x++) {
-                    delegate.drawChar(x, y, ' ');
-                }
-            }
-        }
-
-        @Override
-        public void drawChar(int x, int y, char c) {
-            if (isInClipArea(x, y)) {
-                delegate.drawChar(x, y, c);
-            }
-        }
-
-        @Override
-        public void drawString(int x, int y, String text) {
-            if (text == null || !isLineInClipArea(y)) return;
-
-            // Clip the string to fit within the clipped area
-            int startX = Math.max(x, clipX);
-            int endX = Math.min(x + text.length(), clipX + clipWidth);
-
-            if (startX < endX) {
-                int textStart = startX - x;
-                int textEnd = endX - x;
-                String clippedText = text.substring(textStart, textEnd);
-                delegate.drawString(startX, y, clippedText);
-            }
-        }
-
-        @Override
-        public void drawStyledString(int x, int y, String text, AnsiColor foregroundColor,
-                                   AnsiColor backgroundColor, AnsiFormat... formats) {
-            if (text == null || !isLineInClipArea(y)) return;
-
-            // Clip the string to fit within the clipped area
-            int startX = Math.max(x, clipX);
-            int endX = Math.min(x + text.length(), clipX + clipWidth);
-
-            if (startX < endX) {
-                int textStart = startX - x;
-                int textEnd = endX - x;
-                String clippedText = text.substring(textStart, textEnd);
-                delegate.drawStyledString(startX, y, clippedText, foregroundColor, backgroundColor, formats);
-            }
-        }
-
-        @Override
-        public void setForegroundColor(AnsiColor color) {
-            delegate.setForegroundColor(color);
-        }
-
-        @Override
-        public void setBackgroundColor(AnsiColor color) {
-            delegate.setBackgroundColor(color);
-        }
-
-        @Override
-        public void setFormats(AnsiFormat... formats) {
-            delegate.setFormats(formats);
-        }
-
-        @Override
-        public void resetStyle() {
-            delegate.resetStyle();
-        }
-
-        private boolean isInClipArea(int x, int y) {
-            return x >= clipX && x < clipX + clipWidth &&
-                   y >= clipY && y < clipY + clipHeight;
-        }
-
-        private boolean isLineInClipArea(int y) {
-            return y >= clipY && y < clipY + clipHeight;
-        }
     }
 }

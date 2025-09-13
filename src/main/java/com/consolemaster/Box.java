@@ -100,11 +100,13 @@ public class Box extends Canvas {
 
     /**
      * Updates the bounds of the child to fit within the inner area.
+     * With SubGraphics, the child should be positioned relative to the inner area.
      */
     private void updateChildBounds() {
         if (child != null) {
-            child.setX(getInnerX());
-            child.setY(getInnerY());
+            // Position child relative to the inner area (starting at border thickness)
+            child.setX(border.getLeftThickness());
+            child.setY(border.getTopThickness());
             child.setWidth(getInnerWidth());
             child.setHeight(getInnerHeight());
         }
@@ -188,12 +190,23 @@ public class Box extends Canvas {
 
     @Override
     public void paint(Graphics graphics) {
-        // Draw the border
-        border.drawBorder(graphics, getX(), getY(), getWidth(), getHeight());
+        // Draw the border using local coordinates (0,0 to width,height)
+        border.drawBorder(graphics, 0, 0, getWidth(), getHeight());
 
         // Draw the child if it exists and is visible
         if (child != null && child.isVisible()) {
-            child.paint(graphics);
+            // Create a ClippingGraphics for the child that represents the inner area
+            // (excluding the border space)
+            ClippingGraphics childGraphics = new ClippingGraphics(
+                graphics,
+                child.getX(),
+                child.getY(),
+                child.getWidth(),
+                child.getHeight()
+            );
+
+            // The child can now draw starting at (0,0) in its own coordinate system
+            child.paint(childGraphics);
         }
     }
 }

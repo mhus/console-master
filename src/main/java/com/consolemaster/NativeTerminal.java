@@ -29,7 +29,7 @@ public class NativeTerminal {
     private static final String MOUSE_TRACKING_OFF = ESC + "?1006l" + ESC + "?1015l" + ESC + "?1002l" + ESC + "?1000l";
     private static final String REQUEST_CURSOR_POSITION = ESC + "6n";
 
-    public NativeTerminal() throws IOException {
+    public NativeTerminal() {
         this.writer = System.out;
         this.inputStream = System.in;
         detectTerminalSize();

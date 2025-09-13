@@ -140,15 +140,28 @@ public class CompositeCanvas extends Canvas {
 
     /**
      * Paints this composite canvas by rendering all visible child canvases
-     * in the order they were added.
+     * in the order they were added. Each child receives a ClippingGraphics that
+     * allows it to draw starting at (0,0) in its own coordinate system.
      *
      * @param graphics the graphics context to draw on
      */
     @Override
     public void paint(Graphics graphics) {
         for (Canvas child : children) {
-            if (child.isVisible()) {
-                child.paint(graphics);
+            if (child.isVisible() && child.getWidth() > 0 && child.getHeight() > 0) {
+                // Create a ClippingGraphics for this child that maps its local coordinates
+                // (starting at 0,0) to its actual position within this composite
+                ClippingGraphics childGraphics = new ClippingGraphics(
+                    graphics,
+                    child.getX(),
+                    child.getY(),
+                    child.getWidth(),
+                    child.getHeight()
+                );
+
+                // Now the child can draw starting at (0,0) and it will appear
+                // at the correct position in the parent graphics
+                child.paint(childGraphics);
             }
         }
     }

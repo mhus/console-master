@@ -41,7 +41,7 @@ public class ScreenCanvas extends CompositeCanvas {
     /**
      * Creates a new ScreenCanvas with specified minimum size requirements.
      */
-    public ScreenCanvas(int minWidth, int minHeight) throws IOException {
+    public ScreenCanvas(int minWidth, int minHeight) {
         super(0, 0, 0, 0);
         this.minWidth = minWidth;
         this.minHeight = minHeight;

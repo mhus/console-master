@@ -98,20 +98,35 @@ class CompositeCanvasTest {
     @Test
     void shouldPaintVisibleChildrenInOrder() {
         when(childCanvas1.isVisible()).thenReturn(true);
+        when(childCanvas1.getWidth()).thenReturn(10);
+        when(childCanvas1.getHeight()).thenReturn(10);
+        when(childCanvas1.getX()).thenReturn(0);
+        when(childCanvas1.getY()).thenReturn(0);
+
         when(childCanvas2.isVisible()).thenReturn(true);
-        
+        when(childCanvas2.getWidth()).thenReturn(10);
+        when(childCanvas2.getHeight()).thenReturn(10);
+        when(childCanvas2.getX()).thenReturn(20);
+        when(childCanvas2.getY()).thenReturn(0);
+
         composite.addChild(childCanvas1);
         composite.addChild(childCanvas2);
         
         composite.paint(graphics);
         
-        verify(childCanvas1).paint(graphics);
-        verify(childCanvas2).paint(graphics);
+        // With ClippingGraphics, the children receive a ClippingGraphics wrapper, not the original graphics
+        verify(childCanvas1).paint(any(Graphics.class));
+        verify(childCanvas2).paint(any(Graphics.class));
     }
     
     @Test
     void shouldSkipInvisibleChildren() {
         when(childCanvas1.isVisible()).thenReturn(true);
+        when(childCanvas1.getWidth()).thenReturn(10);
+        when(childCanvas1.getHeight()).thenReturn(10);
+        when(childCanvas1.getX()).thenReturn(0);
+        when(childCanvas1.getY()).thenReturn(0);
+
         when(childCanvas2.isVisible()).thenReturn(false);
         
         composite.addChild(childCanvas1);
@@ -119,8 +134,9 @@ class CompositeCanvasTest {
         
         composite.paint(graphics);
         
-        verify(childCanvas1).paint(graphics);
-        verify(childCanvas2, never()).paint(graphics);
+        // With ClippingGraphics, the visible child receives a ClippingGraphics wrapper
+        verify(childCanvas1).paint(any(Graphics.class));
+        verify(childCanvas2, never()).paint(any(Graphics.class));
     }
     
     @Test
