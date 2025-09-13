@@ -20,7 +20,7 @@ public class NativeTerminalDemo {
                                                                  new BorderLayout(1));
 
             // Create NORTH component (Header)
-            Box northBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Box northBox = new Box(0, 0, 0, 3, new DefaultBorder());
             Text northText = new Text(0, 0, 0, 0, "NORTH - Native Terminal Demo", Text.Alignment.CENTER);
             northText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             northText.setFormats(AnsiFormat.BOLD);
@@ -28,14 +28,14 @@ public class NativeTerminalDemo {
             northBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.NORTH));
 
             // Create SOUTH component (Footer)
-            Box southBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Box southBox = new Box(0, 0, 0, 3, new DefaultBorder());
             Text southText = new Text(0, 0, 0, 0, "SOUTH - Press 'q' to quit, TAB to navigate", Text.Alignment.CENTER);
             southText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
             southBox.setChild(southText);
             southBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.SOUTH));
 
             // Create WEST component (Sidebar)
-            Box westBox = new Box(0, 0, 20, 0, new SimpleBorder());
+            Box westBox = new Box(0, 0, 20, 0, new DefaultBorder());
             CompositeCanvas westContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(1, 1));
 
             Text westTitle = new Text(0, 0, 0, 1, "WEST Sidebar:", Text.Alignment.LEFT);
@@ -64,7 +64,7 @@ public class NativeTerminalDemo {
             westBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.WEST));
 
             // Create EAST component (Status)
-            Box eastBox = new Box(0, 0, 20, 0, new SimpleBorder());
+            Box eastBox = new Box(0, 0, 20, 0, new DefaultBorder());
             CompositeCanvas eastContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(1, 1));
 
             Text eastTitle = new Text(0, 0, 0, 1, "EAST Status:", Text.Alignment.LEFT);
@@ -86,7 +86,7 @@ public class NativeTerminalDemo {
             eastBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.EAST));
 
             // Create CENTER component (Main content)
-            Box centerBox = new Box(0, 0, 0, 0, new SimpleBorder());
+            Box centerBox = new Box(0, 0, 0, 0, new DefaultBorder());
             CompositeCanvas centerContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
 
             Text centerTitle = new Text(0, 0, 0, 2, "CENTER - Native Terminal Implementation", Text.Alignment.CENTER);

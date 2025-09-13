@@ -23,7 +23,7 @@ public class Box extends Canvas {
      * @param height the height of the box
      */
     public Box(int x, int y, int width, int height) {
-        this(x, y, width, height, new SimpleBorder());
+        this(x, y, width, height, new DefaultBorder());
     }
 
     /**
@@ -37,7 +37,7 @@ public class Box extends Canvas {
      */
     public Box(int x, int y, int width, int height, Border border) {
         super(x, y, width, height);
-        this.border = border != null ? border : new SimpleBorder();
+        this.border = border != null ? border : new DefaultBorder();
     }
 
     /**

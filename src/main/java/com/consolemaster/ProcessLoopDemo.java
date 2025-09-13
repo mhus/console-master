@@ -23,7 +23,7 @@ public class ProcessLoopDemo {
                                                                new BorderLayout(1));
 
             // Create header
-            Box headerBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Box headerBox = new Box(0, 0, 0, 3, new DefaultBorder());
             Text headerText = new Text(0, 0, 0, 0, "ProcessLoop Demo - Interactive Console Application", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
@@ -34,7 +34,7 @@ public class ProcessLoopDemo {
             CompositeCanvas centerPanel = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
 
             // Counter button
-            Box counterBox = new Box(0, 0, 20, 5, new SimpleBorder()) {
+            Box counterBox = new Box(0, 0, 20, 5, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
@@ -47,7 +47,7 @@ public class ProcessLoopDemo {
             counterBox.setCanFocus(true);
 
             // Help button
-            Box helpBox = new Box(0, 0, 20, 5, new SimpleBorder()) {
+            Box helpBox = new Box(0, 0, 20, 5, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
@@ -60,7 +60,7 @@ public class ProcessLoopDemo {
             helpBox.setCanFocus(true);
 
             // Reset button
-            Box resetBox = new Box(0, 0, 20, 5, new SimpleBorder()) {
+            Box resetBox = new Box(0, 0, 20, 5, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
@@ -94,7 +94,7 @@ public class ProcessLoopDemo {
             centerPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Create footer with status info
-            Box footerBox = new Box(0, 0, 0, 4, new SimpleBorder());
+            Box footerBox = new Box(0, 0, 0, 4, new DefaultBorder());
             Text footerText = new Text(0, 0, 0, 0, "", Text.Alignment.CENTER);
             updateFooterText(footerText);
             footerBox.setChild(footerText);

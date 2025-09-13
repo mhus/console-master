@@ -25,7 +25,7 @@ public class MouseDemo {
                                                                new BorderLayout(1));
 
             // Create header
-            Box headerBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Box headerBox = new Box(0, 0, 0, 3, new DefaultBorder());
             Text headerText = new Text(0, 0, 0, 0, "Mouse Demo - Interactive Mouse Events", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
@@ -68,7 +68,7 @@ public class MouseDemo {
             centerPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Create status footer
-            Box statusBox = new Box(0, 0, 0, 5, new SimpleBorder());
+            Box statusBox = new Box(0, 0, 0, 5, new DefaultBorder());
             Text statusText = new Text(0, 0, 0, 0, "", Text.Alignment.CENTER);
             updateStatusText(statusText);
             statusBox.setChild(statusText);
@@ -133,7 +133,7 @@ public class MouseDemo {
     }
 
     private static Box createMouseButton(String text, AnsiColor color, Runnable clickAction) {
-        Box button = new Box(0, 0, 18, 6, new SimpleBorder()) {
+        Box button = new Box(0, 0, 18, 6, new DefaultBorder()) {
             @Override
             protected void onFocusChanged(boolean focused) {
                 super.onFocusChanged(focused);

@@ -20,7 +20,7 @@ public class ScrollerDemo {
         CompositeCanvas mainContainer = new CompositeCanvas(0, 0, 80, 25, new BorderLayout(1));
 
         // Create header
-        Box headerBox = new Box(0, 0, 0, 3, new SimpleBorder());
+        Box headerBox = new Box(0, 0, 0, 3, new DefaultBorder());
         Text headerText = new Text(0, 0, 0, 0,
             "ScrollerCanvas Demo - Use Arrow Keys, Page Up/Down, Mouse Wheel, Click Scrollbars",
             Text.Alignment.CENTER);
@@ -30,7 +30,7 @@ public class ScrollerDemo {
         headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
         // Create footer with instructions
-        Box footerBox = new Box(0, 0, 0, 4, new SimpleBorder());
+        Box footerBox = new Box(0, 0, 0, 4, new DefaultBorder());
         CompositeCanvas footerContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(0, 0));
 
         String[] instructions = {
@@ -59,7 +59,7 @@ public class ScrollerDemo {
         scroller.setScrollbarsVisible(true, true); // Show both scrollbars
 
         // Wrap scroller in a box for visual distinction
-        Box scrollerBox = new Box(0, 0, 0, 0, new SimpleBorder());
+        Box scrollerBox = new Box(0, 0, 0, 0, new DefaultBorder());
         scrollerBox.setChild(scroller);
         scrollerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 

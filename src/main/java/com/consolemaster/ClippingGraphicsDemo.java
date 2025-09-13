@@ -26,7 +26,7 @@ public class ClippingGraphicsDemo {
         Text innerText = new Text(0, 0, 15, 3, "Box Content\nLine 2\nLine 3");
         innerText.setForegroundColor(AnsiColor.CYAN);
 
-        Box box = new Box(25, 5, 20, 8, new SimpleBorder());
+        Box box = new Box(25, 5, 20, 8, new DefaultBorder());
         box.setChild(innerText);
 
         // Create a composite that contains both

@@ -27,7 +27,7 @@ public class OutputCaptureDemo {
         CompositeCanvas mainCanvas = new CompositeCanvas(0, 0, 100, 30, new BorderLayout(1));
 
         // Create header
-        Box header = new Box(0, 0, 0, 3, new SimpleBorder());
+        Box header = new Box(0, 0, 0, 3, new DefaultBorder());
         Text headerText = new Text(0, 0, 0, 0, "Output Capture Demo - Press keys to generate output", Text.Alignment.CENTER);
         headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
         headerText.setBold(true);
@@ -49,7 +49,7 @@ public class OutputCaptureDemo {
         consoleOutput.setStdoutColor(AnsiColor.GREEN);
         consoleOutput.setStderrColor(AnsiColor.BRIGHT_RED);
 
-        Box outputBox = new Box(0, 0, 0, 0, new SimpleBorder());
+        Box outputBox = new Box(0, 0, 0, 0, new DefaultBorder());
         outputBox.setChild(consoleOutput);
         outputBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_RIGHT));
 

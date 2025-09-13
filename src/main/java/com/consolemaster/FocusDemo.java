@@ -22,7 +22,7 @@ public class FocusDemo {
             // Create focusable components
 
             // Header (not focusable)
-            Box headerBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Box headerBox = new Box(0, 0, 0, 3, new DefaultBorder());
             Text headerText = new Text(0, 0, 0, 0, "Focus Management Demo - Use TAB/SHIFT+TAB to navigate", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
@@ -31,7 +31,7 @@ public class FocusDemo {
             mainContainer.addChild(headerBox);
 
             // Left Panel - Focusable Button 1
-            Box leftBox = new Box(0, 0, 20, 0, new SimpleBorder()) {
+            Box leftBox = new Box(0, 0, 20, 0, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
@@ -57,7 +57,7 @@ public class FocusDemo {
             mainContainer.addChild(leftBox);
 
             // Right Panel - Focusable Button 2
-            Box rightBox = new Box(0, 0, 20, 0, new SimpleBorder()) {
+            Box rightBox = new Box(0, 0, 20, 0, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
@@ -87,7 +87,7 @@ public class FocusDemo {
 
             for (int i = 1; i <= 4; i++) {
                 final int buttonNumber = i;
-                Box centerBox = new Box(0, 0, 15, 4, new SimpleBorder()) {
+                Box centerBox = new Box(0, 0, 15, 4, new DefaultBorder()) {
                     @Override
                     protected void onFocusChanged(boolean focused) {
                         super.onFocusChanged(focused);
@@ -116,7 +116,7 @@ public class FocusDemo {
             mainContainer.addChild(centerPanel);
 
             // Footer - Status info (not focusable)
-            Box footerBox = new Box(0, 0, 0, 4, new SimpleBorder());
+            Box footerBox = new Box(0, 0, 0, 4, new DefaultBorder());
             Text footerText = new Text(0, 0, 0, 0,
                 "Focus Management Features:\n" +
                 "• TAB: Next component • SHIFT+TAB: Previous component\n" +

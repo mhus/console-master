@@ -21,7 +21,7 @@ public class LayoutDemo {
 
             // Create multiple text components with different styling
             for (int i = 1; i <= 8; i++) {
-                Box box = new Box(0, 0, 12, 3, new SimpleBorder());
+                Box box = new Box(0, 0, 12, 3, new DefaultBorder());
                 Text text = new Text(0, 0, 0, 0, "Item " + i, Text.Alignment.CENTER);
 
                 // Apply different colors

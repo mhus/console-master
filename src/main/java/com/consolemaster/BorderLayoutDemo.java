@@ -20,7 +20,7 @@ public class BorderLayoutDemo {
                                                                  new BorderLayout(1));
 
             // Create NORTH component (Header)
-            Box northBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Box northBox = new Box(0, 0, 0, 3, new DefaultBorder());
             Text northText = new Text(0, 0, 0, 0, "NORTH - Header Region", Text.Alignment.CENTER);
             northText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             northText.setBold(true);
@@ -29,7 +29,7 @@ public class BorderLayoutDemo {
             borderContainer.addChild(northBox);
 
             // Create SOUTH component (Footer)
-            Box southBox = new Box(0, 0, 0, 3, new SimpleBorder());
+            Box southBox = new Box(0, 0, 0, 3, new DefaultBorder());
             Text southText = new Text(0, 0, 0, 0, "SOUTH - Footer Region", Text.Alignment.CENTER);
             southText.setForegroundColor(AnsiColor.BRIGHT_YELLOW);
             southText.setBold(true);
@@ -38,7 +38,7 @@ public class BorderLayoutDemo {
             borderContainer.addChild(southBox);
 
             // Create WEST component (Left Sidebar)
-            Box westBox = new Box(0, 0, 15, 0, new SimpleBorder());
+            Box westBox = new Box(0, 0, 15, 0, new DefaultBorder());
             Text westText = new Text(0, 0, 0, 0, "WEST\nLeft\nSidebar\nMenu", Text.Alignment.CENTER);
             westText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
             westText.setBold(true);
@@ -47,7 +47,7 @@ public class BorderLayoutDemo {
             borderContainer.addChild(westBox);
 
             // Create EAST component (Right Sidebar)
-            Box eastBox = new Box(0, 0, 15, 0, new SimpleBorder());
+            Box eastBox = new Box(0, 0, 15, 0, new DefaultBorder());
             Text eastText = new Text(0, 0, 0, 0, "EAST\nRight\nSidebar\nInfo", Text.Alignment.CENTER);
             eastText.setForegroundColor(AnsiColor.BRIGHT_MAGENTA);
             eastText.setBold(true);
@@ -56,7 +56,7 @@ public class BorderLayoutDemo {
             borderContainer.addChild(eastBox);
 
             // Create CENTER component (Main Content)
-            Box centerBox = new Box(0, 0, 0, 0, new ThickBorder());
+            Box centerBox = new Box(0, 0, 0, 0, new DefaultBorder(BorderStyle.THICK));
             Text centerText = new Text(0, 0, 0, 0,
                 "CENTER - Main Content Area\n\n" +
                 "This is the main content region\n" +
