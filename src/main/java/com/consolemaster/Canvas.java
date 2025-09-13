@@ -18,6 +18,10 @@ public abstract class Canvas {
     private int height;
     private boolean visible = true;
 
+    // Focus management
+    private boolean canFocus = false;
+    private boolean hasFocus = false;
+
     // Size constraints
     private int minWidth = 0;
     private int minHeight = 0;
@@ -200,12 +204,88 @@ public abstract class Canvas {
         this.layoutConstraint = layoutConstraint;
     }
 
+    // Focus management methods
+
     /**
-     * Paint method to draw the content of this canvas.
-     * This method should be implemented by subclasses to define
-     * what content should be rendered.
+     * Sets whether this canvas can receive focus.
      *
-     * @param graphics the graphics context to draw on
+     * @param canFocus true if this canvas can receive focus
+     */
+    public void setCanFocus(boolean canFocus) {
+        this.canFocus = canFocus;
+        // If canvas can no longer receive focus, remove current focus
+        if (!canFocus && hasFocus) {
+            setHasFocus(false);
+        }
+    }
+
+    /**
+     * Sets the focus state of this canvas.
+     * Note: This method should typically only be called by the FocusManager.
+     *
+     * @param hasFocus true if this canvas should have focus
+     */
+    public void setHasFocus(boolean hasFocus) {
+        if (this.hasFocus != hasFocus) {
+            this.hasFocus = hasFocus;
+            onFocusChanged(hasFocus);
+        }
+    }
+
+    /**
+     * Requests focus for this canvas.
+     * The actual focus granting depends on the FocusManager.
+     *
+     * @return true if focus was successfully requested, false otherwise
+     */
+    public boolean requestFocus() {
+        if (!canFocus || !isVisible()) {
+            return false;
+        }
+        // Find the ScreenCanvas and request focus through its FocusManager
+        Canvas parent = findScreenCanvas();
+        if (parent instanceof ScreenCanvas screenCanvas) {
+            return screenCanvas.requestFocus(this);
+        }
+        return false;
+    }
+
+    /**
+     * Finds the root ScreenCanvas for this canvas.
+     *
+     * @return the ScreenCanvas if found, null otherwise
+     */
+    private Canvas findScreenCanvas() {
+        // For now, this is a simplified approach
+        // In a complete implementation, we would traverse up the parent hierarchy
+        return null;
+    }
+
+    /**
+     * Called when the focus state of this canvas changes.
+     * Subclasses can override this method to respond to focus changes.
+     *
+     * @param focused true if the canvas gained focus, false if it lost focus
+     */
+    protected void onFocusChanged(boolean focused) {
+        // Default implementation does nothing
+        // Subclasses can override to respond to focus changes
+    }
+
+    /**
+     * Recalculates the minimum size requirements of this canvas.
+     * Base implementation does nothing - subclasses should override this method
+     * to implement specific packing behavior.
+     */
+    public void pack() {
+        // Base implementation - no operation
+        // Subclasses like CompositeCanvas should override this
+    }
+
+    /**
+     * Abstract method for painting the canvas content.
+     *
+     * @param graphics the graphics context to paint on
      */
     public abstract void paint(Graphics graphics);
 

@@ -299,4 +299,15 @@ public class Text extends Canvas {
             graphics.drawString(getX(), getY() + i, alignedLine);
         }
     }
+
+    /**
+     * Called when the focus state changes.
+     * Updates the text styling to show focus state.
+     */
+    @Override
+    protected void onFocusChanged(boolean focused) {
+        super.onFocusChanged(focused);
+        // Visual indication of focus could be added here
+        // For example, changing background color or adding a border indicator
+    }
 }

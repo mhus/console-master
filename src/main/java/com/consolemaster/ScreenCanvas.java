@@ -6,6 +6,8 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The main entry point canvas for the console application.
@@ -23,6 +25,8 @@ public class ScreenCanvas extends CompositeCanvas {
     private final int minHeight;
     private Canvas warningCanvas;
     private Canvas contentCanvas;
+    private FocusManager focusManager;
+    private final Map<String, Runnable> shortcuts = new HashMap<>();
 
     /**
      * Creates a new ScreenCanvas with default minimum size requirements.
@@ -44,6 +48,9 @@ public class ScreenCanvas extends CompositeCanvas {
         setWidth(terminal.getWidth());
         setHeight(terminal.getHeight());
 
+        // Initialize focus manager
+        this.focusManager = new FocusManager(this);
+
         // Create warning canvas
         createWarningCanvas();
         updateDisplay();
@@ -52,8 +59,12 @@ public class ScreenCanvas extends CompositeCanvas {
     public void setContentCanvas(Canvas contentCanvas) {
         if (this.contentCanvas != null) {
             removeChild(this.contentCanvas);
+            focusManager.onCanvasRemoved(this.contentCanvas);
         }
         this.contentCanvas = contentCanvas;
+        if (contentCanvas != null) {
+            focusManager.onCanvasAdded(contentCanvas);
+        }
         updateDisplay();
     }
 
@@ -157,6 +168,189 @@ public class ScreenCanvas extends CompositeCanvas {
             addChild(contentCanvas);
         } else if (warningCanvas != null) {
             addChild(warningCanvas);
+        }
+    }
+
+    /**
+     * Recalculates the minimum size requirements based on the content canvas
+     * and updates the terminal display accordingly.
+     * This method calls pack() on the content canvas first, then updates
+     * the screen's minimum size requirements.
+     */
+    public void pack() {
+        if (contentCanvas != null) {
+            // Pack the content canvas first
+            contentCanvas.pack();
+
+            // Update our minimum size based on content requirements
+            int newMinWidth = Math.max(DEFAULT_MIN_WIDTH, contentCanvas.getMinWidth());
+            int newMinHeight = Math.max(DEFAULT_MIN_HEIGHT, contentCanvas.getMinHeight());
+
+            // Store the new minimum requirements (note: these are final fields,
+            // so we can't change them, but we can update the display logic)
+            // For future versions, consider making minWidth/minHeight non-final
+
+            // Update the display with new requirements
+            updateDisplay();
+        }
+
+        // Also pack any other children (like warning canvas)
+        super.pack();
+    }
+
+    // Focus management methods
+
+    /**
+     * Moves focus to the next focusable canvas.
+     *
+     * @return true if focus was moved, false if no next canvas is available
+     */
+    public boolean focusNext() {
+        return focusManager.focusNext();
+    }
+
+    /**
+     * Moves focus to the previous focusable canvas.
+     *
+     * @return true if focus was moved, false if no previous canvas is available
+     */
+    public boolean focusPrevious() {
+        return focusManager.focusPrevious();
+    }
+
+    /**
+     * Sets focus to the first focusable canvas.
+     *
+     * @return true if focus was set, false if no focusable canvas is available
+     */
+    public boolean focusFirst() {
+        return focusManager.focusFirst();
+    }
+
+    /**
+     * Sets focus to the last focusable canvas.
+     *
+     * @return true if focus was set, false if no focusable canvas is available
+     */
+    public boolean focusLast() {
+        return focusManager.focusLast();
+    }
+
+    /**
+     * Clears the current focus.
+     */
+    public void clearFocus() {
+        focusManager.clearFocus();
+    }
+
+    /**
+     * Gets the currently focused canvas.
+     *
+     * @return the focused canvas, or null if no canvas has focus
+     */
+    public Canvas getFocusedCanvas() {
+        return focusManager.getFocusedCanvas();
+    }
+
+    /**
+     * Requests focus for the specified canvas.
+     *
+     * @param canvas the canvas requesting focus
+     * @return true if focus was granted, false otherwise
+     */
+    public boolean requestFocus(Canvas canvas) {
+        return focusManager.requestFocus(canvas);
+    }
+
+    // Shortcut and Event handling methods
+
+    /**
+     * Registers a keyboard shortcut with an action.
+     *
+     * @param keyString the key combination string (e.g., "Ctrl+S", "TAB", "F1")
+     * @param action the action to execute when the shortcut is pressed
+     */
+    public void registerShortcut(String keyString, Runnable action) {
+        shortcuts.put(keyString, action);
+    }
+
+    /**
+     * Unregisters a keyboard shortcut.
+     *
+     * @param keyString the key combination string to unregister
+     */
+    public void unregisterShortcut(String keyString) {
+        shortcuts.remove(keyString);
+    }
+
+    /**
+     * Processes a keyboard event through the event chain:
+     * 1. Check for registered shortcuts
+     * 2. If not consumed, forward to focused canvas
+     * 3. Handle built-in focus navigation (TAB/SHIFT+TAB)
+     *
+     * @param keyEvent the keyboard event to process
+     */
+    public void processKeyEvent(KeyEvent keyEvent) {
+        if (keyEvent.isConsumed()) {
+            return;
+        }
+
+        // First, check for registered shortcuts
+        String keyString = keyEvent.getKeyString();
+        Runnable shortcutAction = shortcuts.get(keyString);
+        if (shortcutAction != null) {
+            shortcutAction.run();
+            keyEvent.consume();
+            return;
+        }
+
+        // Handle built-in focus navigation shortcuts
+        if (handleBuiltInShortcuts(keyEvent)) {
+            return;
+        }
+
+        // Forward to focused canvas if not consumed
+        Canvas focusedCanvas = getFocusedCanvas();
+        if (focusedCanvas != null && !keyEvent.isConsumed()) {
+            forwardEventToCanvas(focusedCanvas, keyEvent);
+        }
+    }
+
+    /**
+     * Handles built-in keyboard shortcuts for focus navigation.
+     *
+     * @param keyEvent the keyboard event
+     * @return true if the event was handled by built-in shortcuts
+     */
+    private boolean handleBuiltInShortcuts(KeyEvent keyEvent) {
+        if (keyEvent.isSpecialKey()) {
+            switch (keyEvent.getSpecialKey()) {
+                case TAB:
+                    if (keyEvent.isHasShift()) {
+                        focusPrevious();
+                    } else {
+                        focusNext();
+                    }
+                    keyEvent.consume();
+                    return true;
+                default:
+                    break;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Forwards an event to a specific canvas.
+     * If the canvas supports event handling, it will receive the event.
+     *
+     * @param canvas the canvas to receive the event
+     * @param event the event to forward
+     */
+    private void forwardEventToCanvas(Canvas canvas, Event event) {
+        if (canvas instanceof EventHandler eventHandler) {
+            eventHandler.handleEvent(event);
         }
     }
 }

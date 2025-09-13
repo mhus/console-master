@@ -205,4 +205,38 @@ public class CompositeCanvas extends Canvas {
     public LayoutConstraint getChildConstraint(Canvas child) {
         return child != null ? child.getLayoutConstraint() : null;
     }
+
+    /**
+     * Recalculates the minimum size requirements based on child canvases.
+     * This method calls pack() on all children first, then calculates the
+     * minimum size needed to contain all visible children.
+     */
+    @Override
+    public void pack() {
+        // First, pack all children
+        for (Canvas child : children) {
+            if (child.isVisible()) {
+                child.pack();
+            }
+        }
+
+        // Calculate minimum size based on children
+        int requiredWidth = 0;
+        int requiredHeight = 0;
+
+        for (Canvas child : children) {
+            if (!child.isVisible()) continue;
+
+            // Calculate the space needed for this child
+            int childRight = child.getX() + Math.max(child.getWidth(), child.getMinWidth());
+            int childBottom = child.getY() + Math.max(child.getHeight(), child.getMinHeight());
+
+            requiredWidth = Math.max(requiredWidth, childRight);
+            requiredHeight = Math.max(requiredHeight, childBottom);
+        }
+
+        // Update minimum size constraints
+        setMinWidth(requiredWidth);
+        setMinHeight(requiredHeight);
+    }
 }
