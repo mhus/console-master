@@ -4,75 +4,56 @@ import org.jline.utils.AttributedStyle;
 import java.io.IOException;
 
 /**
- * Demo application showcasing the Layout system with FlowLayout.
- * Creates multiple small canvases that are automatically arranged by the layout manager.
+ * Demo application showcasing the Layout system with FlowLayout using modern Box and Text components.
+ * Creates multiple small boxes with text content that are automatically arranged by the layout manager.
  */
 public class LayoutDemo {
 
     public static void main(String[] args) {
         try {
             // Create the main screen canvas with a smaller minimum size for this demo
-            ScreenCanvas screen = new ScreenCanvas(40, 15);
+            ScreenCanvas screen = new ScreenCanvas(50, 18);
 
             // Create a composite canvas with FlowLayout
-            CompositeCanvas flowContainer = new CompositeCanvas(2, 2,
+            CompositeCanvas flowContainer = new CompositeCanvas(2, 3,
                                                                screen.getWidth() - 4,
-                                                               screen.getHeight() - 4,
+                                                               screen.getHeight() - 5,
                                                                new FlowLayout(1, 1));
 
-            // Create several small canvases to demonstrate flow layout
+            // Create several small boxes with text content to demonstrate flow layout
+            AnsiColor[] colors = {AnsiColor.RED, AnsiColor.GREEN, AnsiColor.BLUE, AnsiColor.YELLOW,
+                                 AnsiColor.MAGENTA, AnsiColor.CYAN, AnsiColor.BRIGHT_RED, AnsiColor.BRIGHT_GREEN};
+
             for (int i = 1; i <= 8; i++) {
                 final int boxNumber = i;
-                Canvas box = new Canvas(0, 0, 8, 3) { // Position will be set by layout
-                    @Override
-                    public void paint(Graphics graphics) {
-                        // Legacy implementation
-                        graphics.drawRect(0, 0, getWidth(), getHeight(), '#');
-                        graphics.drawString(2, 1, "Box" + boxNumber);
-                    }
+                final AnsiColor boxColor = colors[(i - 1) % colors.length];
 
-                    @Override
-                    public void paint(JLineGraphics graphics) {
-                        // Enhanced JLine implementation with colors
-                        AttributedStyle boxStyle = AttributedStyle.DEFAULT
-                            .foreground(AttributedStyle.BRIGHT + (boxNumber % 6 + 1)) // Cycle through colors
-                            .bold();
+                // Create a Box with SimpleBorder
+                Box box = new Box(0, 0, 10, 3, new SimpleBorder()); // Position will be set by layout
 
-                        graphics.setStyle(boxStyle);
-                        graphics.drawRect(getX(), getY(), getWidth(), getHeight(), '#');
+                // Create Text content for the box
+                Text boxText = new Text(0, 0, 0, 0, "Box " + boxNumber, Text.Alignment.CENTER);
+                boxText.setForegroundColor(boxColor);
+                boxText.setBold(true);
 
-                        AttributedStyle textStyle = AttributedStyle.DEFAULT
-                            .foreground(AttributedStyle.WHITE)
-                            .bold();
-                        graphics.setStyle(textStyle);
-                        graphics.drawString(getX() + 2, getY() + 1, "Box" + boxNumber);
-                    }
-                };
-
+                box.setChild(boxText);
                 flowContainer.addChild(box);
             }
 
-            // Create header showing layout info
-            Canvas header = new Canvas(0, 0, screen.getWidth(), 2) {
-                @Override
-                public void paint(Graphics graphics) {
-                    graphics.drawString(0, 0, "Layout Demo - FlowLayout arranges children automatically");
-                    graphics.drawHorizontalLine(0, getWidth() - 1, 1, '=');
-                }
+            // Create header using Text component
+            Text header = new Text(0, 0, screen.getWidth(), 2,
+                                  "Layout Demo - FlowLayout with Box and Text Components\n" +
+                                  "=".repeat(screen.getWidth()),
+                                  Text.Alignment.CENTER);
+            header.setForegroundColor(AnsiColor.BRIGHT_CYAN);
+            header.setBold(true);
 
-                @Override
-                public void paint(JLineGraphics graphics) {
-                    AttributedStyle titleStyle = AttributedStyle.DEFAULT
-                        .foreground(AttributedStyle.BRIGHT + AttributedStyle.CYAN)
-                        .bold();
-
-                    graphics.setStyle(titleStyle);
-                    graphics.drawString(0, 0, "Layout Demo - FlowLayout arranges children automatically");
-
-                    graphics.setStyle(AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE));
-                    graphics.drawHorizontalLine(0, getWidth() - 1, 1, '=');
-                }
-            };
+            // Create info text
+            Text infoText = new Text(0, screen.getHeight() - 2, screen.getWidth(), 2,
+                                   "Boxes automatically flow to next row when current row is full.\nEach box uses modern Text component with styling.",
+                                   Text.Alignment.CENTER);
+            infoText.setForegroundColor(AnsiColor.WHITE);
+            infoText.setItalic(true);
 
             // Create main container
             CompositeCanvas mainContent = new CompositeCanvas(0, 0,
@@ -80,6 +61,7 @@ public class LayoutDemo {
                                                              screen.getHeight());
             mainContent.addChild(header);
             mainContent.addChild(flowContainer);
+            mainContent.addChild(infoText);
 
             // Set the content canvas
             screen.setContentCanvas(mainContent);
@@ -87,8 +69,11 @@ public class LayoutDemo {
             // Render the screen
             screen.render();
 
-            System.out.println("\nLayout Demo rendered! The FlowLayout automatically arranged the boxes.");
-            System.out.println("Notice how boxes flow to the next row when the current row is full.");
+            System.out.println("\nModern Layout Demo rendered! Features:");
+            System.out.println("- FlowLayout automatically arranges Box components");
+            System.out.println("- Each Box contains a Text component with individual styling");
+            System.out.println("- Demonstrates integration of Box, Text, and Layout systems");
+            System.out.println("- Modern component-based approach with consistent styling");
             System.out.println("Demo completed successfully.");
 
             // Clean up
