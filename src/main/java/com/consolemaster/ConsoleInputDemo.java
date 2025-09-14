@@ -188,6 +188,11 @@ public class ConsoleInputDemo {
 
         String sequence = seq.toString();
 
+        // Check for mouse events first (more complex parsing)
+        if (sequence.contains("M") || sequence.contains("<")) {
+            return parseMouseEvent(sequence);
+        }
+
         // Common ANSI sequences
         return switch (sequence) {
             case "A" -> "Pfeil HOCH";
@@ -214,14 +219,151 @@ public class ConsoleInputDemo {
             case "21~" -> "F10";
             case "23~" -> "F11";
             case "24~" -> "F12";
-            default -> {
-                if (sequence.contains("M")) {
-                    yield "Maus-Event: " + sequence;
-                } else {
-                    yield "ANSI-Sequenz: ESC[" + sequence;
-                }
-            }
+            default -> "ANSI-Sequenz: ESC[" + sequence;
         };
+    }
+
+    /**
+     * Parses detailed mouse event information from ANSI escape sequences.
+     * Supports both SGR (1006) and normal mouse reporting formats.
+     */
+    private static String parseMouseEvent(String sequence) {
+        try {
+            // SGR Mouse reporting format: ESC[<button;x;yM or ESC[<button;x;ym
+            if (sequence.startsWith("<")) {
+                return parseSgrMouseEvent(sequence);
+            }
+
+            // Normal mouse reporting format: ESC[MbXY (3 bytes after M)
+            if (sequence.startsWith("M") && sequence.length() >= 4) {
+                return parseNormalMouseEvent(sequence);
+            }
+
+            // Fallback for other mouse-related sequences
+            return "Maus-Event (unbekanntes Format): " + sequence;
+
+        } catch (Exception e) {
+            return "Maus-Event (Parse-Fehler): " + sequence + " - " + e.getMessage();
+        }
+    }
+
+    /**
+     * Parses SGR mouse reporting format (ESC[<button;x;yM/m).
+     */
+    private static String parseSgrMouseEvent(String sequence) {
+        // Remove '<' prefix and split by semicolons
+        String data = sequence.substring(1);
+        boolean isPress = data.endsWith("M");
+        boolean isRelease = data.endsWith("m");
+
+        // Remove the M/m suffix
+        if (isPress || isRelease) {
+            data = data.substring(0, data.length() - 1);
+        }
+
+        String[] parts = data.split(";");
+        if (parts.length >= 3) {
+            int buttonCode = Integer.parseInt(parts[0]);
+            int x = Integer.parseInt(parts[1]);
+            int y = Integer.parseInt(parts[2]);
+
+            String button = decodeMouseButton(buttonCode);
+            String action = isPress ? "PRESS" : isRelease ? "RELEASE" : "MOVE";
+            String modifiers = decodeMouseModifiers(buttonCode);
+
+            StringBuilder result = new StringBuilder();
+            result.append("MAUS-EVENT: ").append(action);
+            result.append(" | Taste: ").append(button);
+            result.append(" | Position: (").append(x).append(",").append(y).append(")");
+
+            if (!modifiers.isEmpty()) {
+                result.append(" | Modifikatoren: ").append(modifiers);
+            }
+
+            // Additional info for wheel events
+            if (buttonCode >= 64 && buttonCode <= 67) {
+                result.append(" | Scroll-Richtung: ").append(buttonCode == 64 || buttonCode == 65 ? "HOCH" : "RUNTER");
+            }
+
+            return result.toString();
+        }
+
+        return "Maus-Event (SGR): " + sequence;
+    }
+
+    /**
+     * Parses normal mouse reporting format (ESC[MbXY).
+     */
+    private static String parseNormalMouseEvent(String sequence) {
+        if (sequence.length() < 4) {
+            return "Maus-Event (Normal, zu kurz): " + sequence;
+        }
+
+        // Extract bytes (subtract 32 to get actual values)
+        int buttonByte = (sequence.charAt(1) & 0xFF) - 32;
+        int x = (sequence.charAt(2) & 0xFF) - 32;
+        int y = (sequence.charAt(3) & 0xFF) - 32;
+
+        String button = decodeMouseButton(buttonByte & 0x03);
+        String modifiers = decodeMouseModifiers(buttonByte);
+
+        StringBuilder result = new StringBuilder();
+        result.append("MAUS-EVENT (Normal): ");
+        result.append("Taste: ").append(button);
+        result.append(" | Position: (").append(x).append(",").append(y).append(")");
+
+        if (!modifiers.isEmpty()) {
+            result.append(" | Modifikatoren: ").append(modifiers);
+        }
+
+        if ((buttonByte & 0x20) != 0) {
+            result.append(" | BEWEGUNG");
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Decodes mouse button from button code.
+     */
+    private static String decodeMouseButton(int buttonCode) {
+        // Handle wheel events first
+        if (buttonCode >= 64 && buttonCode <= 67) {
+            return switch (buttonCode) {
+                case 64, 65 -> "MAUSRAD_HOCH";
+                case 66, 67 -> "MAUSRAD_RUNTER";
+                default -> "MAUSRAD_UNBEKANNT";
+            };
+        }
+
+        // Standard button codes
+        int baseButton = buttonCode & 0x03;
+        return switch (baseButton) {
+            case 0 -> "LINKS";
+            case 1 -> "MITTE";
+            case 2 -> "RECHTS";
+            case 3 -> "LOSGELASSEN";
+            default -> "UNBEKANNT(" + baseButton + ")";
+        };
+    }
+
+    /**
+     * Decodes modifier keys from button code.
+     */
+    private static String decodeMouseModifiers(int buttonCode) {
+        StringBuilder modifiers = new StringBuilder();
+
+        if ((buttonCode & 0x04) != 0) {
+            modifiers.append("SHIFT ");
+        }
+        if ((buttonCode & 0x08) != 0) {
+            modifiers.append("ALT ");
+        }
+        if ((buttonCode & 0x10) != 0) {
+            modifiers.append("CTRL ");
+        }
+
+        return modifiers.toString().trim();
     }
 
     /**
