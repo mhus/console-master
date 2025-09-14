@@ -12,6 +12,7 @@ import lombok.Setter;
 @Setter
 public abstract class Canvas {
 
+    private String name;
     private int x;
     private int y;
     private int width;
@@ -39,7 +40,8 @@ public abstract class Canvas {
      * @param width  the width of the canvas
      * @param height the height of the canvas
      */
-    public Canvas(int x, int y, int width, int height) {
+    public Canvas(String name, int x, int y, int width, int height) {
+        this.name = name;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -58,8 +60,8 @@ public abstract class Canvas {
      * @param maxWidth  the maximum width constraint
      * @param maxHeight the maximum height constraint
      */
-    public Canvas(int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
-        this(x, y, width, height);
+    public Canvas(String name, int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
+        this(name, x, y, width, height);
         this.minWidth = minWidth;
         this.minHeight = minHeight;
         this.maxWidth = maxWidth;

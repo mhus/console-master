@@ -24,18 +24,18 @@ public class OutputCaptureDemo {
         ScreenCanvas screen = new ScreenCanvas(100, 30);
 
         // Create main layout using BorderLayout
-        CompositeCanvas mainCanvas = new CompositeCanvas(0, 0, 100, 30, new BorderLayout(1));
+        Composite mainCanvas = new Composite("mainCanvas", 0, 0, 100, 30, new BorderLayout(1));
 
         // Create header
-        Box header = new Box(0, 0, 0, 3, new DefaultBorder());
-        Text headerText = new Text(0, 0, 0, 0, "Output Capture Demo - Press keys to generate output", Text.Alignment.CENTER);
+        Box header = new Box("header", 0, 0, 0, 3, new DefaultBorder());
+        Text headerText = new Text("headerText", 0, 0, 0, 0, "Output Capture Demo - Press keys to generate output", Text.Alignment.CENTER);
         headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
         headerText.setBold(true);
         header.setChild(headerText);
         header.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
         // Create control panel (left side)
-        CompositeCanvas controlPanel = createControlPanel();
+        Composite controlPanel = createControlPanel();
         controlPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_LEFT));
 
         // Create ProcessLoop and enable output capture
@@ -49,7 +49,7 @@ public class OutputCaptureDemo {
         consoleOutput.setStdoutColor(AnsiColor.GREEN);
         consoleOutput.setStderrColor(AnsiColor.BRIGHT_RED);
 
-        Box outputBox = new Box(0, 0, 0, 0, new DefaultBorder());
+        Box outputBox = new Box("outputBox", 0, 0, 0, 0, new DefaultBorder());
         outputBox.setChild(consoleOutput);
         outputBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_RIGHT));
 
@@ -59,7 +59,7 @@ public class OutputCaptureDemo {
         mainCanvas.addChild(outputBox);
 
         // Set up screen
-        screen.setContentCanvas(mainCanvas);
+        screen.setContent(mainCanvas);
         screen.pack();
 
         // Register shortcuts for demo functionality
@@ -85,11 +85,11 @@ public class OutputCaptureDemo {
         }
     }
 
-    private CompositeCanvas createControlPanel() {
-        CompositeCanvas panel = new CompositeCanvas(0, 0, 45, 0, new FlowLayout(1, 1));
+    private Composite createControlPanel() {
+        Composite panel = new Composite("controlPanel", 0, 0, 45, 0, new FlowLayout(1, 1));
 
         // Title
-        Text title = new Text(0, 0, 43, 1, "Controls:", Text.Alignment.LEFT);
+        Text title = new Text("controlTitle", 0, 0, 43, 1, "Controls:", Text.Alignment.LEFT);
         title.setForegroundColor(AnsiColor.BRIGHT_YELLOW);
         title.setBold(true);
         panel.addChild(title);
@@ -116,14 +116,16 @@ public class OutputCaptureDemo {
             "every 2 seconds for demonstration."
         };
 
+        int instructionIndex = 0;
         for (String instruction : instructions) {
-            Text text = new Text(0, 0, 43, 1, instruction, Text.Alignment.LEFT);
+            Text text = new Text("instruction_" + instructionIndex, 0, 0, 43, 1, instruction, Text.Alignment.LEFT);
             if (instruction.contains(" - ")) {
                 text.setForegroundColor(AnsiColor.WHITE);
             } else {
                 text.setForegroundColor(AnsiColor.BRIGHT_BLACK);
             }
             panel.addChild(text);
+            instructionIndex++;
         }
 
         return panel;

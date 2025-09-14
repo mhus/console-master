@@ -43,27 +43,29 @@ public class ScrollerCanvas extends Canvas implements EventHandler {
     /**
      * Creates a new ScrollerCanvas with the specified dimensions.
      *
+     * @param name the name of the canvas
      * @param x the x position
      * @param y the y position
      * @param width the width of the viewport
      * @param height the height of the viewport
      */
-    public ScrollerCanvas(int x, int y, int width, int height) {
-        super(x, y, width, height);
+    public ScrollerCanvas(String name, int x, int y, int width, int height) {
+        super(name, x, y, width, height);
         setCanFocus(true); // Enable focus for keyboard scrolling
     }
 
     /**
      * Creates a new ScrollerCanvas with the specified dimensions and child.
      *
+     * @param name the name of the canvas
      * @param x the x position
      * @param y the y position
      * @param width the width of the viewport
      * @param height the height of the viewport
      * @param child the child canvas to scroll
      */
-    public ScrollerCanvas(int x, int y, int width, int height, Canvas child) {
-        this(x, y, width, height);
+    public ScrollerCanvas(String name, int x, int y, int width, int height, Canvas child) {
+        this(name, x, y, width, height);
         setChild(child);
     }
 

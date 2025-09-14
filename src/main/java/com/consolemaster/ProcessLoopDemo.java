@@ -17,57 +17,57 @@ public class ProcessLoopDemo {
             ScreenCanvas screen = new ScreenCanvas(80, 25);
 
             // Create main container with BorderLayout
-            CompositeCanvas mainContainer = new CompositeCanvas(2, 2,
+            Composite mainContainer = new Composite("mainContainer", 2, 2,
                                                                screen.getWidth() - 4,
                                                                screen.getHeight() - 4,
                                                                new BorderLayout(1));
 
             // Create header
-            Box headerBox = new Box(0, 0, 0, 3, new DefaultBorder());
-            Text headerText = new Text(0, 0, 0, 0, "ProcessLoop Demo - Interactive Console Application", Text.Alignment.CENTER);
+            Box headerBox = new Box("headerBox", 0, 0, 0, 3, new DefaultBorder());
+            Text headerText = new Text("headerText", 0, 0, 0, 0, "ProcessLoop Demo - Interactive Console Application", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
             headerBox.setChild(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
             // Create interactive buttons with event handling
-            CompositeCanvas centerPanel = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
+            Composite centerPanel = new Composite("centerPanel", 0, 0, 0, 0, new FlowLayout(2, 2));
 
             // Counter button
-            Box counterBox = new Box(0, 0, 20, 5, new DefaultBorder()) {
+            Box counterBox = new Box("counterBox", 0, 0, 20, 5, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     updateButtonStyle(this, focused, AnsiColor.GREEN);
                 }
             };
-            Text counterText = new Text(0, 0, 0, 0, "", Text.Alignment.CENTER);
+            Text counterText = new Text("counterText", 0, 0, 0, 0, "", Text.Alignment.CENTER);
             updateCounterText(counterText);
             counterBox.setChild(counterText);
             counterBox.setCanFocus(true);
 
             // Help button
-            Box helpBox = new Box(0, 0, 20, 5, new DefaultBorder()) {
+            Box helpBox = new Box("helpBox", 0, 0, 20, 5, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     updateButtonStyle(this, focused, AnsiColor.BLUE);
                 }
             };
-            Text helpText = new Text(0, 0, 0, 0, "Help\n\nPress ENTER\nto toggle\nhelp display", Text.Alignment.CENTER);
+            Text helpText = new Text("helpText", 0, 0, 0, 0, "Help\n\nPress ENTER\nto toggle\nhelp display", Text.Alignment.CENTER);
             helpText.setForegroundColor(AnsiColor.BLUE);
             helpBox.setChild(helpText);
             helpBox.setCanFocus(true);
 
             // Reset button
-            Box resetBox = new Box(0, 0, 20, 5, new DefaultBorder()) {
+            Box resetBox = new Box("resetBox", 0, 0, 20, 5, new DefaultBorder()) {
                 @Override
                 protected void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     updateButtonStyle(this, focused, AnsiColor.RED);
                 }
             };
-            Text resetText = new Text(0, 0, 0, 0, "Reset\n\nPress ENTER\nto reset\ncounter", Text.Alignment.CENTER);
+            Text resetText = new Text("resetText", 0, 0, 0, 0, "Reset\n\nPress ENTER\nto reset\ncounter", Text.Alignment.CENTER);
             resetText.setForegroundColor(AnsiColor.RED);
             resetBox.setChild(resetText);
             resetBox.setCanFocus(true);
@@ -94,8 +94,8 @@ public class ProcessLoopDemo {
             centerPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Create footer with status info
-            Box footerBox = new Box(0, 0, 0, 4, new DefaultBorder());
-            Text footerText = new Text(0, 0, 0, 0, "", Text.Alignment.CENTER);
+            Box footerBox = new Box("footerBox", 0, 0, 0, 4, new DefaultBorder());
+            Text footerText = new Text("footerText", 0, 0, 0, 0, "", Text.Alignment.CENTER);
             updateFooterText(footerText);
             footerBox.setChild(footerText);
             footerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
@@ -106,7 +106,7 @@ public class ProcessLoopDemo {
             mainContainer.addChild(footerBox);
 
             // Set content and initialize
-            screen.setContentCanvas(mainContainer);
+            screen.setContent(mainContainer);
             screen.focusFirst();
 
             // Create process loop with update callback
@@ -190,7 +190,7 @@ public class ProcessLoopDemo {
         footerText.setForegroundColor(AnsiColor.BRIGHT_WHITE);
     }
 
-    private static void updateHelpDisplay(CompositeCanvas mainContainer) {
+    private static void updateHelpDisplay(Composite mainContainer) {
         // This is a placeholder for help display toggle
         // In a real application, you might add/remove help panels
     }
@@ -198,7 +198,7 @@ public class ProcessLoopDemo {
     private static void addEventHandling(Box box, Runnable action) {
         // Add event handling capability to the box
         Canvas originalBox = box;
-        Canvas eventHandlingBox = new Canvas(box.getX(), box.getY(), box.getWidth(), box.getHeight()) {
+        Canvas eventHandlingBox = new Canvas("eventHandlingBox", box.getX(), box.getY(), box.getWidth(), box.getHeight()) {
             @Override
             public void paint(Graphics graphics) {
                 originalBox.paint(graphics);
@@ -214,7 +214,7 @@ public class ProcessLoopDemo {
         };
 
         // Make the box implement EventHandler
-        Box eventBox = new Box(box.getX(), box.getY(), box.getWidth(), box.getHeight(),
+        Box eventBox = new Box("eventBox", box.getX(), box.getY(), box.getWidth(), box.getHeight(),
                               box.getBorder()) {
             @Override
             protected void onFocusChanged(boolean focused) {

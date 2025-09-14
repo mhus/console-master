@@ -35,20 +35,22 @@ public class Text extends Canvas {
     /**
      * Creates a Text canvas with specified position, size and text content.
      *
+     * @param name   the name of the canvas
      * @param x      the x-coordinate
      * @param y      the y-coordinate
      * @param width  the width of the text area
      * @param height the height of the text area
      * @param text   the text content
      */
-    public Text(int x, int y, int width, int height, String text) {
-        super(x, y, width, height);
+    public Text(String name, int x, int y, int width, int height, String text) {
+        super(name, x, y, width, height);
         this.text = text != null ? text : "";
     }
 
     /**
      * Creates a Text canvas with specified position, size, text content and alignment.
      *
+     * @param name      the name of the canvas
      * @param x         the x-coordinate
      * @param y         the y-coordinate
      * @param width     the width of the text area
@@ -56,8 +58,8 @@ public class Text extends Canvas {
      * @param text      the text content
      * @param alignment the text alignment
      */
-    public Text(int x, int y, int width, int height, String text, Alignment alignment) {
-        this(x, y, width, height, text);
+    public Text(String name, int x, int y, int width, int height, String text, Alignment alignment) {
+        this(name, x, y, width, height, text);
         this.alignment = alignment != null ? alignment : Alignment.LEFT;
     }
 

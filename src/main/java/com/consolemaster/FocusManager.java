@@ -202,7 +202,7 @@ public class FocusManager {
         }
 
         // Recursively check children if this is a composite canvas
-        if (canvas instanceof CompositeCanvas composite) {
+        if (canvas instanceof Composite composite) {
             for (Canvas child : composite.getChildren()) {
                 collectFocusableCanvases(child, result);
             }

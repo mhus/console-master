@@ -14,12 +14,12 @@ public class ConsoleMasterDemo {
             ScreenCanvas screen = new ScreenCanvas(60, 20);
 
             // Create a composite canvas for the main content
-            CompositeCanvas mainContent = new CompositeCanvas(0, 0,
+            Composite mainContent = new Composite("mainContent", 0, 0,
                                                              screen.getWidth(),
                                                              screen.getHeight());
 
             // Create styled header canvas
-            Canvas header = new Canvas(0, 0, screen.getWidth(), 3) {
+            Canvas header = new Canvas("header", 0, 0, screen.getWidth(), 3) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Set bold yellow text on blue background for title
@@ -48,7 +48,7 @@ public class ConsoleMasterDemo {
             };
 
             // Create colorful game area canvas
-            Canvas gameArea = new Canvas(2, 4, screen.getWidth() - 20, 12) {
+            Canvas gameArea = new Canvas("gameArea", 2, 4, screen.getWidth() - 20, 12) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Draw border in green
@@ -89,7 +89,7 @@ public class ConsoleMasterDemo {
             };
 
             // Create colorful info panel
-            Canvas infoPanel = new Canvas(screen.getWidth() - 18, 4, 18, 12) {
+            Canvas infoPanel = new Canvas("infoPanel", screen.getWidth() - 18, 4, 18, 12) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Border in magenta
@@ -137,7 +137,7 @@ public class ConsoleMasterDemo {
             };
 
             // Create styled footer
-            Canvas footer = new Canvas(0, screen.getHeight() - 3, screen.getWidth(), 3) {
+            Canvas footer = new Canvas("footer", 0, screen.getHeight() - 3, screen.getWidth(), 3) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Top border
@@ -176,7 +176,7 @@ public class ConsoleMasterDemo {
             mainContent.addChild(footer);
 
             // Set the content canvas
-            screen.setContentCanvas(mainContent);
+            screen.setContent(mainContent);
 
             // Render the screen
             screen.render();

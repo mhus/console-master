@@ -14,7 +14,7 @@ class CanvasTest {
 
     @BeforeEach
     void setUp() {
-        canvas = new TestCanvas(10, 20, 50, 30);
+        canvas = new TestCanvas("canvas", 10, 20, 50, 30);
     }
 
     @Test
@@ -125,7 +125,7 @@ class CanvasTest {
 
     @Test
     void shouldCreateCanvasWithConstraints() {
-        TestCanvas constrainedCanvas = new TestCanvas(5, 10, 30, 40, 20, 25, 100, 80);
+        TestCanvas constrainedCanvas = new TestCanvas("constrainedCanvas", 5, 10, 30, 40, 20, 25, 100, 80);
 
         assertEquals(5, constrainedCanvas.getX());
         assertEquals(10, constrainedCanvas.getY());
@@ -140,7 +140,7 @@ class CanvasTest {
     @Test
     void shouldEnforceConstraintsInConstructor() {
         // Create canvas with size below minimum
-        TestCanvas smallCanvas = new TestCanvas(0, 0, 5, 8, 15, 12, 100, 80);
+        TestCanvas smallCanvas = new TestCanvas("smallCanvas", 0, 0, 5, 8, 15, 12, 100, 80);
 
         // Size should be adjusted to minimum
         assertEquals(15, smallCanvas.getWidth());
@@ -225,12 +225,12 @@ class CanvasTest {
      * Test implementation of Canvas for testing purposes.
      */
     private static class TestCanvas extends Canvas {
-        public TestCanvas(int x, int y, int width, int height) {
-            super(x, y, width, height);
+        public TestCanvas(String name, int x, int y, int width, int height) {
+            super(name, x, y, width, height);
         }
 
-        public TestCanvas(int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
-            super(x, y, width, height);
+        public TestCanvas(String name, int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
+            super(name, x, y, width, height);
             setMinWidth(minWidth);
             setMinHeight(minHeight);
             setMaxWidth(maxWidth);

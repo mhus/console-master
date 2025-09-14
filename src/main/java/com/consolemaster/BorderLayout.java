@@ -25,7 +25,7 @@ public class BorderLayout implements Layout {
     }
 
     @Override
-    public void layoutChildren(CompositeCanvas container) {
+    public void layoutChildren(Composite container) {
         Canvas north = null, south = null, east = null, west = null, center = null;
 
         // Categorize children by their position constraints
@@ -104,7 +104,7 @@ public class BorderLayout implements Layout {
     }
 
     @Override
-    public Dimension getPreferredSize(CompositeCanvas container) {
+    public Dimension getPreferredSize(Composite container) {
         int totalWidth = 0;
         int totalHeight = 0;
         int northHeight = 0, southHeight = 0;

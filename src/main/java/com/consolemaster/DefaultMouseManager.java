@@ -171,7 +171,7 @@ public class DefaultMouseManager implements MouseManager {
         }
 
         // Check children first (they are on top)
-        if (canvas instanceof CompositeCanvas composite) {
+        if (canvas instanceof Composite composite) {
             // Iterate in reverse order to check topmost children first
             var children = composite.getChildren();
             for (int i = children.size() - 1; i >= 0; i--) {

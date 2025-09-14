@@ -13,7 +13,7 @@ import static org.mockito.Mockito.*;
  */
 class CompositeCanvasTest {
     
-    private CompositeCanvas composite;
+    private Composite composite;
     
     @Mock
     private Canvas childCanvas1;
@@ -27,7 +27,7 @@ class CompositeCanvasTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        composite = new CompositeCanvas(0, 0, 100, 50);
+        composite = new Composite("TestComposite", 0, 0, 100, 50);
     }
     
     @Test
@@ -162,7 +162,7 @@ class CompositeCanvasTest {
     @Test
     void shouldCreateCompositeWithCustomLayout() {
         Layout customLayout = mock(Layout.class);
-        CompositeCanvas customComposite = new CompositeCanvas(0, 0, 100, 50, customLayout);
+        Composite customComposite = new Composite("customComposite", 0, 0, 100, 50, customLayout);
         
         assertEquals(customLayout, customComposite.getLayout());
     }
@@ -304,7 +304,7 @@ class CompositeCanvasTest {
      */
     private static class TestCanvas extends Canvas {
         public TestCanvas(int x, int y, int width, int height) {
-            super(x, y, width, height);
+            super("TestCanvas", x, y, width, height);
         }
 
         @Override

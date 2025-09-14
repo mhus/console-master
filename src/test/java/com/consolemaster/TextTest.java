@@ -14,7 +14,7 @@ class TextTest {
 
     @BeforeEach
     void setUp() {
-        textCanvas = new Text(10, 20, 30, 5, "Hello World");
+        textCanvas = new Text("textCanvas", 10, 20, 30, 5, "Hello World");
     }
 
     @Test
@@ -30,7 +30,7 @@ class TextTest {
 
     @Test
     void shouldCreateTextCanvasWithAlignment() {
-        Text centeredText = new Text(0, 0, 20, 3, "Centered", Text.Alignment.CENTER);
+        Text centeredText = new Text("centeredText", 0, 0, 20, 3, "Centered", Text.Alignment.CENTER);
 
         assertEquals("Centered", centeredText.getText());
         assertEquals(Text.Alignment.CENTER, centeredText.getAlignment());
@@ -104,7 +104,7 @@ class TextTest {
 
     @Test
     void shouldHandleNullText() {
-        Text nullTextCanvas = new Text(0, 0, 10, 5, null);
+        Text nullTextCanvas = new Text("nullTextCanvas", 0, 0, 10, 5, null);
         assertEquals("", nullTextCanvas.getText());
     }
 

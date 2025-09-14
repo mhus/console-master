@@ -24,7 +24,7 @@ public class NoLayout implements Layout {
      * @param container the composite canvas (not modified)
      */
     @Override
-    public void layoutChildren(CompositeCanvas container) {
+    public void layoutChildren(Composite container) {
         // No layout - children maintain their current positions and sizes
     }
 
@@ -35,7 +35,7 @@ public class NoLayout implements Layout {
      * @return the current dimensions of the container
      */
     @Override
-    public Dimension getPreferredSize(CompositeCanvas container) {
+    public Dimension getPreferredSize(Composite container) {
         return new Dimension(container.getWidth(), container.getHeight());
     }
 

@@ -28,7 +28,7 @@ public class FlowLayout implements Layout {
     }
 
     @Override
-    public void layoutChildren(CompositeCanvas container) {
+    public void layoutChildren(Composite container) {
         if (container.getChildren().isEmpty()) {
             return;
         }
@@ -65,7 +65,7 @@ public class FlowLayout implements Layout {
     }
 
     @Override
-    public Dimension getPreferredSize(CompositeCanvas container) {
+    public Dimension getPreferredSize(Composite container) {
         if (container.getChildren().isEmpty()) {
             return new Dimension(0, 0);
         }

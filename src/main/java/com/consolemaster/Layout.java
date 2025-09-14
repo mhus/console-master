@@ -14,7 +14,7 @@ public interface Layout {
      *
      * @param container the composite canvas containing the children to layout
      */
-    void layoutChildren(CompositeCanvas container);
+    void layoutChildren(Composite container);
 
     /**
      * Calculates the preferred size for the container based on its children.
@@ -23,7 +23,7 @@ public interface Layout {
      * @param container the composite canvas to calculate size for
      * @return the preferred size as a Dimension (width, height)
      */
-    default Dimension getPreferredSize(CompositeCanvas container) {
+    default Dimension getPreferredSize(Composite container) {
         // Default implementation: use current size
         return new Dimension(container.getWidth(), container.getHeight());
     }
@@ -35,7 +35,7 @@ public interface Layout {
      * @param container the composite canvas
      * @param child the child that was added
      */
-    default void childAdded(CompositeCanvas container, Canvas child) {
+    default void childAdded(Composite container, Canvas child) {
         // Default: do nothing, rely on layoutChildren() being called
     }
 
@@ -46,7 +46,7 @@ public interface Layout {
      * @param container the composite canvas
      * @param child the child that was removed
      */
-    default void childRemoved(CompositeCanvas container, Canvas child) {
+    default void childRemoved(Composite container, Canvas child) {
         // Default: do nothing, rely on layoutChildren() being called
     }
 

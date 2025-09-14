@@ -28,7 +28,7 @@ a warning Canvas is displayed instead of the actual content.
 
 ### Core Canvas System
 - **Canvas**: Abstract base class for all drawable elements with position (x,y), size (width,height), visibility
-- **CompositeCanvas**: Container for multiple child canvases with automatic layout management
+- **Composite**: Container for multiple child canvases with automatic layout management
 - **ScreenCanvas**: Main entry point that manages terminal and minimum size validation
 - **TextCanvas**: Simple text display implementation (legacy)
 - **Text**: Modern text component with advanced styling and JLine integration
@@ -51,7 +51,7 @@ a warning Canvas is displayed instead of the actual content.
 - **Canvas Constraints**: minWidth/maxWidth and minHeight/maxHeight with automatic validation
 - **Pack System**: `pack()` method for automatic size calculation
   - **Canvas.pack()**: Base implementation (no-op, overrideable)
-  - **CompositeCanvas.pack()**: Calculates minimum size based on children
+  - **Composite.pack()**: Calculates minimum size based on children
   - **ScreenCanvas.pack()**: Updates screen requirements based on content
 - **Dynamic Sizing**: Layouts and components automatically adapt to content requirements
 
@@ -118,7 +118,7 @@ a warning Canvas is displayed instead of the actual content.
 - **Canvas Constraints**: minWidth/maxWidth and minHeight/maxHeight with automatic validation
 - **Pack System**: `pack()` method for automatic size calculation
   - **Canvas.pack()**: Base implementation (no-op, overrideable)
-  - **CompositeCanvas.pack()**: Calculates minimum size based on children
+  - **Composite.pack()**: Calculates minimum size based on children
   - **ScreenCanvas.pack()**: Updates screen requirements based on content
 - **Dynamic Sizing**: Layouts and components automatically adapt to content requirements
 
@@ -231,10 +231,10 @@ ProcessLoop processLoop = new ProcessLoop(screen);
 processLoop.setCaptureOutput(true); // Enable stdout/stderr capture
 
 // Create split-screen layout with console output display
-CompositeCanvas main = new CompositeCanvas(0, 0, 100, 30, new BorderLayout(1));
+Composite main = new Composite(0, 0, 100, 30, new BorderLayout(1));
 
 // Application content on the left
-CompositeCanvas appContent = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
+Composite appContent = new Composite(0, 0, 0, 0, new FlowLayout(2, 2));
 appContent.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_LEFT));
 
 // Console output display on the right

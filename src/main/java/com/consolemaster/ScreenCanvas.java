@@ -16,7 +16,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class ScreenCanvas extends CompositeCanvas {
+public class ScreenCanvas extends Composite {
 
     private static final int DEFAULT_MIN_WIDTH = 80;
     private static final int DEFAULT_MIN_HEIGHT = 24;
@@ -35,14 +35,21 @@ public class ScreenCanvas extends CompositeCanvas {
      * Creates a new ScreenCanvas with default minimum size requirements.
      */
     public ScreenCanvas() throws IOException {
-        this(DEFAULT_MIN_WIDTH, DEFAULT_MIN_HEIGHT);
+        this("Screen", DEFAULT_MIN_WIDTH, DEFAULT_MIN_HEIGHT);
     }
 
     /**
      * Creates a new ScreenCanvas with specified minimum size requirements.
      */
-    public ScreenCanvas(int minWidth, int minHeight) {
-        super(0, 0, 0, 0);
+    public ScreenCanvas(int minWidth, int minHeight) throws IOException {
+        this("Screen", minWidth, minHeight);
+    }
+
+    /**
+     * Creates a new ScreenCanvas with specified name and minimum size requirements.
+     */
+    public ScreenCanvas(String name, int minWidth, int minHeight) throws IOException {
+        super(name, 0, 0, 0, 0);
         this.minWidth = minWidth;
         this.minHeight = minHeight;
         this.terminal = new NativeTerminal();
@@ -59,7 +66,7 @@ public class ScreenCanvas extends CompositeCanvas {
         updateDisplay();
     }
 
-    public void setContentCanvas(Canvas contentCanvas) {
+    public void setContent(Canvas contentCanvas) {
         if (this.contentCanvas != null) {
             removeChild(this.contentCanvas);
             focusManager.onCanvasRemoved(this.contentCanvas);
@@ -105,7 +112,7 @@ public class ScreenCanvas extends CompositeCanvas {
     }
 
     private void createWarningCanvas() {
-        warningCanvas = new Canvas(0, 0, getWidth(), getHeight()) {
+        warningCanvas = new Canvas("WarningCanvas", 0, 0, getWidth(), getHeight()) {
             @Override
             public void paint(Graphics graphics) {
                 graphics.clear();

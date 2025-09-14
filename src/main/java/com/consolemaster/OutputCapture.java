@@ -17,10 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class OutputCapture {
 
-    @Getter
     private final List<String> stdoutLines = new CopyOnWriteArrayList<>();
-
-    @Getter
     private final List<String> stderrLines = new CopyOnWriteArrayList<>();
 
     private final PrintStream originalOut;

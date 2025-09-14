@@ -27,9 +27,10 @@ public class ClippingGraphics extends Graphics {
      */
     public ClippingGraphics(Graphics parentGraphics, int offsetX, int offsetY, int width, int height) {
         super(width, height);
-        this.parentGraphics = parentGraphics;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
+        this.parentGraphics = parentGraphics instanceof ClippingGraphics ?
+                ((ClippingGraphics) parentGraphics).getParentGraphics() : parentGraphics;
+        this.offsetX = parentGraphics instanceof ClippingGraphics ? ((ClippingGraphics) parentGraphics).getOffsetX() + offsetX : offsetX;
+        this.offsetY = parentGraphics instanceof ClippingGraphics ? ((ClippingGraphics) parentGraphics).getOffsetY() + offsetY : offsetY;
     }
 
     /**

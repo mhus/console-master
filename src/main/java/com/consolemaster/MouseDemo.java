@@ -19,21 +19,21 @@ public class MouseDemo {
             ScreenCanvas screen = new ScreenCanvas(80, 25);
 
             // Create main container with BorderLayout
-            CompositeCanvas mainContainer = new CompositeCanvas(2, 2,
+            Composite mainContainer = new Composite("mainContainer", 2, 2,
                                                                screen.getWidth() - 4,
                                                                screen.getHeight() - 4,
                                                                new BorderLayout(1));
 
             // Create header
-            Box headerBox = new Box(0, 0, 0, 3, new DefaultBorder());
-            Text headerText = new Text(0, 0, 0, 0, "Mouse Demo - Interactive Mouse Events", Text.Alignment.CENTER);
+            Box headerBox = new Box("headerBox", 0, 0, 0, 3, new DefaultBorder());
+            Text headerText = new Text("headerText", 0, 0, 0, 0, "Mouse Demo - Interactive Mouse Events", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
             headerBox.setChild(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
             // Create interactive buttons with mouse event handling
-            CompositeCanvas centerPanel = new CompositeCanvas(0, 0, 0, 0, new FlowLayout(2, 2));
+            Composite centerPanel = new Composite("centerPanel", 0, 0, 0, 0, new FlowLayout(2, 2));
 
             // Clickable button 1
             Box button1 = createMouseButton("Button 1\n\nClick Me!\n\nLeft/Right\nClicks",
@@ -68,8 +68,8 @@ public class MouseDemo {
             centerPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Create status footer
-            Box statusBox = new Box(0, 0, 0, 5, new DefaultBorder());
-            Text statusText = new Text(0, 0, 0, 0, "", Text.Alignment.CENTER);
+            Box statusBox = new Box("statusBox", 0, 0, 0, 5, new DefaultBorder());
+            Text statusText = new Text("statusText", 0, 0, 0, 0, "", Text.Alignment.CENTER);
             updateStatusText(statusText);
             statusBox.setChild(statusText);
             statusBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
@@ -80,7 +80,7 @@ public class MouseDemo {
             mainContainer.addChild(statusBox);
 
             // Set content
-            screen.setContentCanvas(mainContainer);
+            screen.setContent(mainContainer);
 
             // Create process loop with mouse support
             ProcessLoop processLoop = new ProcessLoop(screen);
@@ -133,7 +133,7 @@ public class MouseDemo {
     }
 
     private static Box createMouseButton(String text, AnsiColor color, Runnable clickAction) {
-        Box button = new Box(0, 0, 18, 6, new DefaultBorder()) {
+        Box button = new Box("mouseButton", 0, 0, 18, 6, new DefaultBorder()) {
             @Override
             protected void onFocusChanged(boolean focused) {
                 super.onFocusChanged(focused);
@@ -141,7 +141,7 @@ public class MouseDemo {
             }
         };
 
-        Text buttonText = new Text(0, 0, 0, 0, text, Text.Alignment.CENTER);
+        Text buttonText = new Text("buttonText", 0, 0, 0, 0, text, Text.Alignment.CENTER);
         buttonText.setForegroundColor(color);
         button.setChild(buttonText);
         button.setCanFocus(true);
@@ -154,7 +154,7 @@ public class MouseDemo {
 
     private static void addMouseEventHandling(Box box, Runnable clickAction, AnsiColor baseColor) {
         // Create a wrapper that implements EventHandler
-        Box eventBox = new Box(box.getX(), box.getY(), box.getWidth(), box.getHeight(),
+        Box eventBox = new Box("eventBox", box.getX(), box.getY(), box.getWidth(), box.getHeight(),
                               box.getBorder()) {
             private boolean isHovered = false;
             private boolean isPressed = false;

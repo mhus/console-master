@@ -42,14 +42,15 @@ public class ConsoleOutput extends Canvas {
     /**
      * Creates a new ConsoleOutput canvas.
      *
+     * @param name the name of the canvas
      * @param x the x position
      * @param y the y position
      * @param width the width
      * @param height the height
      * @param outputCapture the output capture instance to display
      */
-    public ConsoleOutput(int x, int y, int width, int height, OutputCapture outputCapture) {
-        super(x, y, width, height);
+    public ConsoleOutput(String name, int x, int y, int width, int height, OutputCapture outputCapture) {
+        super(name, x, y, width, height);
         this.outputCapture = outputCapture;
         setCanFocus(true);
     }

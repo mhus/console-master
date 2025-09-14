@@ -14,52 +14,52 @@ public class TextDemo {
             ScreenCanvas screen = new ScreenCanvas(80, 25);
 
             // Create a composite canvas with FlowLayout
-            CompositeCanvas content = new CompositeCanvas(5, 3,
+            Composite content = new Composite("content", 5, 3,
                                                          screen.getWidth() - 10,
                                                          screen.getHeight() - 6,
                                                          new FlowLayout(2, 1));
 
             // Title
-            Text title = new Text(0, 0, 0, 2, "Text Component Demo", Text.Alignment.CENTER);
+            Text title = new Text("title", 0, 0, 0, 2, "Text Component Demo", Text.Alignment.CENTER);
             title.setForegroundColor(AnsiColor.BRIGHT_WHITE);
             title.setFormats(AnsiFormat.BOLD, AnsiFormat.UNDERLINE);
             content.addChild(title);
 
             // Left aligned text
-            Text leftText = new Text(0, 0, 40, 1, "Left Aligned Text", Text.Alignment.LEFT);
+            Text leftText = new Text("leftText", 0, 0, 40, 1, "Left Aligned Text", Text.Alignment.LEFT);
             leftText.setForegroundColor(AnsiColor.GREEN);
             content.addChild(leftText);
 
             // Center aligned text
-            Text centerText = new Text(0, 0, 40, 1, "Center Aligned Text", Text.Alignment.CENTER);
+            Text centerText = new Text("centerText", 0, 0, 40, 1, "Center Aligned Text", Text.Alignment.CENTER);
             centerText.setForegroundColor(AnsiColor.YELLOW);
             centerText.setFormats(AnsiFormat.BOLD);
             content.addChild(centerText);
 
             // Right aligned text
-            Text rightText = new Text(0, 0, 40, 1, "Right Aligned Text", Text.Alignment.RIGHT);
+            Text rightText = new Text("rightText", 0, 0, 40, 1, "Right Aligned Text", Text.Alignment.RIGHT);
             rightText.setForegroundColor(AnsiColor.CYAN);
             content.addChild(rightText);
 
             // Multi-line text
-            Text multiText = new Text(0, 0, 50, 4,
+            Text multiText = new Text("multiText", 0, 0, 50, 4,
                 "This is a multi-line text example.\nIt demonstrates word wrapping\nand multiple line handling\nin the Text component.",
                 Text.Alignment.LEFT);
             multiText.setForegroundColor(AnsiColor.MAGENTA);
             content.addChild(multiText);
 
             // Styled text examples
-            Text boldText = new Text(0, 0, 30, 1, "Bold Text Example", Text.Alignment.LEFT);
+            Text boldText = new Text("boldText", 0, 0, 30, 1, "Bold Text Example", Text.Alignment.LEFT);
             boldText.setFormats(AnsiFormat.BOLD);
             boldText.setForegroundColor(AnsiColor.RED);
             content.addChild(boldText);
 
-            Text italicText = new Text(0, 0, 30, 1, "Italic Text Example", Text.Alignment.LEFT);
+            Text italicText = new Text("italicText", 0, 0, 30, 1, "Italic Text Example", Text.Alignment.LEFT);
             italicText.setFormats(AnsiFormat.ITALIC);
             italicText.setForegroundColor(AnsiColor.BLUE);
             content.addChild(italicText);
 
-            screen.setContentCanvas(content);
+            screen.setContent(content);
 
             // Simple render and wait
             screen.render();

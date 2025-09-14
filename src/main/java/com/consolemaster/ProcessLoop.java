@@ -290,7 +290,7 @@ public class ProcessLoop {
      * @return a new ConsoleOutput canvas
      */
     public ConsoleOutput createConsoleOutputCanvas(int x, int y, int width, int height) {
-        return new ConsoleOutput(x, y, width, height, outputCapture);
+        return new ConsoleOutput("ConsoleOutput", x, y, width, height, outputCapture);
     }
 
     /**

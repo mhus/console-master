@@ -11,7 +11,7 @@ import java.util.List;
  * Uses a layout manager to arrange child components.
  */
 @Getter
-public class CompositeCanvas extends Canvas {
+public class Composite extends Canvas {
 
     private final List<Canvas> children = new ArrayList<>();
     private Layout layout = NoLayout.INSTANCE; // Default layout
@@ -19,26 +19,28 @@ public class CompositeCanvas extends Canvas {
     /**
      * Creates a new CompositeCanvas with the specified position and dimensions.
      *
+     * @param name   the name of the canvas
      * @param x      the x-coordinate of the canvas
      * @param y      the y-coordinate of the canvas
      * @param width  the width of the canvas
      * @param height the height of the canvas
      */
-    public CompositeCanvas(int x, int y, int width, int height) {
-        super(x, y, width, height);
+    public Composite(String name, int x, int y, int width, int height) {
+        super(name, x, y, width, height);
     }
 
     /**
      * Creates a new CompositeCanvas with a specific layout.
      *
+     * @param name   the name of the canvas
      * @param x      the x-coordinate of the canvas
      * @param y      the y-coordinate of the canvas
      * @param width  the width of the canvas
      * @param height the height of the canvas
      * @param layout the layout manager to use
      */
-    public CompositeCanvas(int x, int y, int width, int height, Layout layout) {
-        super(x, y, width, height);
+    public Composite(String name, int x, int y, int width, int height, Layout layout) {
+        super(name, x, y, width, height);
         this.layout = layout != null ? layout : NoLayout.INSTANCE;
     }
 
