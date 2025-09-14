@@ -48,17 +48,15 @@ public class BorderLayout implements Layout {
         }
 
         // Calculate available space
-        int containerX = container.getX();
-        int containerY = container.getY();
         int containerWidth = container.getWidth();
         int containerHeight = container.getHeight();
 
-        int currentY = containerY;
+        int currentY = 0;
         int currentHeight = containerHeight;
 
         // Layout NORTH
         if (north != null) {
-            north.setX(containerX);
+            north.setX(0);
             north.setY(currentY);
             north.setWidth(containerWidth);
             currentY += north.getHeight() + gap;
@@ -67,14 +65,14 @@ public class BorderLayout implements Layout {
 
         // Layout SOUTH
         if (south != null) {
-            south.setX(containerX);
-            south.setY(containerY + containerHeight - south.getHeight());
+            south.setX(0);
+            south.setY(containerHeight - south.getHeight());
             south.setWidth(containerWidth);
             currentHeight -= south.getHeight() + gap;
         }
 
         // Calculate remaining horizontal space
-        int currentX = containerX;
+        int currentX = 0;
         int currentWidth = containerWidth;
 
         // Layout WEST
@@ -88,7 +86,7 @@ public class BorderLayout implements Layout {
 
         // Layout EAST
         if (east != null) {
-            east.setX(containerX + containerWidth - east.getWidth());
+            east.setX(containerWidth - east.getWidth());
             east.setY(currentY);
             east.setHeight(currentHeight);
             currentWidth -= east.getWidth() + gap;
