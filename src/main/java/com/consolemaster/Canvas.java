@@ -3,6 +3,8 @@ package com.consolemaster;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Comparator;
+
 /**
  * Base class for all drawable elements in the console framework.
  * A Canvas represents a rectangular area that can contain text and graphics
@@ -12,9 +14,12 @@ import lombok.Setter;
 @Setter
 public abstract class Canvas {
 
+    protected static final Comparator<? super Canvas> Z_ORDER_COMPARATOR = Comparator.comparingInt(Canvas::getZ);
+
     private String name;
     private int x;
     private int y;
+    private int z;
     private int width;
     private int height;
     private boolean visible = true;

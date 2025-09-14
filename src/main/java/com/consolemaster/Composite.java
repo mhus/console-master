@@ -62,6 +62,7 @@ public class Composite extends Canvas {
     public void addChild(Canvas child) {
         if (child != null) {
             children.add(child);
+            children.sort(Canvas.Z_ORDER_COMPARATOR);
             layout.childAdded(this, child);
             doLayout(); // Re-layout after adding child
         }
