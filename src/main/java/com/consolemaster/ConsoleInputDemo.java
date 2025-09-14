@@ -48,8 +48,15 @@ public class ConsoleInputDemo {
 
                 // Every 10 seconds, show special message
                 if (secondsCounter % 10 == 0) {
+                    // Get terminal dimensions and cursor position
+                    TerminalInfo terminalInfo = getTerminalInfo();
+
                     addOutput(String.format("*** 10-Sekunden-Meldung: %s - %d Sekunden gelaufen ***",
                             LocalTime.now().format(TIME_FORMAT), secondsCounter));
+                    addOutput(String.format("    Terminal: %d Columns x %d Lines",
+                            terminalInfo.columns, terminalInfo.lines));
+                    addOutput(String.format("    Cursor Position: Column %d, Line %d",
+                            terminalInfo.cursorColumn, terminalInfo.cursorLine));
                 }
 
             } catch (InterruptedException e) {
@@ -266,7 +273,8 @@ public class ConsoleInputDemo {
         while (running) {
             try {
                 String message = outputQueue.take();
-                System.out.println(message);
+                System.out.print(message);
+                System.out.print("\n\r");
                 System.out.flush();
             } catch (InterruptedException e) {
                 break;
@@ -310,5 +318,59 @@ public class ConsoleInputDemo {
         } catch (Exception e) {
             System.err.println("Warnung: Normaler Terminal-Modus konnte nicht wiederhergestellt werden: " + e.getMessage());
         }
+    }
+
+    /**
+     * Retrieves terminal dimensions and cursor position.
+     */
+    private static TerminalInfo getTerminalInfo() {
+        TerminalInfo info = new TerminalInfo();
+        try {
+            // Get terminal size
+            ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", "stty size < /dev/tty");
+            Process process = pb.start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line = reader.readLine();
+                if (line != null) {
+                    String[] parts = line.trim().split(" ");
+                    if (parts.length == 2) {
+                        info.lines = Integer.parseInt(parts[0]);
+                        info.columns = Integer.parseInt(parts[1]);
+                    }
+                }
+            }
+            process.waitFor();
+
+            // Get cursor position (requires mouse reporting enabled)
+            System.out.print("\033[6n");
+            System.out.flush();
+            Thread.sleep(50); // Wait for response
+            byte[] buffer = new byte[32];
+            if (System.in.available() > 0) {
+                int bytesRead = System.in.read(buffer);
+                if (bytesRead > 0) {
+                    String response = new String(buffer, 0, bytesRead);
+                    String[] parts = response.split(";");
+                    if (parts.length == 2) {
+                        info.cursorLine = Integer.parseInt(parts[0].substring(2));
+                        info.cursorColumn = Integer.parseInt(parts[1]);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            addOutput("Warnung: Terminalinformationen konnten nicht abgerufen werden: " + e.getMessage());
+        }
+        return info;
+    }
+
+    /**
+     * Container for terminal information.
+     */
+    private static class TerminalInfo {
+        int lines = 0;
+        int columns = 0;
+        int cursorLine = 0;
+        int cursorColumn = 0;
     }
 }
