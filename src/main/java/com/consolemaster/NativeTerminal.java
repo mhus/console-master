@@ -242,6 +242,7 @@ public class NativeTerminal {
      * Reads a single character from input (blocking).
      */
     public int read() throws IOException {
+//        return System.console().reader().read();
         return inputStream.read();
     }
 
