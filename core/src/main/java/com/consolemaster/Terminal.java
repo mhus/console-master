@@ -20,6 +20,12 @@ public abstract class Terminal {
     private long lastSizeDetectionTime = 0;
     private static final long SIZE_DETECTION_INTERVAL_MS = 60 * 1000; // 60 seconds
 
+    // Screen buffer for diff-based rendering
+    private StyledChar[][] screenBuffer;
+    private int renderCount = 0;
+    private static final int FULL_RENDER_INTERVAL = 50; // Full render every 10 times
+    private boolean bufferInitialized = false;
+
     // ANSI escape sequences
     public static final String ESC = "\u001B[";
     private static final String RESET = ESC + "0m";
@@ -196,16 +202,188 @@ public abstract class Terminal {
     public void stop() {
     }
 
+    /**
+     * Initializes or reinitializes the screen buffer when terminal size changes.
+     */
+    private void initializeScreenBuffer() {
+        screenBuffer = new StyledChar[height][width];
+        // Initialize with empty styled characters
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                screenBuffer[y][x] = new StyledChar(' ');
+            }
+        }
+        bufferInitialized = true;
+        renderCount = 0;
+    }
+
+    /**
+     * Checks if terminal size has changed and reinitializes buffer if needed.
+     */
+    private void checkAndUpdateBufferSize() {
+        if (!bufferInitialized || screenBuffer == null ||
+                screenBuffer.length != height ||
+                (screenBuffer.length > 0 && screenBuffer[0].length != width)) {
+            initializeScreenBuffer();
+        }
+    }
+
     public void renderGraphics(GeneralGraphics graphics) {
+        checkAndUpdateBufferSize();
+
         var graphicsWidth = Math.min(graphics.getWidth(), this.width);
         var graphicsHeight = Math.min(graphics.getHeight(), this.height);
+
+        renderCount++;
+        boolean forceFullRender = (renderCount % FULL_RENDER_INTERVAL == 0);
+
+        if (forceFullRender) {
+            // Full screen render every 10th time to correct any display errors
+            renderFullScreen(graphics, graphicsWidth, graphicsHeight);
+        } else {
+            // Diff-based render - only update changed characters
+            renderDifferences(graphics, graphicsWidth, graphicsHeight);
+        }
+    }
+
+    /**
+     * Renders the entire screen and updates the buffer.
+     */
+    private void renderFullScreen(GeneralGraphics graphics, int graphicsWidth, int graphicsHeight) {
+        // clearScreen();
+
         for (int y = 0; y < graphicsHeight; y++) {
+            setCursorPosition(0, y);
             for (int x = 0; x < graphicsWidth; x++) {
-                StyledChar styledChar = graphics.getStyledChar(x,y);
+                StyledChar styledChar = graphics.getStyledChar(x, y);
+                screenBuffer[y][x] = styledChar;
                 toAnsiString(styledChar);
             }
-            if (graphicsWidth < width && y < graphicsHeight - 1) {
-                write("\n\r");
+        }
+
+        // Clear any remaining buffer areas that are not covered by graphics
+        clearRemainingBuffer(graphicsWidth, graphicsHeight);
+    }
+
+    /**
+     * Renders only the differences between current graphics and screen buffer.
+     */
+    private void renderDifferences(GeneralGraphics graphics, int graphicsWidth, int graphicsHeight) {
+        for (int y = 0; y < graphicsHeight; y++) {
+            boolean lineHasChanges = false;
+            int firstChange = -1;
+
+            // Find changes in this line
+            for (int x = 0; x < graphicsWidth; x++) {
+                StyledChar newChar = graphics.getStyledChar(x, y);
+                StyledChar oldChar = screenBuffer[y][x];
+
+                if (!areCharsEqual(newChar, oldChar)) {
+                    if (firstChange == -1) {
+                        firstChange = x;
+                        lineHasChanges = true;
+                    }
+                }
+            }
+
+            // Render changes in this line
+            if (lineHasChanges) {
+                setCursorPosition(firstChange, y);
+                for (int x = firstChange; x < graphicsWidth; x++) {
+                    StyledChar newChar = graphics.getStyledChar(x, y);
+                    StyledChar oldChar = screenBuffer[y][x];
+
+                    if (!areCharsEqual(newChar, oldChar)) {
+                        screenBuffer[y][x] = newChar;
+                        toAnsiString(newChar);
+                    } else {
+                        // Skip unchanged characters by moving cursor
+                        setCursorPosition(x + 1, y);
+                    }
+                }
+            }
+        }
+
+        // Handle areas outside graphics bounds
+        updateRemainingBufferDiff(graphicsWidth, graphicsHeight);
+    }
+
+    /**
+     * Compares two StyledChar objects for equality.
+     */
+    private boolean areCharsEqual(StyledChar char1, StyledChar char2) {
+        if (char1 == null && char2 == null) return true;
+        if (char1 == null || char2 == null) return false;
+
+        return char1.getCharacter() == char2.getCharacter() &&
+                areColorsEqual(char1.getForegroundColor(), char2.getForegroundColor()) &&
+                areColorsEqual(char1.getBackgroundColor(), char2.getBackgroundColor()) &&
+                java.util.Arrays.equals(char1.getFormats(), char2.getFormats());
+    }
+
+    /**
+     * Compares two AnsiColor objects for equality.
+     */
+    private boolean areColorsEqual(AnsiColor color1, AnsiColor color2) {
+        if (color1 == null && color2 == null) return true;
+        if (color1 == null || color2 == null) return false;
+        return color1.equals(color2);
+    }
+
+    /**
+     * Clears buffer areas outside the graphics bounds.
+     */
+    private void clearRemainingBuffer(int graphicsWidth, int graphicsHeight) {
+        StyledChar emptyChar = new StyledChar(' ');
+
+        // Clear remaining columns in covered rows
+        for (int y = 0; y < graphicsHeight && y < height; y++) {
+            for (int x = graphicsWidth; x < width; x++) {
+                if (!areCharsEqual(screenBuffer[y][x], emptyChar)) {
+                    setCursorPosition(x, y);
+                    screenBuffer[y][x] = emptyChar;
+                    toAnsiString(emptyChar);
+                }
+            }
+        }
+
+        // Clear remaining rows
+        for (int y = graphicsHeight; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (!areCharsEqual(screenBuffer[y][x], emptyChar)) {
+                    setCursorPosition(x, y);
+                    screenBuffer[y][x] = emptyChar;
+                    toAnsiString(emptyChar);
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates buffer areas outside graphics bounds using diff-based approach.
+     */
+    private void updateRemainingBufferDiff(int graphicsWidth, int graphicsHeight) {
+        StyledChar emptyChar = new StyledChar(' ');
+
+        // Check remaining columns in covered rows
+        for (int y = 0; y < graphicsHeight && y < height; y++) {
+            for (int x = graphicsWidth; x < width; x++) {
+                if (!areCharsEqual(screenBuffer[y][x], emptyChar)) {
+                    setCursorPosition(x, y);
+                    screenBuffer[y][x] = emptyChar;
+                    toAnsiString(emptyChar);
+                }
+            }
+        }
+
+        // Check remaining rows
+        for (int y = graphicsHeight; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (!areCharsEqual(screenBuffer[y][x], emptyChar)) {
+                    setCursorPosition(x, y);
+                    screenBuffer[y][x] = emptyChar;
+                    toAnsiString(emptyChar);
+                }
             }
         }
     }
