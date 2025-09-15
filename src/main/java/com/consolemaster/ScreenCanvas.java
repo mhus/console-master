@@ -86,7 +86,7 @@ public class ScreenCanvas extends Composite {
     }
 
     public void render() {
-        NativeGraphics graphics = new NativeGraphics(getWidth(), getHeight());
+        GeneralGraphics graphics = new GeneralGraphics(getWidth(), getHeight());
         graphics.clear();
         paint(graphics);
 

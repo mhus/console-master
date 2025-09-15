@@ -176,7 +176,7 @@ public abstract class Terminal {
     public void stop() {
     }
 
-    public void renderGraphics(NativeGraphics graphics) {
+    public void renderGraphics(GeneralGraphics graphics) {
         var graphicsWidth = Math.min(graphics.getWidth(), this.width);
         var graphicsHeight = Math.min(graphics.getHeight(), this.height);
         for (int y = 0; y < graphicsHeight; y++) {

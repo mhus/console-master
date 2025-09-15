@@ -7,7 +7,7 @@ import lombok.Getter;
  * Uses StyledChar instead of JLine's AttributedString for ANSI support.
  */
 @Getter
-public class NativeGraphics extends Graphics {
+public class GeneralGraphics extends Graphics {
 
     private final StyledChar[][] buffer;
     private TextStyle currentStyle = TextStyle.DEFAULT;
@@ -15,7 +15,7 @@ public class NativeGraphics extends Graphics {
     /**
      * Creates a native Graphics context.
      */
-    public NativeGraphics(int width, int height) {
+    public GeneralGraphics(int width, int height) {
         super(width, height);
         this.buffer = new StyledChar[height][width];
         clear();
