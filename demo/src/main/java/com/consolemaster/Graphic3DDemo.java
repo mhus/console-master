@@ -19,6 +19,10 @@ public class Graphic3DDemo {
     private static Camera3D camera;
     private static Graphic3DCanvas canvas3D;
 
+    // Animation thread
+    private static Thread animationThread;
+    private static final Object animationLock = new Object();
+
     public static void main(String[] args) {
         try {
             // Create the main screen canvas
@@ -115,6 +119,7 @@ public class Graphic3DDemo {
             // Register keyboard controls
             screen.registerShortcut("Ctrl+Q", () -> {
                 try {
+                    stopAnimationThread();
                     processLoop.stop();
                 } catch (IOException e) {
                     System.err.println("Error stopping process loop: " + e.getMessage());
@@ -183,12 +188,11 @@ public class Graphic3DDemo {
                 lastAction = "Camera Reset";
             });
 
-            // Animation update callback
+            // Start animation thread
+            startAnimationThread(processLoop);
+
+            // Update callback for status display only
             processLoop.setUpdateCallback(() -> {
-                if (isAnimating) {
-                    animationTime += 0.03; // Animation speed
-                    updateAnimatedScene();
-                }
                 updateStatusText((Text) statusBox.getChild(), processLoop);
             });
 
@@ -217,23 +221,21 @@ public class Graphic3DDemo {
     private static void createInitialScene() {
         canvas3D.clearMeshes();
 
-        // Create a cube at the origin
-        Mesh3D cube = Mesh3D.createCube(2.0);
-        canvas3D.addMesh(cube);
+        // Create a colorful cube at the origin
+        Mesh3D colorfulCube = Mesh3D.createColorfulCube(2.0);
+        canvas3D.addMesh(colorfulCube);
 
-        // Create a pyramid to the right
-        Mesh3D pyramid = Mesh3D.createPyramid(1.5);
-        Matrix4x4 pyramidTransform = Matrix4x4.translation(4, 0, 0);
-        Mesh3D transformedPyramid = pyramid.transform(pyramidTransform);
+        // Create a textured cube to the right
+        Mesh3D texturedCube = Mesh3D.createTexturedCube(1.5);
+        Matrix4x4 cubeTransform = Matrix4x4.translation(4, 0, 0);
+        Mesh3D transformedTexturedCube = texturedCube.transform(cubeTransform);
+        canvas3D.addMesh(transformedTexturedCube);
+
+        // Create a colorful pyramid to the left
+        Mesh3D colorfulPyramid = Mesh3D.createColorfulPyramid(1.5);
+        Matrix4x4 pyramidTransform = Matrix4x4.translation(-4, 0, 0);
+        Mesh3D transformedPyramid = colorfulPyramid.transform(pyramidTransform);
         canvas3D.addMesh(transformedPyramid);
-
-        // Create a rotated cube to the left
-        Mesh3D leftCube = Mesh3D.createCube(1.0);
-        Matrix4x4 rotation = Matrix4x4.rotationY(Math.PI / 4).multiply(Matrix4x4.rotationX(Math.PI / 6));
-        Matrix4x4 translation = Matrix4x4.translation(-4, 0, 0);
-        Matrix4x4 leftCubeTransform = translation.multiply(rotation);
-        Mesh3D transformedLeftCube = leftCube.transform(leftCubeTransform);
-        canvas3D.addMesh(transformedLeftCube);
     }
 
     /**
@@ -242,37 +244,37 @@ public class Graphic3DDemo {
     private static void updateAnimatedScene() {
         canvas3D.clearMeshes();
 
-        // Rotating cube at center
-        Mesh3D cube = Mesh3D.createCube(2.0);
+        // Rotating colorful cube at center
+        Mesh3D colorfulCube = Mesh3D.createColorfulCube(2.0);
         Matrix4x4 cubeRotation = Matrix4x4.rotationY(animationTime)
                 .multiply(Matrix4x4.rotationX(animationTime * 0.7));
-        Mesh3D animatedCube = cube.transform(cubeRotation);
+        Mesh3D animatedCube = colorfulCube.transform(cubeRotation);
         canvas3D.addMesh(animatedCube);
 
-        // Orbiting pyramid
+        // Orbiting textured cube
         double orbitRadius = 4.0;
         double orbitX = Math.cos(animationTime * 2) * orbitRadius;
         double orbitZ = Math.sin(animationTime * 2) * orbitRadius;
         double orbitY = Math.sin(animationTime * 3) * 1.5;
 
-        Mesh3D pyramid = Mesh3D.createPyramid(1.5);
-        Matrix4x4 pyramidRotation = Matrix4x4.rotationY(-animationTime * 2);
-        Matrix4x4 pyramidTranslation = Matrix4x4.translation(orbitX, orbitY, orbitZ);
-        Matrix4x4 pyramidTransform = pyramidTranslation.multiply(pyramidRotation);
-        Mesh3D orbitingPyramid = pyramid.transform(pyramidTransform);
-        canvas3D.addMesh(orbitingPyramid);
+        Mesh3D texturedCube = Mesh3D.createTexturedCube(1.2);
+        Matrix4x4 cubeOrbitRotation = Matrix4x4.rotationY(-animationTime * 2);
+        Matrix4x4 cubeOrbitTranslation = Matrix4x4.translation(orbitX, orbitY, orbitZ);
+        Matrix4x4 cubeOrbitTransform = cubeOrbitTranslation.multiply(cubeOrbitRotation);
+        Mesh3D orbitingTexturedCube = texturedCube.transform(cubeOrbitTransform);
+        canvas3D.addMesh(orbitingTexturedCube);
 
-        // Oscillating cube on the left
+        // Oscillating colorful pyramid on the left
         double leftX = -4 + Math.sin(animationTime * 1.5) * 1.5;
         double leftY = Math.cos(animationTime * 2) * 2;
 
-        Mesh3D leftCube = Mesh3D.createCube(1.0);
+        Mesh3D colorfulPyramid = Mesh3D.createColorfulPyramid(1.0);
         Matrix4x4 leftRotation = Matrix4x4.rotationZ(animationTime * 1.2)
                 .multiply(Matrix4x4.rotationX(animationTime * 0.8));
         Matrix4x4 leftTranslation = Matrix4x4.translation(leftX, leftY, 0);
         Matrix4x4 leftTransform = leftTranslation.multiply(leftRotation);
-        Mesh3D animatedLeftCube = leftCube.transform(leftTransform);
-        canvas3D.addMesh(animatedLeftCube);
+        Mesh3D animatedColorfulPyramid = colorfulPyramid.transform(leftTransform);
+        canvas3D.addMesh(animatedColorfulPyramid);
     }
 
     /**
@@ -340,5 +342,59 @@ public class Graphic3DDemo {
 
         statusText.setText(status);
         statusText.setForegroundColor(AnsiColor.BRIGHT_WHITE);
+    }
+
+    /**
+     * Starts the animation thread for updating the 3D scene.
+     */
+    private static void startAnimationThread(ProcessLoop processLoop) {
+        animationThread = new Thread(() -> {
+            try {
+                final long targetFrameTime = 1000 / 30; // 30 FPS = ~33ms per frame
+
+                while (!Thread.currentThread().isInterrupted()) {
+                    long frameStart = System.currentTimeMillis();
+
+                    synchronized (animationLock) {
+                        if (isAnimating) {
+                            animationTime += 0.03; // Animation speed
+                            updateAnimatedScene();
+
+                            // Signal ProcessLoop that a refresh is needed
+                            processLoop.requestRedraw();
+                        }
+                    }
+
+                    // Frame rate limiting
+                    long frameTime = System.currentTimeMillis() - frameStart;
+                    long sleepTime = targetFrameTime - frameTime;
+                    if (sleepTime > 0) {
+                        Thread.sleep(sleepTime);
+                    }
+                }
+            } catch (InterruptedException e) {
+                // Thread was interrupted, exit gracefully
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                log.error("Error in animation thread", e);
+            }
+        }, "3D-Animation-Thread");
+
+        animationThread.setDaemon(true);
+        animationThread.start();
+    }
+
+    /**
+     * Stops the animation thread.
+     */
+    private static void stopAnimationThread() {
+        if (animationThread != null && animationThread.isAlive()) {
+            animationThread.interrupt();
+            try {
+                animationThread.join(1000); // Wait max 1 second for thread to finish
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 }

@@ -109,7 +109,8 @@ public class Graphic3DCanvas extends Canvas {
             double centerY = getHeight() / 2.0;
 
             // Scale to fit canvas while maintaining aspect ratio
-            double scale = Math.min(getWidth(), getHeight()) ;
+            // Use a smaller scale factor to ensure objects fit well
+            double scale = Math.min(getWidth(), getHeight()) / 4.0;
 
             double screenX = centerX + projected.getX() * scale;
             double screenY = centerY - projected.getY() * scale; // Flip Y for screen coordinates
@@ -139,10 +140,10 @@ public class Graphic3DCanvas extends Canvas {
                     drawWireframeTriangle(graphics, v1, v2, v3);
                     break;
                 case FILLED:
-                    fillTriangle(graphics, v1, v2, v3);
+                    fillTriangle(graphics, v1, v2, v3, face);
                     break;
                 case BOTH:
-                    fillTriangle(graphics, v1, v2, v3);
+                    fillTriangle(graphics, v1, v2, v3, face);
                     drawWireframeTriangle(graphics, v1, v2, v3);
                     break;
             }
@@ -187,11 +188,9 @@ public class Graphic3DCanvas extends Canvas {
     }
 
     /**
-     * Fills a triangle with the fill character.
+     * Fills a triangle with the fill character, considering face color and texture.
      */
-    private void fillTriangle(Graphics graphics, Point3D v1, Point3D v2, Point3D v3) {
-        graphics.setForegroundColor(fillColor);
-
+    private void fillTriangle(Graphics graphics, Point3D v1, Point3D v2, Point3D v3, Mesh3D.Face3D face) {
         // Simple triangle filling using scanline algorithm
         int minY = (int) Math.max(0, Math.min(Math.min(v1.getY(), v2.getY()), v3.getY()));
         int maxY = (int) Math.min(getHeight() - 1, Math.max(Math.max(v1.getY(), v2.getY()), v3.getY()));
@@ -216,7 +215,20 @@ public class Graphic3DCanvas extends Canvas {
                     // Depth test
                     if (depth < depthBuffer[y][x]) {
                         depthBuffer[y][x] = depth;
-                        graphics.drawChar(x, y, fillChar);
+
+                        // Calculate texture coordinates (simplified)
+                        double u = (double) (x - startX) / Math.max(1, endX - startX);
+                        double v = (double) (y - minY) / Math.max(1, maxY - minY);
+
+                        // Simple lighting calculation (basic directional light)
+                        double lightIntensity = 0.7; // Default lighting
+
+                        // Get effective color and character from face
+                        AnsiColor effectiveColor = face.getEffectiveColor(u, v, lightIntensity);
+                        char effectiveChar = face.getEffectiveCharacter(u, v, lightIntensity);
+
+                        graphics.setForegroundColor(effectiveColor);
+                        graphics.drawChar(x, y, effectiveChar);
                     }
                 }
             }
