@@ -122,8 +122,7 @@ public class NativeTerminal extends Terminal {
             }
 
             // Fallback to default size if detection fails
-            this.width = 200;
-            this.height = 100;
+            setDefaultSize();
 
             // Try to detect using stty if available (Unix systems)
             if (System.getProperty("os.name").toLowerCase().contains("nix") ||
@@ -134,18 +133,24 @@ public class NativeTerminal extends Terminal {
 
         } catch (Exception e) {
             // Use default size if detection fails
-            this.width = 80;
-            this.height = 24;
+            setDefaultSize();
         }
+    }
+
+    private void setDefaultSize() {
+        this.width = System.getenv("TERMINAL_COLUMNS") != null ? Integer.parseInt(System.getenv("TERMINAL_COLUMNS")) : 160;
+        this.height = System.getenv("TERMINAL_LINES") != null ? Integer.parseInt(System.getenv("TERMINAL_LINES")) : 24;
     }
 
     /**
      * Detects terminal size using stty command on Unix systems.
+     * Uses explicit /dev/tty redirection for more reliable detection.
      */
     private void detectSizeWithStty() {
         try {
-            Process process = Runtime.getRuntime().exec(new String[]{"stty", "size"});
-            process.waitFor();
+            // Use the same approach as ConsoleInputDemo.getTerminalInfo()
+            ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", "stty size < /dev/tty");
+            Process process = pb.start();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line = reader.readLine();
@@ -154,10 +159,14 @@ public class NativeTerminal extends Terminal {
                     if (parts.length == 2) {
                         this.height = Integer.parseInt(parts[0]);
                         this.width = Integer.parseInt(parts[1]);
+                        log.debug("Detected terminal size: {}x{}", this.width, this.height);
                     }
                 }
             }
+            process.waitFor();
+
         } catch (Exception e) {
+            log.debug("Failed to detect terminal size with stty: {}", e.getMessage());
             // Ignore errors and keep default size
         }
     }

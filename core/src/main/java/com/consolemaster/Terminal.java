@@ -16,6 +16,10 @@ public abstract class Terminal {
     protected int width;
     protected int height;
 
+    // Terminal size detection caching
+    private long lastSizeDetectionTime = 0;
+    private static final long SIZE_DETECTION_INTERVAL_MS = 60 * 1000; // 60 seconds
+
     // ANSI escape sequences
     public static final String ESC = "\u001B[";
     private static final String RESET = ESC + "0m";
@@ -158,9 +162,25 @@ public abstract class Terminal {
 
     /**
      * Updates terminal size (call when terminal is resized).
+     * Only performs actual detection once every 60 seconds to avoid unnecessary overhead.
      */
     public void updateSize() {
+        long currentTime = System.currentTimeMillis();
+
+        // Only detect terminal size if 60 seconds have passed since last detection
+        if (currentTime - lastSizeDetectionTime >= SIZE_DETECTION_INTERVAL_MS) {
+            detectTerminalSize();
+            lastSizeDetectionTime = currentTime;
+        }
+    }
+
+    /**
+     * Forces immediate terminal size detection, bypassing the 60-second cache interval.
+     * Use this method when you know the terminal has been resized and need immediate updates.
+     */
+    public void forceUpdateSize() {
         detectTerminalSize();
+        lastSizeDetectionTime = System.currentTimeMillis();
     }
 
     /**
