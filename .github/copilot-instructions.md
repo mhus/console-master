@@ -6,6 +6,13 @@
 - Use Java 21 or higher.
 - Use english for all code, comments and documentation.
 
+## Project Structure
+
+Multi-module Maven project with clear separation of concerns:
+- **Parent POM** (`console-master`): Manages dependencies and plugin versions
+- **Core Module** (`console-master-core`): Framework implementation with all core classes and tests
+- **Demo Module** (`console-master-demo`): Example applications demonstrating framework features
+
 ## Libraries and Frameworks
 
 - Use lombok for boilerplate code reduction.
@@ -112,3 +119,5 @@ a warning Canvas is displayed instead of the actual content.
 - Implement EventHandler interface for interactive components
 - Use pack() system for automatic size calculation
 - Prefer composition over inheritance for complex components
+- Core framework development happens in the `core` module
+- Demo applications are developed in the `demo` module with dependency on core
