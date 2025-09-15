@@ -228,12 +228,6 @@ public abstract class Terminal {
     }
 
     public void renderGraphics(NativeGraphics graphics) {
-    }
-
-    /**
-     * Renders the graphics buffer to the terminal using ANSI escape sequences.
-     */
-    public void toAnsiString(NativeGraphics graphics) {
         for (int y = 0; y < graphics.getHeight(); y++) {
             for (int x = 0; x < graphics.getWidth(); x++) {
                 StyledChar styledChar = graphics.getStyledChar(x,y);
@@ -248,7 +242,7 @@ public abstract class Terminal {
     /**
      * Converts this styled string to an ANSI escape sequence string.
      */
-    public void toAnsiString(StyledChar styledChar) {
+    protected void toAnsiString(StyledChar styledChar) {
 
         // Apply styling
         toAnsiPrefix(styledChar);
@@ -259,7 +253,7 @@ public abstract class Terminal {
     /**
      * Generates the ANSI escape sequence prefix for this style.
      */
-    public void toAnsiPrefix(StyledChar styledChar) {
+    protected void toAnsiPrefix(StyledChar styledChar) {
         if (!styledChar.getStyle().hasFormatting()) {
             return;
         }
@@ -283,7 +277,7 @@ public abstract class Terminal {
     /**
      * Generates the ANSI escape sequence suffix (reset) for this style.
      */
-    public void toAnsiSuffix(StyledChar styledChar) {
+    protected void toAnsiSuffix(StyledChar styledChar) {
         if (!styledChar.getStyle().hasFormatting()) {
             return;
         }
