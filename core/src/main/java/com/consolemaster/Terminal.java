@@ -204,8 +204,8 @@ public abstract class Terminal {
                 StyledChar styledChar = graphics.getStyledChar(x,y);
                 toAnsiString(styledChar);
             }
-            if (y < graphicsHeight - 1) {
-                write("\n");
+            if (graphicsWidth < width && y < graphicsHeight - 1) {
+                write("\n\r");
             }
         }
     }

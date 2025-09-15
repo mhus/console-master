@@ -33,7 +33,10 @@ public class NativeTerminal extends Terminal {
                     System.getProperty("os.name").toLowerCase().contains("nux") ||
                     System.getProperty("os.name").toLowerCase().contains("mac")) {
 
-                Runtime.getRuntime().exec(new String[]{"stty", "-echo", "raw"}).waitFor();
+                    // Use the same approach as ConsoleInputDemo for reliable raw mode
+                ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", "stty raw -echo < /dev/tty");
+                Process process = pb.start();
+                process.waitFor();
             }
             // Windows would need different handling
 
@@ -42,6 +45,10 @@ public class NativeTerminal extends Terminal {
             // Enable alternate screen and hide cursor
             writer.print(ALTERNATE_SCREEN_ON);
             writer.print(CURSOR_HIDE);
+            writer.flush();
+
+            // Enable mouse tracking like in ConsoleInputDemo
+            writer.print(MOUSE_TRACKING_ON);
             writer.flush();
 
         } catch (Exception e) {
@@ -56,6 +63,10 @@ public class NativeTerminal extends Terminal {
         if (!rawMode) return;
 
         try {
+            // Disable mouse tracking first
+            writer.print(MOUSE_TRACKING_OFF);
+            writer.flush();
+
             // Restore cursor and exit alternate screen
             writer.print(CURSOR_SHOW);
             writer.print(ALTERNATE_SCREEN_OFF);
@@ -66,7 +77,10 @@ public class NativeTerminal extends Terminal {
                     System.getProperty("os.name").toLowerCase().contains("nux") ||
                     System.getProperty("os.name").toLowerCase().contains("mac")) {
 
-                Runtime.getRuntime().exec(new String[]{"stty", "echo", "cooked"}).waitFor();
+                // Use the same approach as ConsoleInputDemo for reliable terminal restoration
+                ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", "stty cooked echo < /dev/tty");
+                Process process = pb.start();
+                process.waitFor();
             }
 
             rawMode = false;
