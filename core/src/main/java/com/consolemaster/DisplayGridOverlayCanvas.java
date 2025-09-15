@@ -20,7 +20,7 @@ public class DisplayGridOverlayCanvas extends Canvas {
      * @param height the height of the canvas
      */
     public DisplayGridOverlayCanvas(String name) {
-        super(name, 0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        super(name, Integer.MAX_VALUE, Integer.MAX_VALUE);
         setZ(Integer.MAX_VALUE); // Ensure it is on top
     }
 

@@ -113,7 +113,7 @@ public class ScreenCanvas extends Composite {
     }
 
     private void createWarningCanvas() {
-        warningCanvas = new Canvas("WarningCanvas", 0, 0, getWidth(), getHeight()) {
+        warningCanvas = new Canvas("WarningCanvas", getWidth(), getHeight()) {
             @Override
             public void paint(Graphics graphics) {
                 graphics.clear();

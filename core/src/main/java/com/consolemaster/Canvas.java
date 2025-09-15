@@ -40,15 +40,13 @@ public abstract class Canvas {
     /**
      * Creates a new Canvas with the specified position and dimensions.
      *
-     * @param x      the x-coordinate of the canvas
-     * @param y      the y-coordinate of the canvas
      * @param width  the width of the canvas
      * @param height the height of the canvas
      */
-    public Canvas(String name, int x, int y, int width, int height) {
+    public Canvas(String name, int width, int height) {
         this.name = name;
-        this.x = x;
-        this.y = y;
+        this.x = 0;
+        this.y = 0;
         this.width = width;
         this.height = height;
     }
@@ -66,13 +64,21 @@ public abstract class Canvas {
      * @param maxHeight the maximum height constraint
      */
     public Canvas(String name, int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
-        this(name, x, y, width, height);
+        this(name, width, height);
         this.minWidth = minWidth;
         this.minHeight = minHeight;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
 
         // Ensure current size respects constraints
+        enforceConstraints();
+    }
+
+    public void setRange(int minWidth, int minHeight, int maxWidth, int maxHeight) {
+        this.minWidth = Math.max(0, minWidth);
+        this.minHeight = Math.max(0, minHeight);
+        this.maxWidth = Math.max(1, Math.max(this.minWidth, maxWidth));
+        this.maxHeight = Math.max(1, Math.max(this.minHeight, maxHeight));
         enforceConstraints();
     }
 
@@ -305,18 +311,6 @@ public abstract class Canvas {
     public void paintLegacy(char[][] charBuffer) {
         LegacyGraphics legacyGraphics = new LegacyGraphics(charBuffer, getWidth(), getHeight());
         paint(legacyGraphics);
-    }
-
-    /**
-     * Checks if the given coordinates are within the bounds of this canvas.
-     *
-     * @param x the x-coordinate to check
-     * @param y the y-coordinate to check
-     * @return true if the coordinates are within bounds, false otherwise
-     */
-    public boolean contains(int x, int y) {
-        return x >= this.x && x < this.x + this.width &&
-               y >= this.y && y < this.y + this.height;
     }
 
     /**

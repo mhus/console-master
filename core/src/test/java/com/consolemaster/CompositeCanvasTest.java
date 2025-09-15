@@ -162,7 +162,7 @@ class CompositeCanvasTest {
     @Test
     void shouldCreateCompositeWithCustomLayout() {
         Layout customLayout = mock(Layout.class);
-        Composite customComposite = new Composite("customComposite", 0, 0, 100, 50, customLayout);
+        Composite customComposite = new Composite("customComposite", 100, 50, customLayout);
         
         assertEquals(customLayout, customComposite.getLayout());
     }
@@ -304,7 +304,7 @@ class CompositeCanvasTest {
      */
     private static class TestCanvas extends Canvas {
         public TestCanvas(int x, int y, int width, int height) {
-            super("TestCanvas", x, y, width, height);
+            super("TestCanvas", width, height);
         }
 
         @Override

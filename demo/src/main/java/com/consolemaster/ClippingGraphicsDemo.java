@@ -13,7 +13,7 @@ public class ClippingGraphicsDemo {
     public static void main(String[] args) {
         try {
             // Create a simple demo canvas that draws starting at (0,0)
-            Canvas demoCanvas = new Canvas("DemoCanvas", 5, 3, 20, 8) {
+            Canvas demoCanvas = new Canvas("DemoCanvas", 20, 8) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Zeichne immer bei (0,0) - wird automatisch übersetzt
@@ -27,10 +27,10 @@ public class ClippingGraphicsDemo {
             };
 
             // Create a box with border that contains text
-            Text innerText = new Text("InnerText", 0, 0, 15, 3, "Box Content\nLine 2\nLine 3");
+            Text innerText = new Text("InnerText", 15, 3, "Box Content\nLine 2\nLine 3");
             innerText.setForegroundColor(AnsiColor.CYAN);
 
-            Box box = new Box("DemoBox", 25, 5, 20, 8, new DefaultBorder());
+            Box box = new Box("DemoBox", 20, 8, new DefaultBorder());
             box.setChild(innerText);
 
             // Create a composite that contains both

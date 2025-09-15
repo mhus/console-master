@@ -14,15 +14,15 @@ public class LayoutDemo {
             ScreenCanvas screen = new ScreenCanvas(80, 25);
 
             // Create a composite canvas with FlowLayout
-            Composite flowContainer = new Composite("flowContainer", 5, 3,
-                                                               screen.getWidth() - 10,
+            Composite flowContainer = new Composite("flowContainer",
+                    screen.getWidth() - 10,
                                                                screen.getHeight() - 6,
                                                                new FlowLayout(2, 2));
 
             // Create multiple text components with different styling
             for (int i = 1; i <= 8; i++) {
-                Box box = new Box("box" + i, 0, 0, 12, 3, new DefaultBorder());
-                Text text = new Text("text" + i, 0, 0, 0, 0, "Item " + i, Text.Alignment.CENTER);
+                Box box = new Box("box" + i, 12, 3, new DefaultBorder());
+                Text text = new Text("text" + i, 0, 0, "Item " + i, Text.Alignment.CENTER);
 
                 // Apply different colors
                 AnsiColor color = switch (i % 4) {

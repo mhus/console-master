@@ -19,7 +19,7 @@ public class ConsoleMasterDemo {
                                                              screen.getHeight());
 
             // Create styled header canvas
-            Canvas header = new Canvas("header", 0, 0, screen.getWidth(), 3) {
+            Canvas header = new Canvas("header", screen.getWidth(), 3) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Set bold yellow text on blue background for title
@@ -48,7 +48,7 @@ public class ConsoleMasterDemo {
             };
 
             // Create colorful game area canvas
-            Canvas gameArea = new Canvas("gameArea", 2, 4, screen.getWidth() - 20, 12) {
+            Canvas gameArea = new Canvas("gameArea", screen.getWidth() - 20, 12) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Draw border in green
@@ -89,7 +89,7 @@ public class ConsoleMasterDemo {
             };
 
             // Create colorful info panel
-            Canvas infoPanel = new Canvas("infoPanel", screen.getWidth() - 18, 4, 18, 12) {
+            Canvas infoPanel = new Canvas("infoPanel", 18, 12) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Border in magenta
@@ -137,7 +137,7 @@ public class ConsoleMasterDemo {
             };
 
             // Create styled footer
-            Canvas footer = new Canvas("footer", 0, screen.getHeight() - 3, screen.getWidth(), 3) {
+            Canvas footer = new Canvas("footer", screen.getWidth(), 3) {
                 @Override
                 public void paint(Graphics graphics) {
                     // Top border

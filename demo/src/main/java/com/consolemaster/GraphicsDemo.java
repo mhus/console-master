@@ -14,13 +14,13 @@ public class GraphicsDemo {
             ScreenCanvas screen = new ScreenCanvas(80, 25);
 
             // Create a composite canvas for content
-            Composite content = new Composite("content", 5, 3,
-                                                         screen.getWidth() - 10,
+            Composite content = new Composite("content",
+                    screen.getWidth() - 10,
                                                          screen.getHeight() - 6,
                                                          new FlowLayout(2, 1));
 
             // Title
-            Text title = new Text("title", 0, 0, 0, 2, "Native ANSI Styling Demo", Text.Alignment.CENTER);
+            Text title = new Text("title", 0, 2, "Native ANSI Styling Demo", Text.Alignment.CENTER);
             title.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             title.setFormats(AnsiFormat.BOLD, AnsiFormat.UNDERLINE);
             content.addChild(title);
@@ -30,22 +30,22 @@ public class GraphicsDemo {
                                  AnsiColor.YELLOW, AnsiColor.MAGENTA, AnsiColor.CYAN};
 
             for (AnsiColor color : colors) {
-                Text colorText = new Text("colorText_" + color.name(), 0, 0, 0, 1, color.name() + " Text", Text.Alignment.LEFT);
+                Text colorText = new Text("colorText_" + color.name(), 0, 1, color.name() + " Text", Text.Alignment.LEFT);
                 colorText.setForegroundColor(color);
                 colorText.setFormats(AnsiFormat.BOLD);
                 content.addChild(colorText);
             }
 
             // Format demonstrations
-            Text boldText = new Text("boldText", 0, 0, 0, 1, "Bold Text", Text.Alignment.LEFT);
+            Text boldText = new Text("boldText", 0, 1, "Bold Text", Text.Alignment.LEFT);
             boldText.setFormats(AnsiFormat.BOLD);
             content.addChild(boldText);
 
-            Text italicText = new Text("italicText", 0, 0, 0, 1, "Italic Text", Text.Alignment.LEFT);
+            Text italicText = new Text("italicText", 0, 1, "Italic Text", Text.Alignment.LEFT);
             italicText.setFormats(AnsiFormat.ITALIC);
             content.addChild(italicText);
 
-            Text underlineText = new Text("underlineText", 0, 0, 0, 1, "Underlined Text", Text.Alignment.LEFT);
+            Text underlineText = new Text("underlineText", 0, 1, "Underlined Text", Text.Alignment.LEFT);
             underlineText.setFormats(AnsiFormat.UNDERLINE);
             content.addChild(underlineText);
 

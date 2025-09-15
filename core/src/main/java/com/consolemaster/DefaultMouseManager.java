@@ -169,28 +169,33 @@ public class DefaultMouseManager implements MouseManager {
      * Recursively searches for the canvas at the specified coordinates.
      */
     private CanvasMouseInfo findCanvasAtRecursive(int x, int y, Canvas canvas, Canvas canFocusCanvas) {
-        if (!canvas.isVisible() || !canvas.contains(x, y)) {
+//        log.debug("  > Test canvas: {} at ({},{})", canvas.getName(), x, y);
+        if (!canvas.isVisible()) {
             return null;
         }
         if (canvas.isCanFocus()) {
             canFocusCanvas = canvas;
         }
-        log.debug("--> Checking canvas: {} at ({},{})", canvas.getName(), x, y);
+//        log.debug("--> Checking canvas: {} at ({},{})", canvas.getName(), x, y);
         // Check children first (they are on top)
         if (canvas instanceof Composable composite) {
             // Iterate in reverse order to check topmost children first
             var children = composite.getChildren();
             for (int i = children.size() - 1; i >= 0; i--) {
                 Canvas child = children.get(i);
-                CanvasMouseInfo found = findCanvasAtRecursive(x-child.getX(), y-child.getY(), child, canFocusCanvas);
-                if (found != null) {
-                    return found;
+                var childX = x - child.getX();
+                var childY = y - child.getY();
+                if (childX >= 0 && childY >= 0 && childX <= child.getWidth() && y <= child.getHeight()) {
+                    CanvasMouseInfo found = findCanvasAtRecursive(x - child.getX(), y - child.getY(), child, canFocusCanvas);
+                    if (found != null) {
+                        return found;
+                    }
                 }
             }
         }
 
         // If no child contains the point, return this canvas
-        log.debug("<-- Found canvas: {} at ({},{}) inner ({},{})", canvas.getName(), x, y, x - canvas.getX(), y - canvas.getY());
+//        log.debug("<-- Found canvas: {} at ({},{}) inner ({},{})", canvas.getName(), x, y, x - canvas.getX(), y - canvas.getY());
         return new CanvasMouseInfo(canvas, x - canvas.getX(), y - canvas.getY(), canFocusCanvas);
     }
 

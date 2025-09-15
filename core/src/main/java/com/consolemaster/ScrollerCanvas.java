@@ -52,7 +52,7 @@ public class ScrollerCanvas extends Canvas implements EventHandler, Composable {
      * @param height the height of the viewport
      */
     public ScrollerCanvas(String name, int x, int y, int width, int height) {
-        super(name, x, y, width, height);
+        super(name, width, height);
         setCanFocus(true); // Enable focus for keyboard scrolling
     }
 

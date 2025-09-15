@@ -17,11 +17,11 @@ public class ScrollerDemo {
         ScreenCanvas screen = new ScreenCanvas(80, 25);
 
         // Create main layout
-        Composite mainContainer = new Composite("mainContainer", 0, 0, 80, 25, new BorderLayout(1));
+        Composite mainContainer = new Composite("mainContainer", 80, 25, new BorderLayout(1));
 
         // Create header
-        Box headerBox = new Box("headerBox", 0, 0, 0, 3, new DefaultBorder());
-        Text headerText = new Text("headerText", 0, 0, 0, 0,
+        Box headerBox = new Box("headerBox", 0, 3, new DefaultBorder());
+        Text headerText = new Text("headerText", 0, 0,
             "ScrollerCanvas Demo - Use Arrow Keys, Page Up/Down, Mouse Wheel, Click Scrollbars",
             Text.Alignment.CENTER);
         headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
@@ -30,8 +30,8 @@ public class ScrollerDemo {
         headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
         // Create footer with instructions
-        Box footerBox = new Box("footerBox", 0, 0, 0, 4, new DefaultBorder());
-        Composite footerContent = new Composite("footerContent", 0, 0, 0, 0, new FlowLayout(0, 0));
+        Box footerBox = new Box("footerBox", 0, 4, new DefaultBorder());
+        Composite footerContent = new Composite("footerContent", 0, 0, new FlowLayout(0, 0));
 
         String[] instructions = {
             "Controls: ← → ↑ ↓ (scroll)  |  Page Up/Down (page scroll)  |  Home/End (horizontal)",
@@ -40,7 +40,7 @@ public class ScrollerDemo {
         };
 
         for (String instruction : instructions) {
-            Text instructionText = new Text("instructionText", 0, 0, 0, 1, instruction, Text.Alignment.CENTER);
+            Text instructionText = new Text("instructionText", 0, 1, instruction, Text.Alignment.CENTER);
             instructionText.setForegroundColor(AnsiColor.YELLOW);
             footerContent.addChild(instructionText);
         }
@@ -59,7 +59,7 @@ public class ScrollerDemo {
         scroller.setScrollbarsVisible(true, true); // Show both scrollbars
 
         // Wrap scroller in a box for visual distinction
-        Box scrollerBox = new Box("scrollerBox", 0, 0, 0, 0, new DefaultBorder());
+        Box scrollerBox = new Box("scrollerBox", 0, 0, new DefaultBorder());
         scrollerBox.setChild(scroller);
         scrollerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
@@ -106,12 +106,12 @@ public class ScrollerDemo {
      */
     private Composite createLargeContent() {
         // Create a 120x40 content area (larger than 60x15 viewport)
-        Composite content = new Composite("largeContent", 0, 0, 120, 40, NoLayout.INSTANCE);
+        Composite content = new Composite("largeContent", 120, 40, NoLayout.INSTANCE);
 
         // Add grid pattern for visual reference
         for (int y = 0; y < 40; y += 2) {
             for (int x = 0; x < 120; x += 10) {
-                Text gridText = new Text("gridText_" + x + "_" + y, x, y, 8, 1,
+                Text gridText = new Text("gridText_" + x + "_" + y, 8, 1,
                     String.format("(%d,%d)", x, y), Text.Alignment.LEFT);
                 gridText.setForegroundColor(AnsiColor.BRIGHT_BLACK);
                 content.addChild(gridText);
@@ -147,7 +147,7 @@ public class ScrollerDemo {
                                 String title, AnsiColor bgColor, AnsiColor fgColor) {
         for (int dy = 0; dy < height; dy++) {
             for (int dx = 0; dx < width; dx++) {
-                Text colorText = new Text("colorText_" + (x + dx) + "_" + (y + dy), x + dx, y + dy, 1, 1,
+                Text colorText = new Text("colorText_" + (x + dx) + "_" + (y + dy), 1, 1,
                     (dx == 0 || dx == width-1 || dy == 0 || dy == height-1) ? "█" : " ",
                     Text.Alignment.CENTER);
                 colorText.setBackgroundColor(bgColor);
@@ -158,8 +158,8 @@ public class ScrollerDemo {
 
         // Add title in the center
         if (title != null && width > title.length() && height > 2) {
-            Text titleText = new Text("titleText_" + title.replaceAll(" ", "_"), x + (width - title.length()) / 2, y + height / 2,
-                title.length(), 1, title, Text.Alignment.CENTER);
+            Text titleText = new Text("titleText_" + title.replaceAll(" ", "_"),
+                    title.length(), 1, title, Text.Alignment.CENTER);
             titleText.setBackgroundColor(bgColor);
             titleText.setForegroundColor(fgColor);
             titleText.setBold(true);
@@ -174,47 +174,47 @@ public class ScrollerDemo {
                                String title, AnsiColor color) {
         // Top and bottom borders
         for (int dx = 0; dx < width; dx++) {
-            Text topBorder = new Text("topBorder_" + dx, x + dx, y, 1, 1, "═", Text.Alignment.CENTER);
+            Text topBorder = new Text("topBorder_" + dx, 1, 1, "═", Text.Alignment.CENTER);
             topBorder.setForegroundColor(color);
             content.addChild(topBorder);
 
-            Text bottomBorder = new Text("bottomBorder_" + dx, x + dx, y + height - 1, 1, 1, "═", Text.Alignment.CENTER);
+            Text bottomBorder = new Text("bottomBorder_" + dx, 1, 1, "═", Text.Alignment.CENTER);
             bottomBorder.setForegroundColor(color);
             content.addChild(bottomBorder);
         }
 
         // Left and right borders
         for (int dy = 1; dy < height - 1; dy++) {
-            Text leftBorder = new Text("leftBorder_" + dy, x, y + dy, 1, 1, "║", Text.Alignment.CENTER);
+            Text leftBorder = new Text("leftBorder_" + dy, 1, 1, "║", Text.Alignment.CENTER);
             leftBorder.setForegroundColor(color);
             content.addChild(leftBorder);
 
-            Text rightBorder = new Text("rightBorder_" + dy, x + width - 1, y + dy, 1, 1, "║", Text.Alignment.CENTER);
+            Text rightBorder = new Text("rightBorder_" + dy, 1, 1, "║", Text.Alignment.CENTER);
             rightBorder.setForegroundColor(color);
             content.addChild(rightBorder);
         }
 
         // Corners
-        Text topLeft = new Text("topLeft", x, y, 1, 1, "╔", Text.Alignment.CENTER);
+        Text topLeft = new Text("topLeft", 1, 1, "╔", Text.Alignment.CENTER);
         topLeft.setForegroundColor(color);
         content.addChild(topLeft);
 
-        Text topRight = new Text("topRight", x + width - 1, y, 1, 1, "╗", Text.Alignment.CENTER);
+        Text topRight = new Text("topRight", 1, 1, "╗", Text.Alignment.CENTER);
         topRight.setForegroundColor(color);
         content.addChild(topRight);
 
-        Text bottomLeft = new Text("bottomLeft", x, y + height - 1, 1, 1, "╚", Text.Alignment.CENTER);
+        Text bottomLeft = new Text("bottomLeft", 1, 1, "╚", Text.Alignment.CENTER);
         bottomLeft.setForegroundColor(color);
         content.addChild(bottomLeft);
 
-        Text bottomRight = new Text("bottomRight", x + width - 1, y + height - 1, 1, 1, "╝", Text.Alignment.CENTER);
+        Text bottomRight = new Text("bottomRight", 1, 1, "╝", Text.Alignment.CENTER);
         bottomRight.setForegroundColor(color);
         content.addChild(bottomRight);
 
         // Add title at top center
         if (title != null && width > title.length() + 4) {
-            Text titleText = new Text("borderTitle", x + (width - title.length()) / 2, y,
-                title.length(), 1, title, Text.Alignment.CENTER);
+            Text titleText = new Text("borderTitle",
+                    title.length(), 1, title, Text.Alignment.CENTER);
             titleText.setForegroundColor(color);
             titleText.setBold(true);
             content.addChild(titleText);
@@ -225,7 +225,7 @@ public class ScrollerDemo {
      * Adds a corner marker with text.
      */
     private void addCornerMarker(Composite content, int x, int y, String text, AnsiColor color) {
-        Text marker = new Text("marker_" + text, x, y, text.length(), 1, text, Text.Alignment.LEFT);
+        Text marker = new Text("marker_" + text, text.length(), 1, text, Text.Alignment.LEFT);
         marker.setForegroundColor(color);
         marker.setBold(true);
         marker.setBackgroundColor(AnsiColor.BLACK);

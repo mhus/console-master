@@ -26,21 +26,19 @@ public class Box extends Canvas implements Composable {
      * @param height the height of the box
      */
     public Box(String name, int x, int y, int width, int height) {
-        this(name, x, y, width, height, new DefaultBorder());
+        this(name, width, height, new DefaultBorder());
     }
 
     /**
      * Creates a Box with a specified border.
      *
-     * @param name the name of the box
-     * @param x the x-coordinate of the box
-     * @param y the y-coordinate of the box
-     * @param width the width of the box
+     * @param name   the name of the box
+     * @param width  the width of the box
      * @param height the height of the box
      * @param border the border to draw around the content
      */
-    public Box(String name, int x, int y, int width, int height, Border border) {
-        super(name, x, y, width, height);
+    public Box(String name, int width, int height, Border border) {
+        super(name, width, height);
         this.border = border != null ? border : new DefaultBorder();
     }
 

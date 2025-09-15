@@ -50,7 +50,7 @@ public class ConsoleOutput extends Canvas {
      * @param outputCapture the output capture instance to display
      */
     public ConsoleOutput(String name, int x, int y, int width, int height, OutputCapture outputCapture) {
-        super(name, x, y, width, height);
+        super(name, width, height);
         this.outputCapture = outputCapture;
         setCanFocus(true);
     }

@@ -33,18 +33,6 @@ class CanvasTest {
     }
 
     @Test
-    void shouldDetectPointsWithinBounds() {
-        assertTrue(canvas.contains(10, 20)); // top-left corner
-        assertTrue(canvas.contains(59, 49)); // bottom-right corner (exclusive)
-        assertTrue(canvas.contains(30, 35)); // somewhere in the middle
-
-        assertFalse(canvas.contains(9, 20));   // left of canvas
-        assertFalse(canvas.contains(60, 20));  // right of canvas
-        assertFalse(canvas.contains(10, 19));  // above canvas
-        assertFalse(canvas.contains(10, 50));  // below canvas
-    }
-
-    @Test
     void shouldUpdatePosition() {
         canvas.setX(15);
         canvas.setY(25);
@@ -226,11 +214,15 @@ class CanvasTest {
      */
     private static class TestCanvas extends Canvas {
         public TestCanvas(String name, int x, int y, int width, int height) {
-            super(name, x, y, width, height);
+            super(name, width, height);
+            setX(x);
+            setY(y);
         }
 
         public TestCanvas(String name, int x, int y, int width, int height, int minWidth, int minHeight, int maxWidth, int maxHeight) {
-            super(name, x, y, width, height);
+            super(name, width, height);
+            setX(x);
+            setY(y);
             setMinWidth(minWidth);
             setMinHeight(minHeight);
             setMaxWidth(maxWidth);

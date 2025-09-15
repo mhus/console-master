@@ -15,7 +15,7 @@ public class BorderStyleDemo {
             Composite main = new Composite("MainComposite", 0, 0, 80, 30);
 
             // Title
-            Text title = new Text("Title", 0, 0, 80, 1, "BorderStyle Demo - Beautiful UTF-8 Box-Drawing Characters");
+            Text title = new Text("Title", 80, 1, "BorderStyle Demo - Beautiful UTF-8 Box-Drawing Characters");
             title.setForegroundColor(AnsiColor.BRIGHT_WHITE);
             title.setFormats(AnsiFormat.BOLD);
             main.addChild(title);
@@ -31,7 +31,7 @@ public class BorderStyleDemo {
             createBorderExample(main, 20, 12, "DOTTED\n(Subtle)", BorderStyle.DOTTED, AnsiColor.BRIGHT_MAGENTA);
 
             // Large demonstration box with double border
-            Text demoText = new Text("DemoText", 0, 0, 30, 6,
+            Text demoText = new Text("DemoText", 30, 6,
                 "Large Demonstration Box\n\n" +
                 "This shows how the DOUBLE\n" +
                 "border style looks with\n" +
@@ -40,12 +40,12 @@ public class BorderStyleDemo {
             demoText.setForegroundColor(AnsiColor.BRIGHT_WHITE);
 
             DefaultBorder demoBorder = new DefaultBorder(BorderStyle.DOUBLE, AnsiColor.BRIGHT_BLUE, AnsiFormat.BOLD);
-            Box demoBox = new Box("DemoBox", 38, 12, 34, 8, demoBorder);
+            Box demoBox = new Box("DemoBox", 34, 8, demoBorder);
             demoBox.setChild(demoText);
             main.addChild(demoBox);
 
             // Character showcase
-            Text charInfo = new Text("CharInfo", 0, 0, 76, 6,
+            Text charInfo = new Text("CharInfo", 76, 6,
                 "UTF-8 Box-Drawing Characters used in BorderStyles:\n" +
                 "SINGLE: ─│┌┐└┘    DOUBLE: ═║╔╗╚╝    THICK: ━┃┏┓┗┛    ROUNDED: ─│╭╮╰╯\n" +
                 "ASCII:  -|++++    DOTTED: ┈┊┌┐└┘\n\n" +
@@ -54,7 +54,7 @@ public class BorderStyleDemo {
             charInfo.setForegroundColor(AnsiColor.BRIGHT_BLACK);
 
             DefaultBorder infoBorder = new DefaultBorder(BorderStyle.SINGLE, AnsiColor.BRIGHT_BLACK);
-            Box infoBox = new Box("InfoBox", 2, 22, 76, 6, infoBorder);
+            Box infoBox = new Box("InfoBox", 76, 6, infoBorder);
             infoBox.setChild(charInfo);
             main.addChild(infoBox);
 
@@ -74,12 +74,12 @@ public class BorderStyleDemo {
      * Creates a small example box with the specified border style.
      */
     private static void createBorderExample(Composite parent, int x, int y, String label, BorderStyle style, AnsiColor color) {
-        Text text = new Text("ExampleText_" + style.name(), 0, 0, 14, 2, label);
+        Text text = new Text("ExampleText_" + style.name(), 14, 2, label);
         text.setForegroundColor(color);
         text.setAlignment(Text.Alignment.CENTER);
 
         DefaultBorder border = new DefaultBorder(style, color);
-        Box box = new Box("ExampleBox_" + style.name(), x, y, 16, 4, border);
+        Box box = new Box("ExampleBox_" + style.name(), 16, 4, border);
         box.setChild(text);
 
         parent.addChild(box);

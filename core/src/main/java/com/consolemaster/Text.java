@@ -36,14 +36,12 @@ public class Text extends Canvas {
      * Creates a Text canvas with specified position, size and text content.
      *
      * @param name   the name of the canvas
-     * @param x      the x-coordinate
-     * @param y      the y-coordinate
      * @param width  the width of the text area
      * @param height the height of the text area
      * @param text   the text content
      */
-    public Text(String name, int x, int y, int width, int height, String text) {
-        super(name, x, y, width, height);
+    public Text(String name, int width, int height, String text) {
+        super(name, width, height);
         this.text = text != null ? text : "";
     }
 
@@ -51,15 +49,13 @@ public class Text extends Canvas {
      * Creates a Text canvas with specified position, size, text content and alignment.
      *
      * @param name      the name of the canvas
-     * @param x         the x-coordinate
-     * @param y         the y-coordinate
      * @param width     the width of the text area
      * @param height    the height of the text area
      * @param text      the text content
      * @param alignment the text alignment
      */
-    public Text(String name, int x, int y, int width, int height, String text, Alignment alignment) {
-        this(name, x, y, width, height, text);
+    public Text(String name, int width, int height, String text, Alignment alignment) {
+        this(name, width, height, text);
         this.alignment = alignment != null ? alignment : Alignment.LEFT;
     }
 
@@ -290,9 +286,5 @@ public class Text extends Canvas {
         // Update minimum size requirements
         setMinWidth(Math.max(getMinWidth(), maxLineWidth));
         setMinHeight(Math.max(getMinHeight(), totalHeight));
-    }
-
-    public boolean contains(int x, int y) {
-        return super.contains(x, y);
     }
 }

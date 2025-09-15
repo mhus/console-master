@@ -14,14 +14,14 @@ public class BorderLayoutDemo {
             ScreenCanvas screen = new ScreenCanvas(80, 24);
 
             // Create a composite canvas with BorderLayout
-            Composite borderContainer = new Composite("borderContainer", 0, 1,
-                     screen.getWidth(),
+            Composite borderContainer = new Composite("borderContainer",
+                    screen.getWidth(),
                      screen.getHeight() - 1,
                      new BorderLayout(0));
 
             // Create NORTH component (Header)
-            Box northBox = new Box("northBox", 0, 0, 0, 3, new DefaultBorder());
-            Text northText = new Text("northText", 0, 0, 0, 0, "NORTH - Header Region", Text.Alignment.CENTER);
+            Box northBox = new Box("northBox", 0, 3, new DefaultBorder());
+            Text northText = new Text("northText", 0, 0, "NORTH - Header Region", Text.Alignment.CENTER);
             northText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             northText.setBold(true);
             northBox.setChild(northText);
@@ -29,8 +29,8 @@ public class BorderLayoutDemo {
             borderContainer.addChild(northBox);
 
             // Create SOUTH component (Footer)
-            Box southBox = new Box("southBox", 0, 0, 0, 3, new DefaultBorder());
-            Text southText = new Text("southText", 0, 0, 0, 0, "SOUTH - Footer Region", Text.Alignment.CENTER);
+            Box southBox = new Box("southBox", 0, 3, new DefaultBorder());
+            Text southText = new Text("southText", 0, 0, "SOUTH - Footer Region", Text.Alignment.CENTER);
             southText.setForegroundColor(AnsiColor.BRIGHT_YELLOW);
             southText.setBold(true);
             southBox.setChild(southText);
@@ -38,8 +38,8 @@ public class BorderLayoutDemo {
             borderContainer.addChild(southBox);
 
             // Create WEST component (Left Sidebar)
-            Box westBox = new Box("westBox", 0, 0, 15, 0, new DefaultBorder());
-            Text westText = new Text("westText", 0, 0, 0, 0, "WEST\nLeft\nSidebar\nMenu", Text.Alignment.CENTER);
+            Box westBox = new Box("westBox", 15, 0, new DefaultBorder());
+            Text westText = new Text("westText", 0, 0, "WEST\nLeft\nSidebar\nMenu", Text.Alignment.CENTER);
             westText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
             westText.setBold(true);
             westBox.setChild(westText);
@@ -47,8 +47,8 @@ public class BorderLayoutDemo {
             borderContainer.addChild(westBox);
 
             // Create EAST component (Right Sidebar)
-            Box eastBox = new Box("eastBox", 0, 0, 15, 0, new DefaultBorder());
-            Text eastText = new Text("eastText", 0, 0, 0, 0, "EAST\nRight\nSidebar\nInfo", Text.Alignment.CENTER);
+            Box eastBox = new Box("eastBox", 15, 0, new DefaultBorder());
+            Text eastText = new Text("eastText", 0, 0, "EAST\nRight\nSidebar\nInfo", Text.Alignment.CENTER);
             eastText.setForegroundColor(AnsiColor.BRIGHT_MAGENTA);
             eastText.setBold(true);
             eastBox.setChild(eastText);
@@ -56,8 +56,8 @@ public class BorderLayoutDemo {
             borderContainer.addChild(eastBox);
 
             // Create CENTER component (Main Content)
-            Box centerBox = new Box("centerBox", 0, 0, 0, 0, new DefaultBorder(BorderStyle.THICK));
-            Text centerText = new Text("centerText", 0, 0, 0, 0,
+            Box centerBox = new Box("centerBox", 0, 0, new DefaultBorder(BorderStyle.THICK));
+            Text centerText = new Text("centerText", 0, 0,
                 "CENTER - Main Content Area\n\n" +
                 "This is the main content region\n" +
                 "of the BorderLayout demo.\n\n" +
@@ -78,7 +78,7 @@ public class BorderLayoutDemo {
             borderContainer.addChild(centerBox);
 
             // Create title using Text component
-            Text title = new Text("title", 0, 0, screen.getWidth(), 1,
+            Text title = new Text("title", screen.getWidth(), 1,
                                 "BorderLayout Demo - Modern Box and Text Components",
                                 Text.Alignment.CENTER);
             title.setForegroundColor(AnsiColor.BRIGHT_WHITE);
@@ -86,8 +86,8 @@ public class BorderLayoutDemo {
             title.setBackgroundColor(AnsiColor.BLUE);
 
             // Create main container
-            Composite mainContent = new Composite("mainContent", 0, 0,
-                                                             screen.getWidth(),
+            Composite mainContent = new Composite("mainContent",
+                    screen.getWidth(),
                                                              screen.getHeight(),
                                                              NoLayout.INSTANCE);
             mainContent.addChild(title);
