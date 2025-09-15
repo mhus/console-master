@@ -17,9 +17,6 @@ public class TextStyle {
 
     public static final TextStyle DEFAULT = new TextStyle();
 
-    private static final String ESC = "\u001B[";
-    private static final String RESET = ESC + "0m";
-
     private final AnsiColor foregroundColor;
     private final AnsiColor backgroundColor;
     private final Set<AnsiFormat> formats;
@@ -151,40 +148,6 @@ public class TextStyle {
      */
     public boolean hasFormatting() {
         return foregroundColor != null || backgroundColor != null || !formats.isEmpty();
-    }
-
-    /**
-     * Generates the ANSI escape sequence prefix for this style.
-     */
-    public void toAnsiPrefix(Terminal terminal) {
-        if (!hasFormatting()) {
-            return;
-        }
-
-        // Apply foreground color
-        if (foregroundColor != null) {
-            terminal.write(foregroundColor.getForegroundCode());
-        }
-
-        // Apply background color
-        if (backgroundColor != null) {
-            terminal.write(backgroundColor.getBackgroundCode());
-        }
-
-        // Apply formats
-        for (AnsiFormat format : formats) {
-            terminal.write(format.getCode());
-        }
-    }
-
-    /**
-     * Generates the ANSI escape sequence suffix (reset) for this style.
-     */
-    public void toAnsiSuffix(Terminal terminal) {
-        if (!hasFormatting()) {
-            return;
-        }
-        terminal.write(RESET);
     }
 
     /**

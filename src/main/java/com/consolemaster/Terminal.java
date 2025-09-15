@@ -18,6 +18,8 @@ public abstract class Terminal {
 
     // ANSI escape sequences
     public static final String ESC = "\u001B[";
+    private static final String RESET = ESC + "0m";
+
     public static final String CLEAR_SCREEN = ESC + "2J";
     public static final String CURSOR_HOME = ESC + "H";
     public static final String CURSOR_HIDE = ESC + "?25l";
@@ -148,6 +150,14 @@ public abstract class Terminal {
     }
 
     /**
+     * Writes text at current cursor position.
+     */
+    public void write(char text) {
+        writer.print(text);
+        writer.flush();
+    }
+
+    /**
      * Writes text with ANSI styling.
      */
     public void writeStyled(String text, AnsiColor foreground, AnsiColor background, AnsiFormat... formats) {
@@ -216,4 +226,68 @@ public abstract class Terminal {
 
     public void stop() {
     }
+
+    public void renderGraphics(NativeGraphics graphics) {
+    }
+
+    /**
+     * Renders the graphics buffer to the terminal using ANSI escape sequences.
+     */
+    public void toAnsiString(NativeGraphics graphics) {
+        for (int y = 0; y < graphics.getHeight(); y++) {
+            for (int x = 0; x < graphics.getWidth(); x++) {
+                StyledChar styledChar = graphics.getStyledChar(x,y);
+                toAnsiString(styledChar);
+            }
+            if (y < getHeight() - 1) {
+                write("\n");
+            }
+        }
+    }
+
+    /**
+     * Converts this styled string to an ANSI escape sequence string.
+     */
+    public void toAnsiString(StyledChar styledChar) {
+
+        // Apply styling
+        toAnsiPrefix(styledChar);
+        write(styledChar.getCharacter());
+        toAnsiSuffix(styledChar);
+    }
+
+    /**
+     * Generates the ANSI escape sequence prefix for this style.
+     */
+    public void toAnsiPrefix(StyledChar styledChar) {
+        if (!styledChar.getStyle().hasFormatting()) {
+            return;
+        }
+
+        // Apply foreground color
+        if (styledChar.getForegroundColor() != null) {
+            write(styledChar.getForegroundColor().getForegroundCode());
+        }
+
+        // Apply background color
+        if (styledChar.getBackgroundColor() != null) {
+            write(styledChar.getBackgroundColor().getBackgroundCode());
+        }
+
+        // Apply formats
+        for (AnsiFormat format : styledChar.getFormats()) {
+            write(format.getCode());
+        }
+    }
+
+    /**
+     * Generates the ANSI escape sequence suffix (reset) for this style.
+     */
+    public void toAnsiSuffix(StyledChar styledChar) {
+        if (!styledChar.getStyle().hasFormatting()) {
+            return;
+        }
+        write(RESET);
+    }
+
 }

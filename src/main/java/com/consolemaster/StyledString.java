@@ -70,20 +70,6 @@ public class StyledString {
     }
 
     /**
-     * Converts this styled string to an ANSI escape sequence string.
-     */
-    public void toAnsiString(Terminal terminal) {
-        if (text.isEmpty()) {
-            return;
-        }
-
-        // Apply styling
-        style.toAnsiPrefix(terminal);
-        terminal.write(text);
-        style.toAnsiSuffix(terminal);
-    }
-
-    /**
      * Returns just the plain text without any styling.
      */
     @Override

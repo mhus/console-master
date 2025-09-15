@@ -93,7 +93,7 @@ public class ScreenCanvas extends Composite {
         // Clear screen and render using native ANSI output
         terminal.clearScreen();
         terminal.setCursorPosition(0, 0);
-        graphics.toAnsiString(terminal);
+        terminal.renderGraphics(graphics);
     }
 
     /**
