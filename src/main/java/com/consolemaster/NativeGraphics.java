@@ -4,12 +4,12 @@ import lombok.Getter;
 
 /**
  * Native Graphics implementation that replaces JLineGraphics.
- * Uses StyledString instead of JLine's AttributedString for ANSI support.
+ * Uses StyledChar instead of JLine's AttributedString for ANSI support.
  */
 @Getter
 public class NativeGraphics extends Graphics {
 
-    private final StyledString[][] buffer;
+    private final StyledChar[][] buffer;
     private TextStyle currentStyle = TextStyle.DEFAULT;
 
     /**
@@ -17,7 +17,7 @@ public class NativeGraphics extends Graphics {
      */
     public NativeGraphics(int width, int height) {
         super(width, height);
-        this.buffer = new StyledString[height][width];
+        this.buffer = new StyledChar[height][width];
         clear();
     }
 
@@ -61,7 +61,7 @@ public class NativeGraphics extends Graphics {
 
     @Override
     public void clear() {
-        StyledString emptyCell = new StyledString(" ", TextStyle.DEFAULT);
+        StyledChar emptyCell = new StyledChar(' ', TextStyle.DEFAULT);
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
                 buffer[y][x] = emptyCell;
@@ -72,7 +72,7 @@ public class NativeGraphics extends Graphics {
     @Override
     public void drawChar(int x, int y, char c) {
         if (isValidPosition(x, y)) {
-            buffer[y][x] = new StyledString(String.valueOf(c), currentStyle);
+            buffer[y][x] = new StyledChar(c, currentStyle);
         }
     }
 
@@ -82,7 +82,7 @@ public class NativeGraphics extends Graphics {
 
         for (int i = 0; i < text.length() && x + i < getWidth(); i++) {
             if (isValidPosition(x + i, y)) {
-                buffer[y][x + i] = new StyledString(String.valueOf(text.charAt(i)), currentStyle);
+                buffer[y][x + i] = new StyledChar(text.charAt(i), currentStyle);
             }
         }
     }
@@ -94,7 +94,7 @@ public class NativeGraphics extends Graphics {
         TextStyle style = new TextStyle(foreground, background, formats);
         for (int i = 0; i < text.length() && x + i < getWidth(); i++) {
             if (isValidPosition(x + i, y)) {
-                buffer[y][x + i] = new StyledString(String.valueOf(text.charAt(i)), style);
+                buffer[y][x + i] = new StyledChar(text.charAt(i), style);
             }
         }
     }
@@ -107,7 +107,7 @@ public class NativeGraphics extends Graphics {
 
         for (int i = 0; i < text.length() && x + i < getWidth(); i++) {
             if (isValidPosition(x + i, y)) {
-                buffer[y][x + i] = new StyledString(String.valueOf(text.charAt(i)), style);
+                buffer[y][x + i] = new StyledChar(text.charAt(i), style);
             }
         }
     }
@@ -117,7 +117,8 @@ public class NativeGraphics extends Graphics {
      */
     public StyledString getStyledString(int x, int y) {
         if (isValidPosition(x, y)) {
-            return buffer[y][x];
+            StyledChar styledChar = buffer[y][x];
+            return new StyledString(String.valueOf(styledChar.getCharacter()), styledChar.getStyle());
         }
         return new StyledString(" ");
     }
@@ -126,8 +127,11 @@ public class NativeGraphics extends Graphics {
      * Sets a styled string at the specified position.
      */
     public void setStyledString(int x, int y, StyledString styledString) {
-        if (isValidPosition(x, y)) {
-            buffer[y][x] = styledString != null ? styledString : new StyledString(" ");
+        if (isValidPosition(x, y) && styledString != null && !styledString.isEmpty()) {
+            char c = styledString.charAt(0);
+            buffer[y][x] = new StyledChar(c, styledString.getStyle());
+        } else if (isValidPosition(x, y)) {
+            buffer[y][x] = new StyledChar(' ', TextStyle.DEFAULT);
         }
     }
 
@@ -137,7 +141,10 @@ public class NativeGraphics extends Graphics {
     public StyledString[][] toStyledStringArray() {
         StyledString[][] result = new StyledString[getHeight()][getWidth()];
         for (int y = 0; y < getHeight(); y++) {
-            System.arraycopy(buffer[y], 0, result[y], 0, getWidth());
+            for (int x = 0; x < getWidth(); x++) {
+                StyledChar styledChar = buffer[y][x];
+                result[y][x] = new StyledString(String.valueOf(styledChar.getCharacter()), styledChar.getStyle());
+            }
         }
         return result;
     }
@@ -146,11 +153,11 @@ public class NativeGraphics extends Graphics {
      * Renders the graphics buffer to the terminal using ANSI escape sequences.
      */
     public void toAnsiString(NativeTerminal terminal) {
-
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
-                StyledString cell = buffer[y][x];
-                cell.toAnsiString(terminal);
+                StyledChar styledChar = buffer[y][x];
+                StyledString styledString = new StyledString(String.valueOf(styledChar.getCharacter()), styledChar.getStyle());
+                styledString.toAnsiString(terminal);
             }
             if (y < getHeight() - 1) {
                 terminal.write("\n");
@@ -165,8 +172,7 @@ public class NativeGraphics extends Graphics {
         char[][] result = new char[getHeight()][getWidth()];
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
-                StyledString cell = buffer[y][x];
-                result[y][x] = cell.isEmpty() ? ' ' : cell.charAt(0);
+                result[y][x] = buffer[y][x].getCharacter();
             }
         }
         return result;
@@ -177,9 +183,7 @@ public class NativeGraphics extends Graphics {
      */
     public StyledChar getStyledChar(int x, int y) {
         if (isValidPosition(x, y)) {
-            StyledString cell = buffer[y][x];
-            char c = cell.isEmpty() ? ' ' : cell.charAt(0);
-            return new StyledChar(c, cell.getStyle());
+            return buffer[y][x];
         }
         return new StyledChar(' ', TextStyle.DEFAULT);
     }
@@ -189,7 +193,7 @@ public class NativeGraphics extends Graphics {
      */
     public void setStyledChar(int x, int y, StyledChar styledChar) {
         if (isValidPosition(x, y) && styledChar != null) {
-            buffer[y][x] = new StyledString(String.valueOf(styledChar.getCharacter()), styledChar.getStyle());
+            buffer[y][x] = styledChar;
         }
     }
 
