@@ -104,8 +104,15 @@ public class Graphic3DCanvas extends Canvas {
             Point3D projected = viewProjection.transform(vertex);
 
             // Convert from normalized device coordinates to screen coordinates
-            double screenX = (projected.getX() + 1.0) * 0.5 * getWidth();
-            double screenY = (1.0 - projected.getY()) * 0.5 * getHeight();
+            // Center the projection in the canvas
+            double centerX = getWidth() / 2.0;
+            double centerY = getHeight() / 2.0;
+
+            // Scale to fit canvas while maintaining aspect ratio
+            double scale = Math.min(getWidth(), getHeight()) ;
+
+            double screenX = centerX + projected.getX() * scale;
+            double screenY = centerY - projected.getY() * scale; // Flip Y for screen coordinates
 
             projectedVertices.add(new Point3D(screenX, screenY, projected.getZ()));
         }
@@ -283,6 +290,9 @@ public class Graphic3DCanvas extends Canvas {
      * Clears the depth buffer.
      */
     private void clearDepthBuffer() {
+        if (depthBuffer == null || depthBuffer.length != getHeight() || depthBuffer[0].length != getWidth()) {
+            depthBuffer = new double[getHeight()][getWidth()];
+        }
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
                 depthBuffer[y][x] = Double.MAX_VALUE;

@@ -1,6 +1,7 @@
 package com.consolemaster;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  * Uses a layout manager to arrange child components.
  */
 @Getter
+@Slf4j
 public class Composite extends Canvas implements Composable {
 
     private final List<Canvas> children = new ArrayList<>();
@@ -164,7 +166,11 @@ public class Composite extends Canvas implements Composable {
 
                 // Now the child can draw starting at (0,0) and it will appear
                 // at the correct position in the parent graphics
-                child.paint(childGraphics);
+                try {
+                    child.paint(childGraphics);
+                } catch (Exception e) {
+                    log.error("Error painting child canvas '{}': {}", child.getName(), e.getMessage(), e);
+                }
             }
         }
     }
