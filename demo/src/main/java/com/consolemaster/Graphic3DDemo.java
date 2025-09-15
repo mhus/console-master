@@ -222,8 +222,8 @@ public class Graphic3DDemo {
         canvas3D.clearMeshes();
 
         // Create a simple cube at the origin for testing
-//        Mesh3D simpleCube = Mesh3D.createCube(15);
-//        canvas3D.addMesh(simpleCube);
+        Mesh3D simpleCube = Mesh3D.createCube(15);
+        canvas3D.addMesh(simpleCube);
 
         // Add a rotated cube for better visibility
         Mesh3D rotatedCube = Mesh3D.createCube(1.0);
@@ -233,11 +233,11 @@ public class Graphic3DDemo {
         Mesh3D transformedCube = rotatedCube.transform(transform);
         canvas3D.addMesh(transformedCube);
 
-//        // Add a pyramid on the left
-//        Mesh3D pyramid = Mesh3D.createPyramid(1.0);
-//        Matrix4x4 pyramidTransform = Matrix4x4.translation(-2, 0, 0);
-//        Mesh3D transformedPyramid = pyramid.transform(pyramidTransform);
-//        canvas3D.addMesh(transformedPyramid);
+        // Add a pyramid on the left
+        Mesh3D pyramid = Mesh3D.createPyramid(1.0);
+        Matrix4x4 pyramidTransform = Matrix4x4.translation(-2, 0, 0);
+        Mesh3D transformedPyramid = pyramid.transform(pyramidTransform);
+        canvas3D.addMesh(transformedPyramid);
     }
 
     /**
@@ -246,12 +246,12 @@ public class Graphic3DDemo {
     private static void updateAnimatedScene() {
         canvas3D.clearMeshes();
 
-//        // Rotating colorful cube at center
-//        Mesh3D colorfulCube = Mesh3D.createColorfulCube(2.0);
-//        Matrix4x4 cubeRotation = Matrix4x4.rotationY(animationTime)
-//                .multiply(Matrix4x4.rotationX(animationTime * 0.7));
-//        Mesh3D animatedCube = colorfulCube.transform(cubeRotation);
-//        canvas3D.addMesh(animatedCube);
+        // Rotating colorful cube at center
+        Mesh3D colorfulCube = Mesh3D.createColorfulCube(2.0);
+        Matrix4x4 cubeRotation = Matrix4x4.rotationY(animationTime)
+                .multiply(Matrix4x4.rotationX(animationTime * 0.7));
+        Mesh3D animatedCube = colorfulCube.transform(cubeRotation);
+        canvas3D.addMesh(animatedCube);
 
         // Orbiting textured cube
         double orbitRadius = 4.0;
@@ -266,17 +266,17 @@ public class Graphic3DDemo {
         Mesh3D orbitingTexturedCube = texturedCube.transform(cubeOrbitTransform);
         canvas3D.addMesh(orbitingTexturedCube);
 
-//        // Oscillating colorful pyramid on the left
-//        double leftX = -4 + Math.sin(animationTime * 1.5) * 1.5;
-//        double leftY = Math.cos(animationTime * 2) * 2;
-//
-//        Mesh3D colorfulPyramid = Mesh3D.createColorfulPyramid(1.0);
-//        Matrix4x4 leftRotation = Matrix4x4.rotationZ(animationTime * 1.2)
-//                .multiply(Matrix4x4.rotationX(animationTime * 0.8));
-//        Matrix4x4 leftTranslation = Matrix4x4.translation(leftX, leftY, 0);
-//        Matrix4x4 leftTransform = leftTranslation.multiply(leftRotation);
-//        Mesh3D animatedColorfulPyramid = colorfulPyramid.transform(leftTransform);
-//        canvas3D.addMesh(animatedColorfulPyramid);
+        // Oscillating colorful pyramid on the left
+        double leftX = -4 + Math.sin(animationTime * 1.5) * 1.5;
+        double leftY = Math.cos(animationTime * 2) * 2;
+
+        Mesh3D colorfulPyramid = Mesh3D.createColorfulPyramid(1.0);
+        Matrix4x4 leftRotation = Matrix4x4.rotationZ(animationTime * 1.2)
+                .multiply(Matrix4x4.rotationX(animationTime * 0.8));
+        Matrix4x4 leftTranslation = Matrix4x4.translation(leftX, leftY, 0);
+        Matrix4x4 leftTransform = leftTranslation.multiply(leftRotation);
+        Mesh3D animatedColorfulPyramid = colorfulPyramid.transform(leftTransform);
+        canvas3D.addMesh(animatedColorfulPyramid);
     }
 
     /**
@@ -360,7 +360,7 @@ public class Graphic3DDemo {
                     synchronized (animationLock) {
                         if (isAnimating) {
                             animationTime += 0.03; // Animation speed
-//                            updateAnimatedScene();
+                            updateAnimatedScene();
 
                             // Signal ProcessLoop that a refresh is needed
                             processLoop.requestRedraw();
