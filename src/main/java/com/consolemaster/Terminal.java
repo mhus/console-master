@@ -13,8 +13,8 @@ public abstract class Terminal {
 
     protected final PrintStream writer;
     protected final InputStream inputStream;
-    private int width;
-    private int height;
+    protected int width;
+    protected int height;
 
     // ANSI escape sequences
     public static final String ESC = "\u001B[";
@@ -39,58 +39,7 @@ public abstract class Terminal {
     /**
      * Detects terminal size using ANSI escape sequences.
      */
-    private void detectTerminalSize() {
-        try {
-            // Try to get terminal size from environment variables first
-            String columns = System.getenv("COLUMNS");
-            String lines = System.getenv("LINES");
-
-            if (columns != null && lines != null) {
-                this.width = Integer.parseInt(columns);
-                this.height = Integer.parseInt(lines);
-                return;
-            }
-
-            // Fallback to default size if detection fails
-            this.width = 200;
-            this.height = 100;
-
-            // Try to detect using stty if available (Unix systems)
-            if (System.getProperty("os.name").toLowerCase().contains("nix") ||
-                System.getProperty("os.name").toLowerCase().contains("nux") ||
-                System.getProperty("os.name").toLowerCase().contains("mac")) {
-                detectSizeWithStty();
-            }
-
-        } catch (Exception e) {
-            // Use default size if detection fails
-            this.width = 80;
-            this.height = 24;
-        }
-    }
-
-    /**
-     * Detects terminal size using stty command on Unix systems.
-     */
-    private void detectSizeWithStty() {
-        try {
-            Process process = Runtime.getRuntime().exec(new String[]{"stty", "size"});
-            process.waitFor();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line = reader.readLine();
-                if (line != null && !line.trim().isEmpty()) {
-                    String[] parts = line.trim().split("\\s+");
-                    if (parts.length == 2) {
-                        this.height = Integer.parseInt(parts[0]);
-                        this.width = Integer.parseInt(parts[1]);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Ignore errors and keep default size
-        }
-    }
+    protected abstract void detectTerminalSize();
 
     /**
      * Clears the entire screen.
@@ -228,12 +177,14 @@ public abstract class Terminal {
     }
 
     public void renderGraphics(NativeGraphics graphics) {
-        for (int y = 0; y < graphics.getHeight(); y++) {
-            for (int x = 0; x < graphics.getWidth(); x++) {
+        var graphicsWidth = Math.min(graphics.getWidth(), this.width);
+        var graphicsHeight = Math.min(graphics.getHeight(), this.height);
+        for (int y = 0; y < graphicsHeight; y++) {
+            for (int x = 0; x < graphicsWidth; x++) {
                 StyledChar styledChar = graphics.getStyledChar(x,y);
                 toAnsiString(styledChar);
             }
-            if (y < getHeight() - 1) {
+            if (y < graphicsHeight - 1) {
                 write("\n");
             }
         }
