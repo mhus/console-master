@@ -102,7 +102,7 @@ public class NativeInputHandler implements InputHandler {
             // Thread was interrupted, exit gracefully
         } catch (IOException e) {
             // Handle input errors
-            log.error("Input error: {}", e.getMessage(), e);
+            log.warn("Input error: {}", e.getMessage(), e);
         }
     }
 
@@ -152,9 +152,11 @@ public class NativeInputHandler implements InputHandler {
         }
 
         String seq = sequence.toString();
+        log.trace("CSI Sequence: {}", seq);
 
-        // Parse common sequences
-        if (seq.matches("\\d+;\\d+;\\d+[Mm]")) {
+        // Parse common sequences format <?;?;?M or <?;?;?m for mouse events
+        if (seq.matches("<?\\d+;\\d+;\\d+[Mm]")) {
+            log.trace("Mouse event detected: {}", seq);
             // Mouse event: ESC[M followed by button;x;y or ESC[<button;x;yM/m
             parseMouseEvent(seq);
         } else if (seq.equals("A")) {
@@ -253,6 +255,7 @@ public class NativeInputHandler implements InputHandler {
             }
         } catch (NumberFormatException e) {
             // Ignore malformed sequences
+            log.debug("Malformed tilde sequence: {}", seq);
         }
     }
 
@@ -286,6 +289,7 @@ public class NativeInputHandler implements InputHandler {
             }
         } catch (NumberFormatException e) {
             // Ignore malformed mouse sequences
+            log.debug("Malformed mouse event sequence: {}", seq);
         }
     }
 

@@ -3,6 +3,8 @@ package com.consolemaster;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * A specialized canvas that provides scrolling functionality for a single child canvas.
  * Supports both horizontal and vertical scrolling with keyboard and mouse controls.
@@ -10,7 +12,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ScrollerCanvas extends Canvas implements EventHandler {
+public class ScrollerCanvas extends Canvas implements EventHandler, Composable {
 
     private Canvas child;
     private boolean horizontalScrollEnabled = true;
@@ -495,5 +497,15 @@ public class ScrollerCanvas extends Canvas implements EventHandler {
         super.onFocusChanged(focused);
         // Visual feedback for focus state could be added here
         // For example, change scrollbar colors when focused
+    }
+
+    @Override
+    public List<Canvas> getChildren() {
+        return child != null ? List.of(child) : List.of();
+    }
+
+    @Override
+    public int getChildCount() {
+        return child != null ? 1 : 0;
     }
 }

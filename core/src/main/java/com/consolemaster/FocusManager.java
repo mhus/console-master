@@ -159,7 +159,8 @@ public class FocusManager {
      * @return true if focus was granted, false otherwise
      */
     public boolean requestFocus(Canvas canvas) {
-        if (canvas == null || !canvas.requestFocus()) {
+//        if (canvas == null || !canvas.requestFocus()) {
+        if (canvas == null) {
             return false;
         }
 

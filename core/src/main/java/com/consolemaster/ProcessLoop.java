@@ -186,6 +186,7 @@ public class ProcessLoop {
         while (inputHandler.hasEvents()) {
             Event event = inputHandler.pollEvent();
             if (event != null) {
+                log.trace("Processing event: {}", event);
                 handleEvent(event);
             }
         }

@@ -20,32 +20,19 @@
         </encoder>
     </appender>
 
-    <!-- Performance File Appender -->
-    <appender name="PERFORMANCE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/performance.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/performance.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <!-- Performance Logger -->
-    <logger name="com.consolemaster.performance" level="INFO" additivity="false">
-        <appender-ref ref="PERFORMANCE_FILE"/>
-    </logger>
-
     <!-- Demo package logger -->
-    <logger name="com.consolemaster" level="DEBUG" additivity="false">
+    <logger name="com.consolemaster" level="TRACE" additivity="false">
+        <!--
         <appender-ref ref="CONSOLE"/>
+        -->
         <appender-ref ref="FILE"/>
     </logger>
 
     <!-- Root logger -->
     <root level="INFO">
+        <!--
         <appender-ref ref="CONSOLE"/>
+        -->
         <appender-ref ref="FILE"/>
     </root>
 

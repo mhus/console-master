@@ -61,7 +61,7 @@ public interface Border {
      * @param width the width of the component
      * @param height the height of the component
      */
-    void drawBorder(Graphics graphics, int x, int y, int width, int height);
+    void drawBorder(Graphics graphics, int x, int y, int width, int height, boolean focused);
 
     /**
      * Gets the total horizontal space consumed by the border.

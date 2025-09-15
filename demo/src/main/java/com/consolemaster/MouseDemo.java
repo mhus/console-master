@@ -1,11 +1,14 @@
 package com.consolemaster;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 
 /**
  * Interactive demo showcasing the Mouse Reporting system with various mouse interactions.
  * Demonstrates mouse events, different mouse managers, and interactive components.
  */
+@Slf4j
 public class MouseDemo {
 
     private static int clickCount = 0;
@@ -133,7 +136,7 @@ public class MouseDemo {
     }
 
     private static Box createMouseButton(String text, AnsiColor color, Runnable clickAction) {
-        Box button = new Box("mouseButton", 0, 0, 18, 6, new DefaultBorder()) {
+        Box button = new Box("box:"+text, 0, 0, 18, 6, new DefaultBorder()) {
             @Override
             protected void onFocusChanged(boolean focused) {
                 super.onFocusChanged(focused);
@@ -141,110 +144,12 @@ public class MouseDemo {
             }
         };
 
-        Text buttonText = new Text("buttonText", 0, 0, 0, 0, text, Text.Alignment.CENTER);
+        Text buttonText = new Text("text:" + text, 0, 0, 0, 0, text, Text.Alignment.CENTER);
         buttonText.setForegroundColor(color);
         button.setChild(buttonText);
         button.setCanFocus(true);
 
-        // Add mouse event handling
-        addMouseEventHandling(button, clickAction, color);
-
         return button;
-    }
-
-    private static void addMouseEventHandling(Box box, Runnable clickAction, AnsiColor baseColor) {
-        // Create a wrapper that implements EventHandler
-        Box eventBox = new Box("eventBox", box.getX(), box.getY(), box.getWidth(), box.getHeight(),
-                              box.getBorder()) {
-            private boolean isHovered = false;
-            private boolean isPressed = false;
-
-            @Override
-            protected void onFocusChanged(boolean focused) {
-                super.onFocusChanged(focused);
-                box.onFocusChanged(focused);
-                updateButtonStyle(this, focused, isHovered, baseColor);
-            }
-
-            @Override
-            public void paint(Graphics graphics) {
-                box.paint(graphics);
-            }
-        };
-
-        // Implement mouse event handling
-        EventHandler mouseHandler = new EventHandler() {
-            private boolean isHovered = false;
-            private boolean isPressed = false;
-
-            @Override
-            public void handleEvent(Event event) {
-                if (event instanceof MouseEvent mouseEvent) {
-                    mouseX = mouseEvent.getX();
-                    mouseY = mouseEvent.getY();
-
-                    switch (mouseEvent.getAction()) {
-                        case MOVE:
-                            if (!isHovered) {
-                                isHovered = true;
-                                lastAction = "Mouse Enter: " + ((Text)box.getChild()).getText().split("\n")[0];
-                                updateButtonStyle(box, box.isHasFocus(), true, baseColor);
-                            }
-                            break;
-
-                        case PRESS:
-                            if (mouseEvent.getButton() == MouseEvent.Button.LEFT) {
-                                isPressed = true;
-                                lastAction = "Mouse Press: " + mouseEvent.getButton();
-                                updateButtonStyle(box, box.isHasFocus(), true, baseColor);
-                            }
-                            break;
-
-                        case RELEASE:
-                            if (isPressed) {
-                                isPressed = false;
-                                updateButtonStyle(box, box.isHasFocus(), isHovered, baseColor);
-                            }
-                            break;
-
-                        case CLICK:
-                            if (mouseEvent.getButton() == MouseEvent.Button.LEFT) {
-                                clickAction.run();
-                                mouseEvent.consume();
-                            } else if (mouseEvent.getButton() == MouseEvent.Button.RIGHT) {
-                                lastAction = "Right Click: " + ((Text)box.getChild()).getText().split("\n")[0];
-                                mouseEvent.consume();
-                            }
-                            break;
-
-                        case DOUBLE_CLICK:
-                            lastAction = "Double Click: " + ((Text)box.getChild()).getText().split("\n")[0];
-                            clickCount += 2;
-                            mouseEvent.consume();
-                            break;
-
-                        case WHEEL_UP:
-                            lastAction = "Wheel Up";
-                            mouseEvent.consume();
-                            break;
-
-                        case WHEEL_DOWN:
-                            lastAction = "Wheel Down";
-                            mouseEvent.consume();
-                            break;
-
-                        case DRAG:
-                            lastAction = String.format("Dragging to (%d,%d)", mouseEvent.getX(), mouseEvent.getY());
-                            break;
-                    }
-                }
-            }
-        };
-
-        // Apply the event handler to the box
-        box.setCanFocus(true);
-        // Note: In a real implementation, Box would implement EventHandler directly
-        // This is a simplified approach for demonstration
     }
 
     private static void updateButtonStyle(Box box, boolean focused, boolean hovered, AnsiColor baseColor) {

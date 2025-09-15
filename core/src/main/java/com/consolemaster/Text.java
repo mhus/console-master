@@ -291,4 +291,8 @@ public class Text extends Canvas {
         setMinWidth(Math.max(getMinWidth(), maxLineWidth));
         setMinHeight(Math.max(getMinHeight(), totalHeight));
     }
+
+    public boolean contains(int x, int y) {
+        return super.contains(x, y);
+    }
 }

@@ -15,8 +15,7 @@ public class DefaultBorder implements Border {
 
     // Native styling
     private TextStyle textStyle = TextStyle.DEFAULT;
-    private AnsiColor borderColor;
-    private AnsiFormat[] borderFormats;
+    private TextStyle focusedStyle = TextStyle.FOCUSED_DEFAULT;
 
     /**
      * Creates a SimpleBorder with default single-line style.
@@ -41,8 +40,7 @@ public class DefaultBorder implements Border {
      */
     public DefaultBorder(AnsiColor color) {
         this.borderStyle = BorderStyle.SINGLE;
-        this.borderColor = color;
-        updateTextStyle();
+        this.textStyle = new TextStyle(color, null);
     }
 
     /**
@@ -53,8 +51,7 @@ public class DefaultBorder implements Border {
      */
     public DefaultBorder(BorderStyle borderStyle, AnsiColor color) {
         this.borderStyle = borderStyle != null ? borderStyle : BorderStyle.SINGLE;
-        this.borderColor = color;
-        updateTextStyle();
+        this.textStyle = new TextStyle(color, null);
     }
 
     /**
@@ -65,9 +62,7 @@ public class DefaultBorder implements Border {
      */
     public DefaultBorder(AnsiColor color, AnsiFormat... formats) {
         this.borderStyle = BorderStyle.SINGLE;
-        this.borderColor = color;
-        this.borderFormats = formats;
-        updateTextStyle();
+        this.textStyle = new TextStyle(color, null, formats);
     }
 
     /**
@@ -79,9 +74,7 @@ public class DefaultBorder implements Border {
      */
     public DefaultBorder(BorderStyle borderStyle, AnsiColor color, AnsiFormat... formats) {
         this.borderStyle = borderStyle != null ? borderStyle : BorderStyle.SINGLE;
-        this.borderColor = color;
-        this.borderFormats = formats;
-        updateTextStyle();
+        this.textStyle = new TextStyle(color, null, formats);
     }
 
     // Legacy constructors for backward compatibility
@@ -97,23 +90,14 @@ public class DefaultBorder implements Border {
      * Sets the border color.
      */
     public void setBorderColor(AnsiColor color) {
-        this.borderColor = color;
-        updateTextStyle();
+        this.textStyle = new TextStyle(color, null, textStyle.getFormatsAsArray());
     }
 
     /**
      * Sets the border formats.
      */
     public void setBorderFormats(AnsiFormat... formats) {
-        this.borderFormats = formats;
-        updateTextStyle();
-    }
-
-    /**
-     * Updates the border style based on current color and format settings.
-     */
-    private void updateTextStyle() {
-        this.textStyle = new TextStyle(borderColor, null, borderFormats);
+        this.textStyle = new TextStyle(textStyle.getForegroundColor(), null, formats);
     }
 
     /**
@@ -123,37 +107,60 @@ public class DefaultBorder implements Border {
         this.textStyle = style != null ? style : TextStyle.DEFAULT;
     }
 
+    /**
+     * Sets the border color.
+     */
+    public void setFocusedColor(AnsiColor color) {
+        this.focusedStyle = new TextStyle(color, null, focusedStyle.getFormatsAsArray());
+    }
+
+    /**
+     * Sets the border formats.
+     */
+    public void setFocusedFormats(AnsiFormat... formats) {
+        this.focusedStyle = new TextStyle(focusedStyle.getForegroundColor(), null, formats);
+    }
+
+    /**
+     * Sets the border style directly.
+     */
+    public void setFocusedStyle(TextStyle style) {
+        this.focusedStyle = style != null ? style : TextStyle.FOCUSED_DEFAULT;
+    }
+
+
     @Override
-    public void drawBorder(Graphics graphics, int x, int y, int width, int height) {
+    public void drawBorder(Graphics graphics, int x, int y, int width, int height, boolean focused) {
         if (width < 2 || height < 2) {
             return; // Too small to draw a border
         }
 
         // Draw corners using BorderStyle characters
-        drawStyledChar(graphics, x, y, borderStyle.getTopLeft());
-        drawStyledChar(graphics, x + width - 1, y, borderStyle.getTopRight());
-        drawStyledChar(graphics, x, y + height - 1, borderStyle.getBottomLeft());
-        drawStyledChar(graphics, x + width - 1, y + height - 1, borderStyle.getBottomRight());
+        drawStyledChar(graphics, x, y, borderStyle.getTopLeft(), focused);
+        drawStyledChar(graphics, x + width - 1, y, borderStyle.getTopRight(), focused);
+        drawStyledChar(graphics, x, y + height - 1, borderStyle.getBottomLeft(), focused);
+        drawStyledChar(graphics, x + width - 1, y + height - 1, borderStyle.getBottomRight(), focused);
 
         // Draw horizontal borders (top and bottom)
         for (int i = x + 1; i < x + width - 1; i++) {
-            drawStyledChar(graphics, i, y, borderStyle.getHorizontal());
-            drawStyledChar(graphics, i, y + height - 1, borderStyle.getHorizontal());
+            drawStyledChar(graphics, i, y, borderStyle.getHorizontal(), focused);
+            drawStyledChar(graphics, i, y + height - 1, borderStyle.getHorizontal(), focused);
         }
 
         // Draw vertical borders (left and right)
         for (int i = y + 1; i < y + height - 1; i++) {
-            drawStyledChar(graphics, x, i, borderStyle.getVertical());
-            drawStyledChar(graphics, x + width - 1, i, borderStyle.getVertical());
+            drawStyledChar(graphics, x, i, borderStyle.getVertical(), focused);
+            drawStyledChar(graphics, x + width - 1, i, borderStyle.getVertical(), focused);
         }
     }
 
     /**
      * Draws a single character with the border style.
      */
-    private void drawStyledChar(Graphics graphics, int x, int y, char c) {
-        if (textStyle.hasFormatting()) {
-            graphics.drawStyledString(x, y, String.valueOf(c), borderColor, null, borderFormats);
+    private void drawStyledChar(Graphics graphics, int x, int y, char c, boolean focused) {
+        TextStyle currentStyle = focused ? focusedStyle : textStyle;
+        if (currentStyle.hasFormatting()) {
+            graphics.drawStyledChar(x, y, c, currentStyle.getForegroundColor(), currentStyle.getBackgroundColor(), currentStyle.getFormatsAsArray());
         } else {
             graphics.drawChar(x, y, c);
         }

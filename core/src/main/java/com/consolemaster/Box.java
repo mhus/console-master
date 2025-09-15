@@ -3,13 +3,15 @@ package com.consolemaster;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * A specialized CompositeCanvas that draws a border and contains exactly one child.
  * The child is automatically positioned within the border's inner area.
  */
 @Getter
 @Setter
-public class Box extends Canvas {
+public class Box extends Canvas implements Composable {
 
     private final Border border;
     private Canvas child;
@@ -193,7 +195,7 @@ public class Box extends Canvas {
     @Override
     public void paint(Graphics graphics) {
         // Draw the border using local coordinates (0,0 to width,height)
-        border.drawBorder(graphics, 0, 0, getWidth(), getHeight());
+        border.drawBorder(graphics, 0, 0, getWidth(), getHeight(), child != null && child.isCanFocus() && child.isHasFocus());
 
         // Draw the child if it exists and is visible
         if (child != null && child.isVisible()) {
@@ -210,5 +212,15 @@ public class Box extends Canvas {
             // The child can now draw starting at (0,0) in its own coordinate system
             child.paint(childGraphics);
         }
+    }
+
+    @Override
+    public List<Canvas> getChildren() {
+        return child != null ? List.of(child) : List.of();
+    }
+
+    @Override
+    public int getChildCount() {
+        return child != null ? 1 : 0;
     }
 }

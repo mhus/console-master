@@ -11,7 +11,7 @@ import java.util.List;
  * Uses a layout manager to arrange child components.
  */
 @Getter
-public class Composite extends Canvas {
+public class Composite extends Canvas implements Composable {
 
     private final List<Canvas> children = new ArrayList<>();
     private Layout layout = NoLayout.INSTANCE; // Default layout
@@ -119,6 +119,7 @@ public class Composite extends Canvas {
      *
      * @return the number of children
      */
+    @Override
     public int getChildCount() {
         return children.size();
     }

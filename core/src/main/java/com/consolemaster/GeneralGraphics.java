@@ -99,6 +99,14 @@ public class GeneralGraphics extends Graphics {
         }
     }
 
+    @Override
+    public void drawStyledChar(int x, int y, char text, AnsiColor foreground, AnsiColor background, AnsiFormat... formats) {
+        TextStyle style = new TextStyle(foreground, background, formats);
+        if (isValidPosition(x, y)) {
+            buffer[y][x] = new StyledChar(text, style);
+        }
+    }
+
     /**
      * Draws a styled string using the provided TextStyle.
      */

@@ -138,4 +138,13 @@ public class LegacyGraphics extends Graphics {
             buffer[y][x] = styledChar;
         }
     }
+
+    @Override
+    public void drawStyledChar(int x, int y, char text, AnsiColor foreground, AnsiColor background, AnsiFormat... formats) {
+        TextStyle style = new TextStyle(foreground, background, formats);
+        if (isValid(x, y)) {
+            buffer[y][x] = new StyledChar(text, style);
+        }
+    }
+
 }

@@ -1,14 +1,17 @@
 package com.consolemaster;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Default mouse manager implementation that forwards mouse events to the canvas hierarchy.
  * Events are processed by finding the topmost canvas at the mouse position and forwarding
  * the event through the component tree.
  */
+@Slf4j
 public class DefaultMouseManager implements MouseManager {
 
-    private Canvas hoveredCanvas = null;
-    private Canvas pressedCanvas = null;
+    private CanvasMouseInfo hoveredCanvas = null;
+    private CanvasMouseInfo pressedCanvas = null;
     private long lastClickTime = 0;
     private int lastClickX = -1;
     private int lastClickY = -1;
@@ -22,7 +25,7 @@ public class DefaultMouseManager implements MouseManager {
         }
 
         // Find the canvas at the mouse position
-        Canvas targetCanvas = findCanvasAt(mouseEvent.getX(), mouseEvent.getY(), screenCanvas);
+        CanvasMouseInfo targetCanvas = findCanvasAt(mouseEvent.getX(), mouseEvent.getY(), screenCanvas);
 
         // Handle different mouse actions
         switch (mouseEvent.getAction()) {
@@ -37,7 +40,7 @@ public class DefaultMouseManager implements MouseManager {
     /**
      * Handles mouse move events.
      */
-    private void handleMouseMove(MouseEvent mouseEvent, Canvas targetCanvas, ScreenCanvas screenCanvas) {
+    private void handleMouseMove(MouseEvent mouseEvent, CanvasMouseInfo targetCanvas, ScreenCanvas screenCanvas) {
         // Handle mouse enter/leave events
         if (hoveredCanvas != targetCanvas) {
             // Mouse leave previous canvas
@@ -72,7 +75,7 @@ public class DefaultMouseManager implements MouseManager {
     /**
      * Handles mouse press events.
      */
-    private void handleMousePress(MouseEvent mouseEvent, Canvas targetCanvas, ScreenCanvas screenCanvas) {
+    private void handleMousePress(MouseEvent mouseEvent, CanvasMouseInfo targetCanvas, ScreenCanvas screenCanvas) {
         pressedCanvas = targetCanvas;
 
         // Check for double click
@@ -91,8 +94,8 @@ public class DefaultMouseManager implements MouseManager {
 
         if (targetCanvas != null) {
             // Request focus for the clicked canvas if it can receive focus
-            if (targetCanvas.isCanFocus()) {
-                screenCanvas.requestFocus(targetCanvas);
+            if (targetCanvas.focusCanvas != null && targetCanvas.focusCanvas.isCanFocus()) {
+                screenCanvas.requestFocus(targetCanvas.focusCanvas);
             }
 
             // Forward press event
@@ -113,7 +116,7 @@ public class DefaultMouseManager implements MouseManager {
     /**
      * Handles mouse release events.
      */
-    private void handleMouseRelease(MouseEvent mouseEvent, Canvas targetCanvas, ScreenCanvas screenCanvas) {
+    private void handleMouseRelease(MouseEvent mouseEvent, CanvasMouseInfo targetCanvas, ScreenCanvas screenCanvas) {
         // Forward release event to the canvas that was pressed
         if (pressedCanvas != null) {
             forwardEventToCanvas(pressedCanvas, mouseEvent);
@@ -121,7 +124,7 @@ public class DefaultMouseManager implements MouseManager {
             // Generate click event if release is on the same canvas as press
             if (pressedCanvas == targetCanvas) {
                 MouseEvent clickEvent = new MouseEvent(
-                    mouseEvent.getX(), mouseEvent.getY(),
+                    targetCanvas.x(), targetCanvas.y(),
                     mouseEvent.getButton(), MouseEvent.Action.CLICK,
                     mouseEvent.isHasShift(), mouseEvent.isHasCtrl(), mouseEvent.isHasAlt()
                 );
@@ -135,7 +138,7 @@ public class DefaultMouseManager implements MouseManager {
     /**
      * Handles mouse wheel events.
      */
-    private void handleMouseWheel(MouseEvent mouseEvent, Canvas targetCanvas, ScreenCanvas screenCanvas) {
+    private void handleMouseWheel(MouseEvent mouseEvent, CanvasMouseInfo targetCanvas, ScreenCanvas screenCanvas) {
         if (targetCanvas != null) {
             forwardEventToCanvas(targetCanvas, mouseEvent);
         }
@@ -144,7 +147,7 @@ public class DefaultMouseManager implements MouseManager {
     /**
      * Handles mouse drag events.
      */
-    private void handleMouseDrag(MouseEvent mouseEvent, Canvas targetCanvas, ScreenCanvas screenCanvas) {
+    private void handleMouseDrag(MouseEvent mouseEvent, CanvasMouseInfo targetCanvas, ScreenCanvas screenCanvas) {
         // Forward drag event to the canvas that was pressed, not necessarily the current one
         if (pressedCanvas != null) {
             forwardEventToCanvas(pressedCanvas, mouseEvent);
@@ -154,10 +157,10 @@ public class DefaultMouseManager implements MouseManager {
     /**
      * Finds the topmost canvas at the specified coordinates.
      */
-    private Canvas findCanvasAt(int x, int y, ScreenCanvas screenCanvas) {
+    private CanvasMouseInfo findCanvasAt(int x, int y, ScreenCanvas screenCanvas) {
         Canvas contentCanvas = screenCanvas.getContentCanvas();
         if (contentCanvas != null) {
-            return findCanvasAtRecursive(x, y, contentCanvas);
+            return findCanvasAtRecursive(x, y, contentCanvas, null);
         }
         return null;
     }
@@ -165,18 +168,21 @@ public class DefaultMouseManager implements MouseManager {
     /**
      * Recursively searches for the canvas at the specified coordinates.
      */
-    private Canvas findCanvasAtRecursive(int x, int y, Canvas canvas) {
+    private CanvasMouseInfo findCanvasAtRecursive(int x, int y, Canvas canvas, Canvas canFocusCanvas) {
         if (!canvas.isVisible() || !canvas.contains(x, y)) {
             return null;
         }
-
+        if (canvas.isCanFocus()) {
+            canFocusCanvas = canvas;
+        }
+        log.debug("--> Checking canvas: {} at ({},{})", canvas.getName(), x, y);
         // Check children first (they are on top)
-        if (canvas instanceof Composite composite) {
+        if (canvas instanceof Composable composite) {
             // Iterate in reverse order to check topmost children first
             var children = composite.getChildren();
             for (int i = children.size() - 1; i >= 0; i--) {
                 Canvas child = children.get(i);
-                Canvas found = findCanvasAtRecursive(x, y, child);
+                CanvasMouseInfo found = findCanvasAtRecursive(x-child.getX(), y-child.getY(), child, canFocusCanvas);
                 if (found != null) {
                     return found;
                 }
@@ -184,15 +190,16 @@ public class DefaultMouseManager implements MouseManager {
         }
 
         // If no child contains the point, return this canvas
-        return canvas;
+        log.debug("<-- Found canvas: {} at ({},{}) inner ({},{})", canvas.getName(), x, y, x - canvas.getX(), y - canvas.getY());
+        return new CanvasMouseInfo(canvas, x - canvas.getX(), y - canvas.getY(), canFocusCanvas);
     }
 
     /**
      * Forwards a mouse event to a canvas if it implements EventHandler.
      */
-    private void forwardEventToCanvas(Canvas canvas, MouseEvent mouseEvent) {
-        if (canvas instanceof EventHandler eventHandler) {
-            eventHandler.handleEvent(mouseEvent);
+    private void forwardEventToCanvas(CanvasMouseInfo canvas, MouseEvent mouseEvent) {
+        if (canvas.canvas instanceof EventHandler eventHandler) {
+            eventHandler.handleEvent(canvas.wrapMouseEvent(mouseEvent));
         }
     }
 
@@ -209,4 +216,15 @@ public class DefaultMouseManager implements MouseManager {
     public int getPriority() {
         return 100; // Default priority for canvas hierarchy handling
     }
+
+    record CanvasMouseInfo(Canvas canvas, int x, int y, Canvas focusCanvas) {
+        public Event wrapMouseEvent(MouseEvent mouseEvent) {
+            return new MouseEvent(
+                x, y,
+                mouseEvent.getButton(), mouseEvent.getAction(),
+                mouseEvent.isHasShift(), mouseEvent.isHasCtrl(), mouseEvent.isHasAlt()
+            );
+        }
+    }
+
 }

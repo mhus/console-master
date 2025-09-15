@@ -43,6 +43,11 @@ public abstract class Graphics {
     public abstract void drawStyledString(int x, int y, String text, AnsiColor foregroundColor, AnsiColor backgroundColor, AnsiFormat... formats);
 
     /**
+     * Draws a styled string with explicit color and format parameters.
+     */
+    public abstract void drawStyledChar(int x, int y, char text, AnsiColor foregroundColor, AnsiColor backgroundColor, AnsiFormat... formats);
+
+    /**
      * Sets the foreground color for subsequent drawing operations.
      */
     public abstract void setForegroundColor(AnsiColor color);

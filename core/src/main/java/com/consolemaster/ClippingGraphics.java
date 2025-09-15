@@ -115,6 +115,13 @@ public class ClippingGraphics extends Graphics {
     }
 
     @Override
+    public void drawStyledChar(int x, int y, char text, AnsiColor foregroundColor, AnsiColor backgroundColor, AnsiFormat... formats) {
+        if (isValidAndInBounds(x, y)) {
+            parentGraphics.drawStyledChar(offsetX + x, offsetY + y, text, foregroundColor, backgroundColor, formats);
+        }
+    }
+
+    @Override
     public void setForegroundColor(AnsiColor color) {
         parentGraphics.setForegroundColor(color);
     }

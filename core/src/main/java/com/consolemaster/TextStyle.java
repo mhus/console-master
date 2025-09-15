@@ -16,6 +16,7 @@ import java.util.Set;
 public class TextStyle {
 
     public static final TextStyle DEFAULT = new TextStyle();
+    public static final TextStyle FOCUSED_DEFAULT = new TextStyle(AnsiColor.YELLOW, null, AnsiFormat.BOLD);
 
     private final AnsiColor foregroundColor;
     private final AnsiColor backgroundColor;
@@ -46,14 +47,18 @@ public class TextStyle {
      * Creates a copy of this style with updated foreground color.
      */
     public TextStyle withForeground(AnsiColor color) {
-        return new TextStyle(color, backgroundColor, formats.toArray(new AnsiFormat[0]));
+        return new TextStyle(color, backgroundColor, getFormatsAsArray());
+    }
+
+    public AnsiFormat[] getFormatsAsArray() {
+        return formats.toArray(new AnsiFormat[0]);
     }
 
     /**
      * Creates a copy of this style with updated background color.
      */
     public TextStyle withBackground(AnsiColor color) {
-        return new TextStyle(foregroundColor, color, formats.toArray(new AnsiFormat[0]));
+        return new TextStyle(foregroundColor, color, getFormatsAsArray());
     }
 
     /**
