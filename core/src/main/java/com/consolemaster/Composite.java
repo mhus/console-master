@@ -151,6 +151,7 @@ public class Composite extends Canvas implements Composable {
      */
     @Override
     public void paint(Graphics graphics) {
+        children.sort(Canvas.Z_ORDER_COMPARATOR);
         for (Canvas child : children) {
             if (child.isVisible() && child.getWidth() > 0 && child.getHeight() > 0) {
                 // Create a ClippingGraphics for this child that maps its local coordinates
@@ -159,8 +160,8 @@ public class Composite extends Canvas implements Composable {
                     graphics,
                     child.getX(),
                     child.getY(),
-                    child.getWidth(),
-                    child.getHeight()
+                    Math.min(getWidth(), child.getWidth()),
+                    Math.min(getHeight(), child.getHeight())
                 );
 
                 // Now the child can draw starting at (0,0) and it will appear

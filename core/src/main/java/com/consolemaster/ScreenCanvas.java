@@ -30,6 +30,7 @@ public class ScreenCanvas extends Composite {
     private final Map<String, Runnable> shortcuts = new HashMap<>();
     private final List<MouseManager> mouseManagers = new ArrayList<>();
     private boolean mouseReportingEnabled = false;
+    private Canvas overlayCanvas;
 
     /**
      * Creates a new ScreenCanvas with default minimum size requirements.
@@ -163,16 +164,18 @@ public class ScreenCanvas extends Composite {
     private void updateDisplay() {
         removeAllChildren();
 
-        if (warningCanvas != null) {
-            warningCanvas.setWidth(getWidth());
-            warningCanvas.setHeight(getHeight());
-        }
-
         if (meetsMinimumSize() && contentCanvas != null) {
             addChild(contentCanvas);
+            addChild(overlayCanvas);
         } else if (warningCanvas != null) {
+            if (warningCanvas != null) {
+                warningCanvas.setWidth(getWidth());
+                warningCanvas.setHeight(getHeight());
+            }
             addChild(warningCanvas);
         }
+
+
     }
 
     /**

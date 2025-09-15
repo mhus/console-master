@@ -83,6 +83,7 @@ public class MouseDemo {
             mainContainer.addChild(statusBox);
 
             // Set content
+            screen.setOverlayCanvas(new DisplayGridOverlayCanvas("gridOverlay"));
             screen.setContent(mainContainer);
 
             // Create process loop with mouse support
