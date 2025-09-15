@@ -2,6 +2,7 @@ package com.consolemaster;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Includes output capture functionality to redirect stdout and stderr.
  * Now uses native terminal implementation instead of JLine.
  */
+@Slf4j
 @Getter
 @Setter
 public class ProcessLoop {
@@ -58,7 +60,7 @@ public class ProcessLoop {
             try {
                 stop();
             } catch (IOException e) {
-                System.err.println("Error during shutdown: " + e.getMessage());
+                log.error("Error during shutdown: {}", e.getMessage(), e);
             }
         }));
     }
@@ -72,7 +74,7 @@ public class ProcessLoop {
         }
 
         // Setup terminal for raw mode
-        screenCanvas.getTerminal().enterRawMode();
+        screenCanvas.getTerminal().start();
 
         // Enable mouse reporting if needed
         if (screenCanvas.isMouseReportingEnabled()) {
@@ -116,7 +118,7 @@ public class ProcessLoop {
         }
 
         // Restore terminal
-        screenCanvas.getTerminal().exitRawMode();
+        screenCanvas.getTerminal().stop();
     }
 
     /**
@@ -172,8 +174,7 @@ public class ProcessLoop {
                 // Thread was interrupted, exit gracefully
                 break;
             } catch (Exception e) {
-                System.err.println("Error in process loop: " + e.getMessage());
-                e.printStackTrace();
+                log.error("Error in process loop: {}", e.getMessage(), e);
             }
         }
     }
@@ -218,8 +219,7 @@ public class ProcessLoop {
             screenCanvas.render();
 
         } catch (Exception e) {
-            System.err.println("Error during rendering: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error during rendering: {}", e.getMessage(), e);
         }
     }
 
@@ -359,7 +359,7 @@ public class ProcessLoop {
         }
 
         // Setup terminal for raw mode
-        screenCanvas.getTerminal().enterRawMode();
+        screenCanvas.getTerminal().start();
 
         // Enable mouse reporting if needed
         if (screenCanvas.isMouseReportingEnabled()) {

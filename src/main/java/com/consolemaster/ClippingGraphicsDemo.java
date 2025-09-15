@@ -1,10 +1,13 @@
 package com.consolemaster;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Demo zur Demonstration des neuen ClippingGraphics-Systems.
  * Zeigt, wie Canvas-Komponenten jetzt bei (0,0) zeichnen können
  * und automatisch an die richtige Position übersetzt werden.
  */
+@Slf4j
 public class ClippingGraphicsDemo {
 
     public static void main(String[] args) {
@@ -51,7 +54,7 @@ public class ClippingGraphicsDemo {
             System.out.println("- Box content draws at local (0,0) but appears within the box border");
             System.out.println("- All coordinate translation happens automatically through ClippingGraphics");
         } catch (java.io.IOException e) {
-            System.err.println("Failed to initialize screen: " + e.getMessage());
+            log.error("Failed to initialize screen: {}", e.getMessage(), e);
         }
     }
 }

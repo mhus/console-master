@@ -2,6 +2,7 @@ package com.consolemaster;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
@@ -11,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Native input handler that replaces JLine dependency.
  * Handles keyboard and mouse input using ANSI escape sequences.
  */
+@Slf4j
 @Getter
 @Setter
 public class NativeInputHandler implements InputHandler {
@@ -100,7 +102,7 @@ public class NativeInputHandler implements InputHandler {
             // Thread was interrupted, exit gracefully
         } catch (IOException e) {
             // Handle input errors
-            System.err.println("Input error: " + e.getMessage());
+            log.error("Input error: {}", e.getMessage(), e);
         }
     }
 

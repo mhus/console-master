@@ -1,11 +1,14 @@
 package com.consolemaster;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 
 /**
  * Demo application showcasing the Focus Management system.
  * Creates multiple focusable components and demonstrates focus traversal.
  */
+@Slf4j
 public class FocusDemo {
 
     public static void main(String[] args) {
@@ -148,8 +151,7 @@ public class FocusDemo {
             screen.close();
 
         } catch (IOException e) {
-            System.err.println("Error running Focus Management demo: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error running Focus Management demo: {}", e.getMessage(), e);
         }
     }
 }

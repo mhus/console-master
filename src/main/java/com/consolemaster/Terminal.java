@@ -11,23 +11,22 @@ import java.io.*;
 @Getter
 public abstract class Terminal {
 
-    private final PrintStream writer;
-    private final InputStream inputStream;
+    protected final PrintStream writer;
+    protected final InputStream inputStream;
     private int width;
     private int height;
-    private boolean rawMode = false;
 
     // ANSI escape sequences
-    private static final String ESC = "\u001B[";
-    private static final String CLEAR_SCREEN = ESC + "2J";
-    private static final String CURSOR_HOME = ESC + "H";
-    private static final String CURSOR_HIDE = ESC + "?25l";
-    private static final String CURSOR_SHOW = ESC + "?25h";
-    private static final String ALTERNATE_SCREEN_ON = ESC + "?1049h";
-    private static final String ALTERNATE_SCREEN_OFF = ESC + "?1049l";
-    private static final String MOUSE_TRACKING_ON = ESC + "?1000h" + ESC + "?1002h" + ESC + "?1015h" + ESC + "?1006h";
-    private static final String MOUSE_TRACKING_OFF = ESC + "?1006l" + ESC + "?1015l" + ESC + "?1002l" + ESC + "?1000l";
-    private static final String REQUEST_CURSOR_POSITION = ESC + "6n";
+    public static final String ESC = "\u001B[";
+    public static final String CLEAR_SCREEN = ESC + "2J";
+    public static final String CURSOR_HOME = ESC + "H";
+    public static final String CURSOR_HIDE = ESC + "?25l";
+    public static final String CURSOR_SHOW = ESC + "?25h";
+    public static final String ALTERNATE_SCREEN_ON = ESC + "?1049h";
+    public static final String ALTERNATE_SCREEN_OFF = ESC + "?1049l";
+    public static final String MOUSE_TRACKING_ON = ESC + "?1000h" + ESC + "?1002h" + ESC + "?1015h" + ESC + "?1006h";
+    public static final String MOUSE_TRACKING_OFF = ESC + "?1006l" + ESC + "?1015l" + ESC + "?1002l" + ESC + "?1000l";
+    public static final String REQUEST_CURSOR_POSITION = ESC + "6n";
 
     public Terminal(PrintStream writer, InputStream inputStream) {
         this.writer = writer;
@@ -88,61 +87,6 @@ public abstract class Terminal {
             }
         } catch (Exception e) {
             // Ignore errors and keep default size
-        }
-    }
-
-    /**
-     * Enters raw mode for character-by-character input.
-     */
-    public void enterRawMode() throws IOException {
-        if (rawMode) return;
-
-        try {
-            // Unix/Linux/macOS
-            if (System.getProperty("os.name").toLowerCase().contains("nix") ||
-                System.getProperty("os.name").toLowerCase().contains("nux") ||
-                System.getProperty("os.name").toLowerCase().contains("mac")) {
-
-                Runtime.getRuntime().exec(new String[]{"stty", "-echo", "raw"}).waitFor();
-            }
-            // Windows would need different handling
-
-            rawMode = true;
-
-            // Enable alternate screen and hide cursor
-            writer.print(ALTERNATE_SCREEN_ON);
-            writer.print(CURSOR_HIDE);
-            writer.flush();
-
-        } catch (Exception e) {
-            throw new IOException("Failed to enter raw mode", e);
-        }
-    }
-
-    /**
-     * Exits raw mode and restores normal terminal settings.
-     */
-    public void exitRawMode() throws IOException {
-        if (!rawMode) return;
-
-        try {
-            // Restore cursor and exit alternate screen
-            writer.print(CURSOR_SHOW);
-            writer.print(ALTERNATE_SCREEN_OFF);
-            writer.flush();
-
-            // Unix/Linux/macOS
-            if (System.getProperty("os.name").toLowerCase().contains("nix") ||
-                System.getProperty("os.name").toLowerCase().contains("nux") ||
-                System.getProperty("os.name").toLowerCase().contains("mac")) {
-
-                Runtime.getRuntime().exec(new String[]{"stty", "echo", "cooked"}).waitFor();
-            }
-
-            rawMode = false;
-
-        } catch (Exception e) {
-            throw new IOException("Failed to exit raw mode", e);
         }
     }
 
@@ -263,10 +207,13 @@ public abstract class Terminal {
     /**
      * Closes the terminal and restores normal mode.
      */
-    public void close() throws IOException {
-        if (rawMode) {
-            exitRawMode();
-        }
+    public void close() {
         writer.close();
+    }
+
+    public void start() {
+    }
+
+    public void stop() {
     }
 }
