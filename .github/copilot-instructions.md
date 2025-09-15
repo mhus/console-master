@@ -12,6 +12,7 @@ Multi-module Maven project with clear separation of concerns:
 - **Parent POM** (`console-master`): Manages dependencies and plugin versions
 - **Core Module** (`console-master-core`): Framework implementation with all core classes and tests
 - **Demo Module** (`console-master-demo`): Example applications demonstrating framework features
+- **Graphic3D Module** (`console-master-graphic3d`): 3D graphics extension for rendering 3D content in console
 
 ## Libraries and Frameworks
 
@@ -49,6 +50,32 @@ a warning Canvas is displayed instead of the actual content.
 - **ClippingGraphics**: Graphics wrapper that clips drawing operations to specified bounds
 - **AnsiColor**: Enum for ANSI foreground/background colors (standard + bright variants)
 - **AnsiFormat**: Enum for ANSI text formatting (bold, italic, underline, strikethrough, dim, reverse, blink)
+
+### 3D Graphics System (graphic3d module)
+- **Point3D**: 3D point representation with mathematical operations (addition, subtraction, normalization, distance calculation)
+- **Matrix4x4**: 4x4 transformation matrix supporting:
+  - Translation, rotation (X/Y/Z axes), and scaling transformations
+  - Perspective projection matrix generation
+  - Matrix multiplication and point transformation
+  - View and projection matrix calculations
+- **Mesh3D**: 3D mesh objects with triangular faces supporting:
+  - Vertex and face management
+  - Built-in primitive creation (cube, pyramid)
+  - Mesh transformation using matrices
+  - Normal vector calculation for lighting
+- **Camera3D**: 3D camera system with:
+  - Position and rotation (Euler angles) management
+  - Movement functions (forward, right, up movement)
+  - View matrix and projection matrix generation
+  - Look-at functionality for target-based camera positioning
+- **Graphic3DCanvas**: Main 3D rendering canvas extending base Canvas with:
+  - Three rendering modes: WIREFRAME, FILLED, BOTH
+  - Depth testing with Z-buffer for correct depth rendering
+  - Backface culling for performance optimization
+  - Configurable characters and colors for wireframe and fill rendering
+  - Bresenham line algorithm for precise edge rendering
+  - Scanline triangle filling for solid surfaces
+  - ASCII-based 3D rendering optimized for console output
 
 ### Layout System
 - **Layout**: Interface for automatic component arrangement
@@ -111,6 +138,32 @@ a warning Canvas is displayed instead of the actual content.
 - **ScrollerDemo**: Scrollable content demonstration
 - **ConsoleInputDemo**: Console input handling demonstration
 - **NativeTerminalDemo**: Native terminal features demonstration
+- **Graphic3DDemo**: 3D graphics system demonstration with various 3D objects and rendering modes
+
+### 3D Graphics Usage Examples
+
+```java
+// Create a 3D canvas
+Graphic3DCanvas canvas3D = new Graphic3DCanvas("3D Scene", 80, 40);
+
+// Configure rendering mode
+canvas3D.setRenderMode(Graphic3DCanvas.RenderMode.WIREFRAME);
+canvas3D.setWireframeChar('*');
+canvas3D.setWireframeColor(AnsiColor.CYAN);
+
+// Position camera
+canvas3D.getCamera().setPosition(new Point3D(0, 0, 5));
+canvas3D.getCamera().lookAt(new Point3D(0, 0, 0));
+
+// Create and add 3D objects
+Mesh3D cube = Mesh3D.createCube(2.0);
+canvas3D.addMesh(cube);
+
+// Apply transformations
+Matrix4x4 rotation = Matrix4x4.rotationY(Math.PI / 4);
+Mesh3D rotatedCube = cube.transform(rotation);
+canvas3D.addMesh(rotatedCube);
+```
 
 ### Development Guidelines
 
@@ -119,5 +172,9 @@ a warning Canvas is displayed instead of the actual content.
 - Implement EventHandler interface for interactive components
 - Use pack() system for automatic size calculation
 - Prefer composition over inheritance for complex components
+- For 3D development, use the graphic3d module with proper depth testing and matrix transformations
+- 3D objects should be created using Mesh3D and positioned using Matrix4x4 transformations
+- Camera management should use Camera3D for proper view and projection setup
 - Core framework development happens in the `core` module
-- Demo applications are developed in the `demo` module with dependency on core
+- 3D graphics development happens in the `graphic3d` module with dependency on core
+- Demo applications are developed in the `demo` module with dependency on core and graphic3d as needed
