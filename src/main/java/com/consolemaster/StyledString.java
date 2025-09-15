@@ -72,7 +72,7 @@ public class StyledString {
     /**
      * Converts this styled string to an ANSI escape sequence string.
      */
-    public void toAnsiString(NativeTerminal terminal) {
+    public void toAnsiString(Terminal terminal) {
         if (text.isEmpty()) {
             return;
         }

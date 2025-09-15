@@ -156,7 +156,7 @@ public class TextStyle {
     /**
      * Generates the ANSI escape sequence prefix for this style.
      */
-    public void toAnsiPrefix(NativeTerminal terminal) {
+    public void toAnsiPrefix(Terminal terminal) {
         if (!hasFormatting()) {
             return;
         }
@@ -180,7 +180,7 @@ public class TextStyle {
     /**
      * Generates the ANSI escape sequence suffix (reset) for this style.
      */
-    public void toAnsiSuffix(NativeTerminal terminal) {
+    public void toAnsiSuffix(Terminal terminal) {
         if (!hasFormatting()) {
             return;
         }

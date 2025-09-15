@@ -19,7 +19,7 @@ public class TestOutput {
 //        screen.setContentCanvas(text);
 //        screen.render();
 
-        NativeTerminal terminal = new NativeTerminal();
+        Terminal terminal = new NativeTerminal();
         terminal.writeStyled("Hello, World in Green Bold!\n", AnsiColor.BRIGHT_GREEN, null, AnsiFormat.BOLD);
         terminal.writeStyled("This is a test of ConsoleMaster.\n", AnsiColor.BRIGHT_CYAN, null);
         terminal.writeStyled("Goodbye!\n", AnsiColor.BRIGHT_RED, null, AnsiFormat.ITALIC);

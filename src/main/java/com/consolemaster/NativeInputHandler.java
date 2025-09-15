@@ -15,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Setter
 public class NativeInputHandler implements InputHandler {
 
-    private final NativeTerminal terminal;
+    private final Terminal terminal;
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private volatile boolean running = false;
     private Thread inputThread;
@@ -27,7 +27,7 @@ public class NativeInputHandler implements InputHandler {
     private long lastClickTime = 0;
     private static final long DOUBLE_CLICK_THRESHOLD = 500; // milliseconds
 
-    public NativeInputHandler(NativeTerminal terminal) {
+    public NativeInputHandler(Terminal terminal) {
         this.terminal = terminal;
     }
 

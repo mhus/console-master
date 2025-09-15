@@ -152,7 +152,7 @@ public class NativeGraphics extends Graphics {
     /**
      * Renders the graphics buffer to the terminal using ANSI escape sequences.
      */
-    public void toAnsiString(NativeTerminal terminal) {
+    public void toAnsiString(Terminal terminal) {
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
                 StyledChar styledChar = buffer[y][x];

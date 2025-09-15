@@ -21,7 +21,7 @@ public class ScreenCanvas extends Composite {
     private static final int DEFAULT_MIN_WIDTH = 80;
     private static final int DEFAULT_MIN_HEIGHT = 24;
 
-    private final NativeTerminal terminal;
+    private final Terminal terminal;
     private final int minWidth;
     private final int minHeight;
     private Canvas warningCanvas;
