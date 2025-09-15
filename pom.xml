@@ -11,7 +11,7 @@
     <packaging>pom</packaging>
 
     <name>Console Master</name>
-    <description>Console application project</description>
+    <description>Parent project for Console Master framework</description>
 
     <modules>
         <module>core</module>
@@ -109,7 +109,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <source>21</source>
                         <target>21</target>
