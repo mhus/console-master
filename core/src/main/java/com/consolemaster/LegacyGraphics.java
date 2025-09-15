@@ -101,42 +101,12 @@ public class LegacyGraphics extends Graphics {
     }
 
     /**
-     * Gets the internal buffer.
+     * Gets the internal buffer for screenshot and debugging purposes.
+     *
+     * @return the StyledChar buffer
      */
     public StyledChar[][] getBuffer() {
         return buffer;
-    }
-
-    /**
-     * Converts the buffer to a plain character array.
-     */
-    public char[][] toCharArray() {
-        char[][] result = new char[getHeight()][getWidth()];
-        for (int y = 0; y < getHeight(); y++) {
-            for (int x = 0; x < getWidth(); x++) {
-                result[y][x] = buffer[y][x] != null ? buffer[y][x].getCharacter() : ' ';
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Gets a styled character at the specified position.
-     */
-    public StyledChar getStyledChar(int x, int y) {
-        if (isValid(x, y)) {
-            return buffer[y][x];
-        }
-        return null;
-    }
-
-    /**
-     * Sets a styled character at the specified position.
-     */
-    public void setStyledChar(int x, int y, StyledChar styledChar) {
-        if (isValid(x, y)) {
-            buffer[y][x] = styledChar;
-        }
     }
 
     @Override
