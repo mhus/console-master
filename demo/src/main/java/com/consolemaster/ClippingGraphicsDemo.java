@@ -31,7 +31,7 @@ public class ClippingGraphicsDemo {
             innerText.setForegroundColor(AnsiColor.CYAN);
 
             Box box = new Box("DemoBox", 20, 8, new DefaultBorder());
-            box.setChild(innerText);
+            box.setContent(innerText);
 
             // Create a composite that contains both
             Composite main = new Composite("MainComposite", 0, 0, 60, 20);

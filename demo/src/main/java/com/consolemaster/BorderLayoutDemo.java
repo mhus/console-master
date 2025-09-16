@@ -24,7 +24,7 @@ public class BorderLayoutDemo {
             Text northText = new Text("northText", 0, 0, "NORTH - Header Region", Text.Alignment.CENTER);
             northText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             northText.setBold(true);
-            northBox.setChild(northText);
+            northBox.setContent(northText);
             northBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
             borderContainer.addChild(northBox);
 
@@ -33,7 +33,7 @@ public class BorderLayoutDemo {
             Text southText = new Text("southText", 0, 0, "SOUTH - Footer Region", Text.Alignment.CENTER);
             southText.setForegroundColor(AnsiColor.BRIGHT_YELLOW);
             southText.setBold(true);
-            southBox.setChild(southText);
+            southBox.setContent(southText);
             southBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
             borderContainer.addChild(southBox);
 
@@ -42,7 +42,7 @@ public class BorderLayoutDemo {
             Text westText = new Text("westText", 0, 0, "WEST\nLeft\nSidebar\nMenu", Text.Alignment.CENTER);
             westText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
             westText.setBold(true);
-            westBox.setChild(westText);
+            westBox.setContent(westText);
             westBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_LEFT));
             borderContainer.addChild(westBox);
 
@@ -51,7 +51,7 @@ public class BorderLayoutDemo {
             Text eastText = new Text("eastText", 0, 0, "EAST\nRight\nSidebar\nInfo", Text.Alignment.CENTER);
             eastText.setForegroundColor(AnsiColor.BRIGHT_MAGENTA);
             eastText.setBold(true);
-            eastBox.setChild(eastText);
+            eastBox.setContent(eastText);
             eastBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_RIGHT));
             borderContainer.addChild(eastBox);
 
@@ -73,7 +73,7 @@ public class BorderLayoutDemo {
                 "components for modern styling.",
                 Text.Alignment.CENTER);
             centerText.setForegroundColor(AnsiColor.WHITE);
-            centerBox.setChild(centerText);
+            centerBox.setContent(centerText);
             centerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
             borderContainer.addChild(centerBox);
 

@@ -41,7 +41,7 @@ public class Graphic3DDemo {
             Text headerText = new Text("headerText", 0, 0, "3D Graphics Demo - Interactive 3D Scene", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
-            headerBox.setChild(headerText);
+            headerBox.setContent(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
             // Create 3D canvas
@@ -63,7 +63,7 @@ public class Graphic3DDemo {
 
             // Wrap 3D canvas in a box for better presentation
             Box canvas3DBox = new Box("canvas3DBox", canvas3D.getWidth() + 2, canvas3D.getHeight() + 2, new DefaultBorder());
-            canvas3DBox.setChild(canvas3D);
+            canvas3DBox.setContent(canvas3D);
             canvas3DBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Create control panel
@@ -103,7 +103,7 @@ public class Graphic3DDemo {
             Box statusBox = new Box("statusBox", 0, 6, new DefaultBorder());
             Text statusText = new Text("statusText", 0, 0, "", Text.Alignment.CENTER);
             updateStatusText(statusText);
-            statusBox.setChild(statusText);
+            statusBox.setContent(statusText);
             statusBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
 
             // Add components to main container
@@ -326,7 +326,7 @@ public class Graphic3DDemo {
 
         Text buttonText = new Text("text:" + text, 0, 0, text, Text.Alignment.CENTER);
         buttonText.setForegroundColor(color);
-        button.setChild(buttonText);
+        button.setContent(buttonText);
         button.setCanFocus(true);
 
         return button;

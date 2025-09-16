@@ -208,6 +208,99 @@ public class Matrix4x4 {
     }
 
     /**
+     * Transforms a direction vector (ignoring translation).
+     * This is used for transforming ray directions from camera space to world space.
+     */
+    public Point3D transformDirection(Point3D direction) {
+        BigDecimal x = matrix[0][0].multiply(direction.getX(), MATH_CONTEXT)
+            .add(matrix[0][1].multiply(direction.getY(), MATH_CONTEXT), MATH_CONTEXT)
+            .add(matrix[0][2].multiply(direction.getZ(), MATH_CONTEXT), MATH_CONTEXT);
+
+        BigDecimal y = matrix[1][0].multiply(direction.getX(), MATH_CONTEXT)
+            .add(matrix[1][1].multiply(direction.getY(), MATH_CONTEXT), MATH_CONTEXT)
+            .add(matrix[1][2].multiply(direction.getZ(), MATH_CONTEXT), MATH_CONTEXT);
+
+        BigDecimal z = matrix[2][0].multiply(direction.getX(), MATH_CONTEXT)
+            .add(matrix[2][1].multiply(direction.getY(), MATH_CONTEXT), MATH_CONTEXT)
+            .add(matrix[2][2].multiply(direction.getZ(), MATH_CONTEXT), MATH_CONTEXT);
+
+        return new Point3D(x, y, z);
+    }
+
+    /**
+     * Calculates the inverse of this matrix.
+     * Uses Gauss-Jordan elimination for a general 4x4 matrix inverse.
+     */
+    public Matrix4x4 inverse() {
+        // Create augmented matrix [A|I]
+        BigDecimal[][] augmented = new BigDecimal[4][8];
+
+        // Copy original matrix to left side
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                augmented[i][j] = matrix[i][j];
+            }
+        }
+
+        // Set right side to identity matrix
+        for (int i = 0; i < 4; i++) {
+            for (int j = 4; j < 8; j++) {
+                augmented[i][j] = (i == j - 4) ? ONE : ZERO;
+            }
+        }
+
+        // Gauss-Jordan elimination
+        for (int i = 0; i < 4; i++) {
+            // Find pivot
+            int pivot = i;
+            for (int k = i + 1; k < 4; k++) {
+                if (augmented[k][i].abs().compareTo(augmented[pivot][i].abs()) > 0) {
+                    pivot = k;
+                }
+            }
+
+            // Swap rows if needed
+            if (pivot != i) {
+                BigDecimal[] temp = augmented[i];
+                augmented[i] = augmented[pivot];
+                augmented[pivot] = temp;
+            }
+
+            // Check for singular matrix
+            if (augmented[i][i].abs().compareTo(BigDecimal.valueOf(1e-10)) < 0) {
+                throw new IllegalStateException("Matrix is singular and cannot be inverted");
+            }
+
+            // Scale pivot row
+            BigDecimal pivotValue = augmented[i][i];
+            for (int j = 0; j < 8; j++) {
+                augmented[i][j] = augmented[i][j].divide(pivotValue, MATH_CONTEXT);
+            }
+
+            // Eliminate column
+            for (int k = 0; k < 4; k++) {
+                if (k != i) {
+                    BigDecimal factor = augmented[k][i];
+                    for (int j = 0; j < 8; j++) {
+                        augmented[k][j] = augmented[k][j].subtract(
+                            factor.multiply(augmented[i][j], MATH_CONTEXT), MATH_CONTEXT);
+                    }
+                }
+            }
+        }
+
+        // Extract inverse matrix from right side
+        Matrix4x4 result = new Matrix4x4();
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                result.matrix[i][j] = augmented[i][j + 4];
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Helper method to calculate cosine using Taylor series.
      */
     private static BigDecimal cos(BigDecimal x) {

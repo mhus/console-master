@@ -27,7 +27,7 @@ public class ProcessLoopDemo {
             Text headerText = new Text("headerText", 0, 0, "ProcessLoop Demo - Interactive Console Application", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
-            headerBox.setChild(headerText);
+            headerBox.setContent(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
             // Create interactive buttons with event handling
@@ -43,7 +43,7 @@ public class ProcessLoopDemo {
             };
             Text counterText = new Text("counterText", 0, 0, "", Text.Alignment.CENTER);
             updateCounterText(counterText);
-            counterBox.setChild(counterText);
+            counterBox.setContent(counterText);
             counterBox.setCanFocus(true);
 
             // Help button
@@ -56,7 +56,7 @@ public class ProcessLoopDemo {
             };
             Text helpText = new Text("helpText", 0, 0, "Help\n\nPress ENTER\nto toggle\nhelp display", Text.Alignment.CENTER);
             helpText.setForegroundColor(AnsiColor.BLUE);
-            helpBox.setChild(helpText);
+            helpBox.setContent(helpText);
             helpBox.setCanFocus(true);
 
             // Reset button
@@ -69,7 +69,7 @@ public class ProcessLoopDemo {
             };
             Text resetText = new Text("resetText", 0, 0, "Reset\n\nPress ENTER\nto reset\ncounter", Text.Alignment.CENTER);
             resetText.setForegroundColor(AnsiColor.RED);
-            resetBox.setChild(resetText);
+            resetBox.setContent(resetText);
             resetBox.setCanFocus(true);
 
             // Make buttons event handlers
@@ -97,7 +97,7 @@ public class ProcessLoopDemo {
             Box footerBox = new Box("footerBox", 0, 4, new DefaultBorder());
             Text footerText = new Text("footerText", 0, 0, "", Text.Alignment.CENTER);
             updateFooterText(footerText);
-            footerBox.setChild(footerText);
+            footerBox.setContent(footerText);
             footerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
 
             // Add components to main container

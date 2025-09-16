@@ -32,7 +32,7 @@ public class MouseDemo {
             Text headerText = new Text("headerText", 0, 0, "Mouse Demo - Interactive Mouse Events", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
-            headerBox.setChild(headerText);
+            headerBox.setContent(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
             // Create interactive buttons with mouse event handling
@@ -74,7 +74,7 @@ public class MouseDemo {
             Box statusBox = new Box("statusBox", 0, 5, new DefaultBorder());
             Text statusText = new Text("statusText", 0, 0, "", Text.Alignment.CENTER);
             updateStatusText(statusText);
-            statusBox.setChild(statusText);
+            statusBox.setContent(statusText);
             statusBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
 
             // Add components to main container
@@ -146,7 +146,7 @@ public class MouseDemo {
 
         Text buttonText = new Text("text:" + text, 0, 0, text, Text.Alignment.CENTER);
         buttonText.setForegroundColor(color);
-        button.setChild(buttonText);
+        button.setContent(buttonText);
         button.setCanFocus(true);
 
         return button;

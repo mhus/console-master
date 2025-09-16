@@ -48,7 +48,7 @@ public class Box extends Canvas implements Composable {
      *
      * @param child the child canvas to display inside the box
      */
-    public void setChild(Canvas child) {
+    public void setContent(Canvas child) {
         this.child = child;
         if (child != null) {
             updateChildBounds();

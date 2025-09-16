@@ -25,7 +25,7 @@ public class BoxDemo {
             Box simpleBox = new Box("simpleBox", 20, 5, new DefaultBorder());
             Text simpleText = new Text("simpleText", 0, 0, "Simple Border", Text.Alignment.CENTER);
             simpleText.setForegroundColor(AnsiColor.WHITE);
-            simpleBox.setChild(simpleText);
+            simpleBox.setContent(simpleText);
             content.addChild(simpleBox);
 
             // Thick border box
@@ -33,7 +33,7 @@ public class BoxDemo {
             Text thickText = new Text("thickText", 0, 0, "Thick Border", Text.Alignment.CENTER);
             thickText.setForegroundColor(AnsiColor.YELLOW);
             thickText.setFormats(AnsiFormat.BOLD);
-            thickBox.setChild(thickText);
+            thickBox.setContent(thickText);
             content.addChild(thickBox);
 
             // Colored border box
@@ -43,14 +43,14 @@ public class BoxDemo {
             Box coloredBox = new Box("coloredBox", 20, 5, coloredBorder);
             Text coloredText = new Text("coloredText", 0, 0, "Colored Border", Text.Alignment.CENTER);
             coloredText.setForegroundColor(AnsiColor.RED);
-            coloredBox.setChild(coloredText);
+            coloredBox.setContent(coloredText);
             content.addChild(coloredBox);
 
             // Multi-line content box
             Box multiBox = new Box("multiBox", 25, 6, new DefaultBorder());
             Text multiText = new Text("multiText", 0, 0, "Multi-line\nContent\nBox", Text.Alignment.CENTER);
             multiText.setForegroundColor(AnsiColor.GREEN);
-            multiBox.setChild(multiText);
+            multiBox.setContent(multiText);
             content.addChild(multiBox);
 
             screen.setContent(content);

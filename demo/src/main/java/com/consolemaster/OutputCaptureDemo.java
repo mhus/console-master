@@ -31,7 +31,7 @@ public class OutputCaptureDemo {
         Text headerText = new Text("headerText", 0, 0, "Output Capture Demo - Press keys to generate output", Text.Alignment.CENTER);
         headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
         headerText.setBold(true);
-        header.setChild(headerText);
+        header.setContent(headerText);
         header.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
         // Create control panel (left side)
@@ -50,7 +50,7 @@ public class OutputCaptureDemo {
         consoleOutput.setStderrColor(AnsiColor.BRIGHT_RED);
 
         Box outputBox = new Box("outputBox", 0, 0, new DefaultBorder());
-        outputBox.setChild(consoleOutput);
+        outputBox.setContent(consoleOutput);
         outputBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_RIGHT));
 
         // Add components to main canvas

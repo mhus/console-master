@@ -110,6 +110,25 @@ public class Point3D {
     }
 
     /**
+     * Calculates the dot product with another point (treating both as vectors).
+     */
+    public BigDecimal dot(Point3D other) {
+        return x.multiply(other.x, MATH_CONTEXT)
+            .add(y.multiply(other.y, MATH_CONTEXT), MATH_CONTEXT)
+            .add(z.multiply(other.z, MATH_CONTEXT), MATH_CONTEXT);
+    }
+
+    /**
+     * Calculates the cross product with another point (treating both as vectors).
+     */
+    public Point3D cross(Point3D other) {
+        BigDecimal newX = y.multiply(other.z, MATH_CONTEXT).subtract(z.multiply(other.y, MATH_CONTEXT), MATH_CONTEXT);
+        BigDecimal newY = z.multiply(other.x, MATH_CONTEXT).subtract(x.multiply(other.z, MATH_CONTEXT), MATH_CONTEXT);
+        BigDecimal newZ = x.multiply(other.y, MATH_CONTEXT).subtract(y.multiply(other.x, MATH_CONTEXT), MATH_CONTEXT);
+        return new Point3D(newX, newY, newZ);
+    }
+
+    /**
      * Helper method to calculate square root of BigDecimal using Newton's method.
      */
     private static BigDecimal sqrt(BigDecimal value) {

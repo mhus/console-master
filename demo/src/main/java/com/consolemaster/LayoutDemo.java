@@ -35,7 +35,7 @@ public class LayoutDemo {
 
                 text.setForegroundColor(color);
                 text.setFormats(AnsiFormat.BOLD);
-                box.setChild(text);
+                box.setContent(text);
                 flowContainer.addChild(box);
             }
 

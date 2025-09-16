@@ -24,14 +24,14 @@ public class NativeTerminalDemo {
             Text northText = new Text("NorthText", 0, 0, "NORTH - Native Terminal Demo", Text.Alignment.CENTER);
             northText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             northText.setFormats(AnsiFormat.BOLD);
-            northBox.setChild(northText);
+            northBox.setContent(northText);
             northBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.NORTH));
 
             // Create SOUTH component (Footer)
             Box southBox = new Box("SouthBox", 0, 3, new DefaultBorder());
             Text southText = new Text("SouthText", 0, 0, "SOUTH - Press 'q' to quit, TAB to navigate", Text.Alignment.CENTER);
             southText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
-            southBox.setChild(southText);
+            southBox.setContent(southText);
             southBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.SOUTH));
 
             // Create WEST component (Sidebar)
@@ -60,7 +60,7 @@ public class NativeTerminalDemo {
             westInfo4.setForegroundColor(AnsiColor.WHITE);
             westContent.addChild(westInfo4);
 
-            westBox.setChild(westContent);
+            westBox.setContent(westContent);
             westBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.WEST));
 
             // Create EAST component (Status)
@@ -82,7 +82,7 @@ public class NativeTerminalDemo {
             sizeText.setForegroundColor(AnsiColor.CYAN);
             eastContent.addChild(sizeText);
 
-            eastBox.setChild(eastContent);
+            eastBox.setContent(eastContent);
             eastBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.EAST));
 
             // Create CENTER component (Main content)
@@ -126,7 +126,7 @@ public class NativeTerminalDemo {
             control4.setFormats(AnsiFormat.BOLD);
             centerContent.addChild(control4);
 
-            centerBox.setChild(centerContent);
+            centerBox.setContent(centerContent);
             centerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Add all components to border layout

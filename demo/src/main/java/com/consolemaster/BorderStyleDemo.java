@@ -41,7 +41,7 @@ public class BorderStyleDemo {
 
             DefaultBorder demoBorder = new DefaultBorder(BorderStyle.DOUBLE, AnsiColor.BRIGHT_BLUE, AnsiFormat.BOLD);
             Box demoBox = new Box("DemoBox", 34, 8, demoBorder);
-            demoBox.setChild(demoText);
+            demoBox.setContent(demoText);
             main.addChild(demoBox);
 
             // Character showcase
@@ -55,7 +55,7 @@ public class BorderStyleDemo {
 
             DefaultBorder infoBorder = new DefaultBorder(BorderStyle.SINGLE, AnsiColor.BRIGHT_BLACK);
             Box infoBox = new Box("InfoBox", 76, 6, infoBorder);
-            infoBox.setChild(charInfo);
+            infoBox.setContent(charInfo);
             main.addChild(infoBox);
 
             screen.setContent(main);
@@ -80,7 +80,7 @@ public class BorderStyleDemo {
 
         DefaultBorder border = new DefaultBorder(style, color);
         Box box = new Box("ExampleBox_" + style.name(), 16, 4, border);
-        box.setChild(text);
+        box.setContent(text);
 
         parent.addChild(box);
     }

@@ -29,7 +29,7 @@ public class FocusDemo {
             Text headerText = new Text("headerText", 0, 0, "Focus Management Demo - Use TAB/SHIFT+TAB to navigate", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
-            headerBox.setChild(headerText);
+            headerBox.setContent(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
             mainContainer.addChild(headerBox);
 
@@ -54,7 +54,7 @@ public class FocusDemo {
             Text leftText = new Text("leftText", 0, 0, "Button 1\n\nFocusable\nComponent\n\nPress ENTER\nto activate", Text.Alignment.CENTER);
             leftText.setForegroundColor(AnsiColor.GREEN);
             leftText.setBold(true);
-            leftBox.setChild(leftText);
+            leftBox.setContent(leftText);
             leftBox.setCanFocus(true); // Make this box focusable
             leftBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_LEFT));
             mainContainer.addChild(leftBox);
@@ -80,7 +80,7 @@ public class FocusDemo {
             Text rightText = new Text("rightText", 0, 0, "Button 2\n\nAnother\nFocusable\nComponent\n\nPress ENTER\nto activate", Text.Alignment.CENTER);
             rightText.setForegroundColor(AnsiColor.YELLOW);
             rightText.setBold(true);
-            rightBox.setChild(rightText);
+            rightBox.setContent(rightText);
             rightBox.setCanFocus(true); // Make this box focusable
             rightBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER_RIGHT));
             mainContainer.addChild(rightBox);
@@ -110,7 +110,7 @@ public class FocusDemo {
 
                 Text centerText = new Text("centerText_" + i, 0, 0, "Item " + i + "\n\nFocus\nMe!", Text.Alignment.CENTER);
                 centerText.setForegroundColor(AnsiColor.WHITE);
-                centerBox.setChild(centerText);
+                centerBox.setContent(centerText);
                 centerBox.setCanFocus(true); // Make this box focusable
                 centerPanel.addChild(centerBox);
             }
@@ -127,7 +127,7 @@ public class FocusDemo {
                 "Total focusable components: 6",
                 Text.Alignment.CENTER);
             footerText.setForegroundColor(AnsiColor.BRIGHT_WHITE);
-            footerBox.setChild(footerText);
+            footerBox.setContent(footerText);
             footerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
             mainContainer.addChild(footerBox);
 

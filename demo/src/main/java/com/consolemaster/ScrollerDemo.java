@@ -26,7 +26,7 @@ public class ScrollerDemo {
             Text.Alignment.CENTER);
         headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
         headerText.setBold(true);
-        headerBox.setChild(headerText);
+        headerBox.setContent(headerText);
         headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
         // Create footer with instructions
@@ -45,7 +45,7 @@ public class ScrollerDemo {
             footerContent.addChild(instructionText);
         }
 
-        footerBox.setChild(footerContent);
+        footerBox.setContent(footerContent);
         footerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
 
         // Create large content canvas (much larger than viewport)
@@ -60,7 +60,7 @@ public class ScrollerDemo {
 
         // Wrap scroller in a box for visual distinction
         Box scrollerBox = new Box("scrollerBox", 0, 0, new DefaultBorder());
-        scrollerBox.setChild(scroller);
+        scrollerBox.setContent(scroller);
         scrollerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
         // Add all components

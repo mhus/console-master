@@ -18,28 +18,28 @@ public class BeautifulBorderDemo {
             Text text1 = new Text("text1", 16, 3, "Standard UTF-8\nBorder with\nbeautiful lines");
             text1.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             Box box1 = new Box("box1", 20, 5, new DefaultBorder());
-            box1.setChild(text1);
+            box1.setContent(text1);
 
             // Colored Border
             Text text2 = new Text("text2", 16, 3, "Colored Border\nin bright green\nwith style");
             text2.setForegroundColor(AnsiColor.WHITE);
             DefaultBorder greenBorder = new DefaultBorder(AnsiColor.BRIGHT_GREEN);
             Box box2 = new Box("box2", 20, 5, greenBorder);
-            box2.setChild(text2);
+            box2.setContent(text2);
 
             // Bold Border
             Text text3 = new Text("text3", 16, 3, "Bold Border\nwith formatting\nand emphasis");
             text3.setForegroundColor(AnsiColor.BRIGHT_YELLOW);
             DefaultBorder boldBorder = new DefaultBorder(AnsiColor.BRIGHT_BLUE, AnsiFormat.BOLD);
             Box box3 = new Box("box3", 20, 5, boldBorder);
-            box3.setChild(text3);
+            box3.setContent(text3);
 
             // Nested Boxes
             Text innerText = new Text("innerText", 12, 2, "Inner Box\nNested!");
             innerText.setForegroundColor(AnsiColor.BRIGHT_MAGENTA);
             DefaultBorder innerBorder = new DefaultBorder(AnsiColor.CYAN);
             Box innerBox = new Box("innerBox", 16, 4, innerBorder);
-            innerBox.setChild(innerText);
+            innerBox.setContent(innerText);
 
             Text outerText = new Text("outerText", 20, 1, "Outer Box Container");
             outerText.setForegroundColor(AnsiColor.WHITE);
@@ -49,7 +49,7 @@ public class BeautifulBorderDemo {
 
             DefaultBorder outerBorder = new DefaultBorder(AnsiColor.BRIGHT_RED, AnsiFormat.BOLD);
             Box outerBox = new Box("outerBox", 24, 9, outerBorder);
-            outerBox.setChild(outerContent);
+            outerBox.setContent(outerContent);
 
             // Multiple styles showcase
             Text styleText = new Text("styleText", 20, 5,
@@ -61,7 +61,7 @@ public class BeautifulBorderDemo {
             styleText.setForegroundColor(AnsiColor.BRIGHT_WHITE);
             DefaultBorder styleBorder = new DefaultBorder(AnsiColor.YELLOW, AnsiFormat.DIM);
             Box styleBox = new Box("styleBox", 24, 7, styleBorder);
-            styleBox.setChild(styleText);
+            styleBox.setContent(styleText);
 
             // Add all boxes to main
             main.addChild(box1);
