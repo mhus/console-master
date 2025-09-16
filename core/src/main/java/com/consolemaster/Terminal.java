@@ -18,17 +18,17 @@ public abstract class Terminal {
 
     // Terminal size detection caching
     private long lastSizeDetectionTime = 0;
-    private static final long SIZE_DETECTION_INTERVAL_MS = 60 * 1000; // 60 seconds
+    private long sizeDetectionInterval = 60 * 1000; // 60 seconds
 
     // Screen buffer for diff-based rendering
     private StyledChar[][] screenBuffer;
     private int renderCount = 0;
-    private static final int FULL_RENDER_INTERVAL = 50; // Full render every 10 times
+    private int fullRenderInterval = 50; // Full render every 50 times
     private boolean bufferInitialized = false;
 
     // ANSI escape sequences
     public static final String ESC = "\u001B[";
-    private static final String RESET = ESC + "0m";
+    public static final String RESET = ESC + "0m";
 
     public static final String CLEAR_SCREEN = ESC + "2J";
     public static final String CURSOR_HOME = ESC + "H";
@@ -174,7 +174,7 @@ public abstract class Terminal {
         long currentTime = System.currentTimeMillis();
 
         // Only detect terminal size if 60 seconds have passed since last detection
-        if (currentTime - lastSizeDetectionTime >= SIZE_DETECTION_INTERVAL_MS) {
+        if (currentTime - lastSizeDetectionTime >= sizeDetectionInterval) {
             detectTerminalSize();
             lastSizeDetectionTime = currentTime;
         }
@@ -187,6 +187,44 @@ public abstract class Terminal {
     public void forceUpdateSize() {
         detectTerminalSize();
         lastSizeDetectionTime = System.currentTimeMillis();
+    }
+
+    /**
+     * Gets the full render interval.
+     * @return the number of renders after which a full screen render is performed
+     */
+    public int getFullRenderInterval() {
+        return fullRenderInterval;
+    }
+
+    /**
+     * Sets the full render interval.
+     * @param fullRenderInterval the number of renders after which a full screen render is performed (must be > 0)
+     */
+    public void setFullRenderInterval(int fullRenderInterval) {
+        if (fullRenderInterval <= 0) {
+            throw new IllegalArgumentException("Full render interval must be greater than 0");
+        }
+        this.fullRenderInterval = fullRenderInterval;
+    }
+
+    /**
+     * Gets the size detection interval in milliseconds.
+     * @return the interval in milliseconds between terminal size detections
+     */
+    public long getSizeDetectionInterval() {
+        return sizeDetectionInterval;
+    }
+
+    /**
+     * Sets the size detection interval in milliseconds.
+     * @param sizeDetectionInterval the interval in milliseconds between terminal size detections (must be > 0)
+     */
+    public void setSizeDetectionInterval(long sizeDetectionInterval) {
+        if (sizeDetectionInterval <= 0) {
+            throw new IllegalArgumentException("Size detection interval must be greater than 0");
+        }
+        this.sizeDetectionInterval = sizeDetectionInterval;
     }
 
     /**
@@ -235,7 +273,7 @@ public abstract class Terminal {
         var graphicsHeight = Math.min(graphics.getHeight(), this.height);
 
         renderCount++;
-        boolean forceFullRender = (renderCount % FULL_RENDER_INTERVAL == 0);
+        boolean forceFullRender = (renderCount % fullRenderInterval == 0);
 
         if (forceFullRender) {
             // Full screen render every 10th time to correct any display errors
