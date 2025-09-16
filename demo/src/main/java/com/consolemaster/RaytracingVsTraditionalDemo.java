@@ -35,9 +35,11 @@ public class RaytracingVsTraditionalDemo {
 
             // Create side-by-side container for canvases
             Composite canvasContainer = new Composite("canvasContainer",
-                    screen.getWidth() - 4,
                     30,
-                    new FlowLayout(1, 1));
+                    30,
+                    new BoxLayout(BoxLayout.Direction.HORIZONTAL));
+
+            canvasContainer.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Create raytracing canvas
             RaytracingGraphic3DCanvas raytracingCanvas = new RaytracingGraphic3DCanvas("Raytracing Scene", 55, 28);
@@ -57,6 +59,7 @@ public class RaytracingVsTraditionalDemo {
 
             // Add canvases to container
             canvasContainer.addChild(raytracingCanvas);
+            canvasContainer.addChild(new Ruler("ruler",Ruler.Orientation.VERTICAL));
             canvasContainer.addChild(traditionalCanvas);
 
             // Create footer with instructions
