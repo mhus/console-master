@@ -100,7 +100,7 @@ public class Graphic3DDemo {
             controlPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
 
             // Create status footer
-            Box statusBox = new Box("statusBox", 0, 4, new DefaultBorder());
+            Box statusBox = new Box("statusBox", 0, 6, new DefaultBorder());
             Text statusText = new Text("statusText", 0, 0, "", Text.Alignment.CENTER);
             updateStatusText(statusText);
             statusBox.setChild(statusText);
@@ -190,6 +190,27 @@ public class Graphic3DDemo {
                 lastAction = "Camera Reset";
             });
 
+            screen.registerShortcut("1", () -> {
+                rotatedCube = Mesh3D.createColorfulCube(5.0);
+                lastAction = "Reset Cube";
+            });
+            screen.registerShortcut("2", () -> {
+                rotatedCube = Mesh3D.createTexturedCube(5.0);
+                lastAction = "Textured Cube";
+            });
+            screen.registerShortcut("3", () -> {
+                rotatedCube = Mesh3D.createCube(5.0);
+                lastAction = "Simple Cube";
+            });
+            screen.registerShortcut("4", () -> {
+                rotatedCube = Mesh3D.createPyramid(5.0);
+                lastAction = "Pyramid";
+            });
+            screen.registerShortcut("5", () -> {
+                rotatedCube = Mesh3D.createColorfulPyramid(5.0);
+                lastAction = "Colorful Pyramid";
+            });
+
             // Start animation thread
             startAnimationThread(processLoop);
 
@@ -225,7 +246,7 @@ public class Graphic3DDemo {
 //        canvas3D.addMesh(simpleCube);
 
         // Add a rotated cube for better visibility
-        rotatedCube = Mesh3D.createCube(5.0);
+        rotatedCube = Mesh3D.createColorfulCube(5.0);
         cubeTransformation = new Transformation();
         cubeTransformation.x = 2;
         cubeTransformation.y = 0;
