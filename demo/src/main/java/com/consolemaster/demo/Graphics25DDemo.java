@@ -1,6 +1,16 @@
 package com.consolemaster.demo;
 
-import com.consolemaster.*;
+import com.consolemaster.AnsiColor;
+import com.consolemaster.BorderLayout;
+import com.consolemaster.Box;
+import com.consolemaster.Composite;
+import com.consolemaster.DefaultBorder;
+import com.consolemaster.FlowLayout;
+import com.consolemaster.KeyEvent;
+import com.consolemaster.PositionConstraint;
+import com.consolemaster.ProcessLoop;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.Text;
 import com.consolemaster.graphics25d.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,21 +18,30 @@ import java.io.IOException;
 
 /**
  * Interactive 2.5D graphics demo showcasing the Graphics25DCanvas capabilities.
- * Features 2.5D scenes, camera controls, and different rendering options.
+ * Features animated 2.5D objects, camera controls, and different rendering modes.
  */
 @Slf4j
 public class Graphics25DDemo {
 
+    private static double animationTime = 0.0;
+    private static boolean isAnimating = true;
+    private static Graphics25DCanvas.RenderMode currentRenderMode = Graphics25DCanvas.RenderMode.WIREFRAME;
     private static String lastAction = "Demo Started";
     private static Camera25D camera;
     private static Graphics25DCanvas canvas25D;
-    private static int currentScene = 1;
-    private static final int maxScenes = 4;
+
+    // Animation thread
+    private static Thread animationThread;
+    private static final Object animationLock = new Object();
+    private static Object25D rotatingCube;
+    private static Object25D staticPyramid;
+    private static Point25D cubePosition = new Point25D(0, 0, 0);
+    private static Object25D.Rotation90 cubeRotation = Object25D.Rotation90.NONE;
 
     public static void main(String[] args) {
         try {
             // Create the main screen canvas
-            ScreenCanvas screen = new ScreenCanvas(120, 40);
+            ScreenCanvas screen = new ScreenCanvas(100, 35);
 
             // Create main container with BorderLayout
             Composite mainContainer = new Composite("mainContainer",
@@ -32,34 +51,69 @@ public class Graphics25DDemo {
 
             // Create header
             Box headerBox = new Box("headerBox", 0, 3, new DefaultBorder());
-            Text headerText = new Text("headerText", 0, 0, "Graphics 2.5D Demo - Interactive 2.5D Scene", Text.Alignment.CENTER);
+            Text headerText = new Text("headerText", 0, 0, "2.5D Graphics Demo - Isometric Scene", Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
             headerBox.setContent(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
             // Create 2.5D canvas
-            canvas25D = new Graphics25DCanvas("2.5D Scene", 100, 28);
-            canvas25D.setBackgroundColor(AnsiColor.BLACK);
-            canvas25D.setViewDistance(20.0);
-            canvas25D.setPerspectiveFactor(0.5);
-            canvas25D.setDepthSorting(true);
+            canvas25D = new Graphics25DCanvas("2.5D Scene", 80, 25);
+            canvas25D.setRenderMode(currentRenderMode);
+            canvas25D.setWireframeChar('*');
+            canvas25D.setWireframeColor(AnsiColor.CYAN);
+            canvas25D.setDefaultFillChar('█');
+            canvas25D.setDefaultFillColor(AnsiColor.GREEN);
 
             // Setup camera
             camera = canvas25D.getCamera();
-            camera.setPosition(new Point25D(0, 0, 2));
-            camera.setDirection(0); // Looking north
+            camera.setPosition(new Point25D(0, 0, 0));
+            camera.setDirection(Camera25D.Direction.FRONT);
+            camera.setDistance(15.0);
 
-            // Create initial scene
-            createBasicScene();
+            // Create initial 2.5D scene
+            createInitialScene();
 
             // Wrap 2.5D canvas in a box for better presentation
             Box canvas25DBox = new Box("canvas25DBox", canvas25D.getWidth() + 2, canvas25D.getHeight() + 2, new DefaultBorder());
             canvas25DBox.setContent(canvas25D);
             canvas25DBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
+            // Create control panel
+            Composite controlPanel = new Composite("controlPanel", 0, 0, new FlowLayout(2, 1));
+
+            // Render mode buttons
+            Box wireframeBtn = createControlButton("Wireframe\n(W)", AnsiColor.CYAN, () -> {
+                currentRenderMode = Graphics25DCanvas.RenderMode.WIREFRAME;
+                canvas25D.setRenderMode(currentRenderMode);
+                lastAction = "Switched to Wireframe";
+            });
+            controlPanel.addChild(wireframeBtn);
+
+            Box solidBtn = createControlButton("Solid\n(S)", AnsiColor.GREEN, () -> {
+                currentRenderMode = Graphics25DCanvas.RenderMode.SOLID;
+                canvas25D.setRenderMode(currentRenderMode);
+                lastAction = "Switched to Solid";
+            });
+            controlPanel.addChild(solidBtn);
+
+            Box bothBtn = createControlButton("Both\n(B)", AnsiColor.YELLOW, () -> {
+                currentRenderMode = Graphics25DCanvas.RenderMode.BOTH;
+                canvas25D.setRenderMode(currentRenderMode);
+                lastAction = "Switched to Both";
+            });
+            controlPanel.addChild(bothBtn);
+
+            Box animateBtn = createControlButton("Animation\n(SPACE)", AnsiColor.MAGENTA, () -> {
+                isAnimating = !isAnimating;
+                lastAction = isAnimating ? "Animation Started" : "Animation Paused";
+            });
+            controlPanel.addChild(animateBtn);
+
+            controlPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
+
             // Create status footer
-            Box statusBox = new Box("statusBox", 0, 5, new DefaultBorder());
+            Box statusBox = new Box("statusBox", 0, 6, new DefaultBorder());
             Text statusText = new Text("statusText", 0, 0, "", Text.Alignment.CENTER);
             updateStatusText(statusText);
             statusBox.setContent(statusText);
@@ -75,298 +129,358 @@ public class Graphics25DDemo {
 
             // Create process loop
             ProcessLoop processLoop = new ProcessLoop(screen);
-            processLoop.setTargetFPS(15); // 15 FPS for smooth updates
+            processLoop.setTargetFPS(30); // 30 FPS for smooth 2.5D animation
 
             // Register keyboard controls
             screen.registerShortcut("Q", () -> {
                 try {
+                    stopAnimationThread();
                     processLoop.stop();
                 } catch (IOException e) {
                     System.err.println("Error stopping process loop: " + e.getMessage());
                 }
             });
 
-            // Movement controls
+            // 2.5D Controls
             screen.registerShortcut("W", () -> {
-                camera.moveForward(1.0);
-                lastAction = "Camera Forward";
+                currentRenderMode = Graphics25DCanvas.RenderMode.WIREFRAME;
+                canvas25D.setRenderMode(currentRenderMode);
+                lastAction = "Wireframe Mode";
             });
 
             screen.registerShortcut("S", () -> {
-                camera.moveBackward(1.0);
+                currentRenderMode = Graphics25DCanvas.RenderMode.SOLID;
+                canvas25D.setRenderMode(currentRenderMode);
+                lastAction = "Solid Mode";
+            });
+
+            screen.registerShortcut("B", () -> {
+                currentRenderMode = Graphics25DCanvas.RenderMode.BOTH;
+                canvas25D.setRenderMode(currentRenderMode);
+                lastAction = "Both Mode";
+            });
+
+            screen.registerShortcut(" ", () -> {
+                isAnimating = !isAnimating;
+                lastAction = isAnimating ? "Animation Started" : "Animation Paused";
+            });
+
+            // Camera controls
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_UP.name(), () -> {
+                camera.move(0, 0, 1);
+                lastAction = "Camera Forward";
+            });
+
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_DOWN.name(), () -> {
+                camera.move(0, 0, -1);
                 lastAction = "Camera Backward";
             });
 
-            screen.registerShortcut("A", () -> {
-                camera.moveLeft(1.0);
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_LEFT.name(), () -> {
+                camera.move(-1, 0, 0);
                 lastAction = "Camera Left";
             });
 
-            screen.registerShortcut("D", () -> {
-                camera.moveRight(1.0);
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_RIGHT.name(), () -> {
+                camera.move(1, 0, 0);
                 lastAction = "Camera Right";
             });
 
-            // Rotation controls
-            screen.registerShortcut("E", () -> {
-                camera.rotateClockwise();
-                lastAction = "Rotate Right (" + camera.getDirectionName() + ")";
+            screen.registerShortcut(KeyEvent.SpecialKey.PAGE_UP.name(), () -> {
+                camera.move(0, 1, 0);
+                lastAction = "Camera Up";
             });
 
-            screen.registerShortcut("Z", () -> {
-                camera.rotateCounterClockwise();
-                lastAction = "Rotate Left (" + camera.getDirectionName() + ")";
+            screen.registerShortcut(KeyEvent.SpecialKey.PAGE_DOWN.name(), () -> {
+                camera.move(0, -1, 0);
+                lastAction = "Camera Down";
             });
 
-            // Scene switching
-            screen.registerShortcut(" ", () -> {
-                currentScene = (currentScene % maxScenes) + 1;
-                canvas25D.clearObjects();
-
-                switch (currentScene) {
-                    case 1 -> {
-                        createBasicScene();
-                        lastAction = "Scene 1: Basic Objects";
-                    }
-                    case 2 -> {
-                        createMazeScene();
-                        lastAction = "Scene 2: Maze";
-                    }
-                    case 3 -> {
-                        createGardenScene();
-                        lastAction = "Scene 3: Garden";
-                    }
-                    case 4 -> {
-                        createCityScene();
-                        lastAction = "Scene 4: City";
-                    }
-                }
+            // Camera direction controls
+            screen.registerShortcut("1", () -> {
+                camera.setDirection(Camera25D.Direction.FRONT);
+                lastAction = "View: Front";
+            });
+            screen.registerShortcut("2", () -> {
+                camera.setDirection(Camera25D.Direction.RIGHT);
+                lastAction = "View: Right";
+            });
+            screen.registerShortcut("3", () -> {
+                camera.setDirection(Camera25D.Direction.BACK);
+                lastAction = "View: Back";
+            });
+            screen.registerShortcut("4", () -> {
+                camera.setDirection(Camera25D.Direction.LEFT);
+                lastAction = "View: Left";
+            });
+            screen.registerShortcut("5", () -> {
+                camera.setDirection(Camera25D.Direction.TOP);
+                lastAction = "View: Top";
+            });
+            screen.registerShortcut("6", () -> {
+                camera.setDirection(Camera25D.Direction.BOTTOM);
+                lastAction = "View: Bottom";
             });
 
-            // Camera reset
             screen.registerShortcut("R", () -> {
-                camera.setPosition(new Point25D(0, 0, 2));
-                camera.setDirection(0);
+                // Reset camera position
+                camera.setPosition(new Point25D(0, 0, 0));
+                camera.setDirection(Camera25D.Direction.FRONT);
                 lastAction = "Camera Reset";
             });
 
-            // Rendering options
-            screen.registerShortcut("V", () -> {
-                double currentDistance = canvas25D.getViewDistance();
-                double newDistance = currentDistance == 20.0 ? 10.0 : 20.0;
-                canvas25D.setViewDistance(newDistance);
-                lastAction = "View Distance: " + newDistance;
-            });
-
-            screen.registerShortcut("P", () -> {
-                double currentFactor = canvas25D.getPerspectiveFactor();
-                double newFactor = currentFactor == 0.5 ? 1.0 : 0.5;
-                canvas25D.setPerspectiveFactor(newFactor);
-                lastAction = "Perspective: " + newFactor;
+            screen.registerShortcut("C", () -> {
+                // Create new scene
+                createInitialScene();
+                lastAction = "Scene Reset";
             });
 
             screen.registerShortcut("T", () -> {
-                boolean currentSorting = canvas25D.isDepthSorting();
-                canvas25D.setDepthSorting(!currentSorting);
-                lastAction = "Depth Sorting: " + (!currentSorting ? "ON" : "OFF");
+                // Toggle textured objects
+                createTexturedScene();
+                lastAction = "Textured Objects";
             });
 
-            // Update callback for status display
+            // Start animation thread
+            startAnimationThread(processLoop);
+
+            // Update callback for status display only
             processLoop.setUpdateCallback(() -> {
-                updateStatusText((Text) statusBox.getChild());
+                updateStatusText((Text) statusBox.getChild(), processLoop);
             });
 
-            System.out.println("Starting Graphics 2.5D Demo...");
-            System.out.println("Controls:");
-            System.out.println("- WASD: Move camera (Forward/Left/Back/Right)");
-            System.out.println("- E/Z: Rotate camera (Right/Left)");
-            System.out.println("- SPACE: Switch scenes");
+            System.out.println("Starting 2.5D Graphics Demo...");
+            System.out.println("2.5D Controls:");
+            System.out.println("- W/S/B: Switch render modes (Wireframe/Solid/Both)");
+            System.out.println("- SPACE: Toggle animation");
+            System.out.println("- Arrow Keys: Move camera (Forward/Back/Left/Right)");
+            System.out.println("- Page Up/Down: Move camera (Up/Down)");
+            System.out.println("- 1-6: Change view direction (Front/Right/Back/Left/Top/Bottom)");
             System.out.println("- R: Reset camera position");
-            System.out.println("- V: Toggle view distance");
-            System.out.println("- P: Toggle perspective factor");
-            System.out.println("- T: Toggle depth sorting");
-            System.out.println("- ESC or Q: Quit");
+            System.out.println("- C: Reset scene");
+            System.out.println("- T: Textured objects");
+            System.out.println("- ESC or Ctrl+Q: Quit");
 
             // Start the process loop (this will block until stopped)
             processLoop.start();
 
-            System.out.println("Graphics 2.5D Demo ended.");
+            System.out.println("2.5D Graphics Demo ended.");
 
         } catch (IOException e) {
-            log.error("Error running Graphics 2.5D demo", e);
+            log.error("Error running 2.5D Graphics demo", e);
+        }
+    }
+
+    private static void createInitialScene() {
+        canvas25D.clearObjects();
+
+        // Create a rotating cube at the center
+        rotatingCube = Object25D.createCube(new Point25D(0, 0, 5), 30.0, AnsiColor.BRIGHT_BLUE);
+        canvas25D.addObject(rotatingCube);
+
+        // Create a static pyramid on the left
+        staticPyramid = Object25D.createPyramid(new Point25D(-5, 0, 8), 25, AnsiColor.BRIGHT_RED);
+        canvas25D.addObject(staticPyramid);
+
+        // Create a small cube on the right
+        Object25D smallCube = Object25D.createCube(new Point25D(5, 2, 6), 15, AnsiColor.BRIGHT_GREEN);
+        canvas25D.addObject(smallCube);
+
+        // Create cubes rotated at different 90-degree angles
+        Object25D cube90 = Object25D.createCube(new Point25D(-3, -2, 10), 18, AnsiColor.CYAN)
+                .rotateTo(Object25D.Rotation90.CW_90);
+        canvas25D.addObject(cube90);
+
+        Object25D cube180 = Object25D.createCube(new Point25D(3, -2, 10), 18, AnsiColor.YELLOW)
+                .rotateTo(Object25D.Rotation90.CW_180);
+        canvas25D.addObject(cube180);
+
+        // Create a ground plane (flat cube)
+        Object25D ground = Object25D.createCube(new Point25D(0, -4, 5), 120, AnsiColor.YELLOW);
+        // Flatten it to make it look like a ground plane
+        for (Object25D.Face25D face : ground.getFaces()) {
+            for (Point25D vertex : face.getVertices()) {
+                if (vertex.getY() > -0.5) {
+                    vertex.setY(-0.5);
+                }
+            }
+        }
+        canvas25D.addObject(ground);
+    }
+
+    private static void createTexturedScene() {
+        canvas25D.clearObjects();
+
+        // Create textured cubes with different 90-degree rotations
+        Object25D texturedCube1 = Object25D.createTexturedCube(new Point25D(-3, 0, 8), 2.0);
+        canvas25D.addObject(texturedCube1);
+
+        Object25D texturedCube2 = Object25D.createTexturedCube(new Point25D(3, 0, 6), 2.5)
+                .rotateTo(Object25D.Rotation90.CW_90);
+        canvas25D.addObject(texturedCube2);
+
+        Object25D texturedCube3 = Object25D.createTexturedCube(new Point25D(0, 3, 10), 1.8)
+                .rotateTo(Object25D.Rotation90.CW_180);
+        canvas25D.addObject(texturedCube3);
+
+        // Rotating cube remains
+        rotatingCube = Object25D.createTexturedCube(new Point25D(0, 0, 5), 3.0);
+        canvas25D.addObject(rotatingCube);
+    }
+
+    /**
+     * Updates the animated 2.5D scene.
+     */
+    private static void updateAnimatedScene() {
+        canvas25D.clearObjects();
+
+        // Rotate the cube by 90-degree steps
+        animationTime += 0.03;
+        if (animationTime > 2.0) { // Every 2 seconds, rotate 90 degrees
+            animationTime = 0.0;
+            cubeRotation = cubeRotation.combine(Object25D.Rotation90.CW_90);
+        }
+
+        // Create animated cube with current rotation and oscillating position
+        double oscillatingY = Math.sin(animationTime * Math.PI) * 1;
+        Point25D newCubePos = new Point25D(0, oscillatingY, 5);
+
+        rotatingCube = Object25D.createCube(newCubePos, 3.0, AnsiColor.BRIGHT_BLUE)
+                .rotateTo(cubeRotation);
+        canvas25D.addObject(rotatingCube);
+
+        // Add static objects back
+        staticPyramid = Object25D.createPyramid(new Point25D(-5, 0, 8), 2.5, AnsiColor.BRIGHT_RED);
+        canvas25D.addObject(staticPyramid);
+
+        Object25D smallCube = Object25D.createCube(new Point25D(5, 2, 6), 1.5, AnsiColor.BRIGHT_GREEN);
+        canvas25D.addObject(smallCube);
+
+        // Oscillating cube with different rotation
+        double oscillatingX = Math.cos(animationTime * Math.PI * 1.5) * 2;
+        Object25D.Rotation90 oscillatingRotation = Object25D.Rotation90.fromSteps((int)(animationTime * 2) % 4);
+        Object25D oscillatingCube = Object25D.createCube(new Point25D(oscillatingX, 1, 10), 1.0, AnsiColor.MAGENTA)
+                .rotateTo(oscillatingRotation);
+        canvas25D.addObject(oscillatingCube);
+    }
+
+    /**
+     * Creates a control button for the demo.
+     */
+    private static Box createControlButton(String text, AnsiColor color, Runnable action) {
+        Box button = new Box("btn:" + text, 12, 3, new DefaultBorder()) {
+            @Override
+            public void onFocusChanged(boolean focused) {
+                super.onFocusChanged(focused);
+                updateButtonStyle(this, focused, color);
+            }
+        };
+
+        Text buttonText = new Text("text:" + text, 0, 0, text, Text.Alignment.CENTER);
+        buttonText.setForegroundColor(color);
+        button.setContent(buttonText);
+        button.setCanFocus(true);
+
+        return button;
+    }
+
+    /**
+     * Updates button visual style based on focus state.
+     */
+    private static void updateButtonStyle(Box box, boolean focused, AnsiColor baseColor) {
+        Text text = (Text) box.getChild();
+        if (text != null) {
+            if (focused) {
+                text.setBackgroundColor(baseColor);
+                text.setForegroundColor(AnsiColor.BRIGHT_WHITE);
+            } else {
+                text.setBackgroundColor(null);
+                text.setForegroundColor(baseColor);
+            }
         }
     }
 
     /**
-     * Updates the status text with current information.
+     * Updates the status text display.
      */
     private static void updateStatusText(Text statusText) {
-        String sceneName = switch (currentScene) {
-            case 1 -> "Basic Objects";
-            case 2 -> "Maze";
-            case 3 -> "Garden";
-            case 4 -> "City";
-            default -> "Unknown";
-        };
+        updateStatusText(statusText, null);
+    }
 
-        String status = String.format(
-            "Scene %d/%d: %s | Camera: Pos(%.1f,%.1f,%.1f) Dir:%s | Objects: %d | %s",
-            currentScene, maxScenes, sceneName,
-            camera.getPosition().getX(), camera.getPosition().getY(), camera.getPosition().getZ(),
-            camera.getDirectionName(),
-            canvas25D.getObjectCount(),
-            lastAction
-        );
+    /**
+     * Updates the status text with current demo information.
+     */
+    private static void updateStatusText(Text statusText, ProcessLoop processLoop) {
+        String status = "2.5D Graphics Demo - Isometric Projection\n";
+        if (processLoop != null) {
+            status += String.format("FPS: %d | Mode: %s | Animation: %s\n",
+                    processLoop.getCurrentFPS(),
+                    currentRenderMode.toString(),
+                    isAnimating ? "ON" : "OFF");
+        } else {
+            status += "Initializing...\n";
+        }
+        status += String.format("Camera: %s at %s | %s\n",
+                camera.getDirection(),
+                camera.getPosition(),
+                lastAction);
+        status += "Controls: W/S/B=Mode, SPACE=Animate, Arrows=Move, 1-6=View, R=Reset, ESC=Quit";
+
         statusText.setText(status);
+        statusText.setForegroundColor(AnsiColor.BRIGHT_WHITE);
     }
 
     /**
-     * Creates a basic scene with simple objects demonstrating different textures and colors.
+     * Starts the animation thread for updating the 2.5D scene.
      */
-    private static void createBasicScene() {
-        // Create a simple cross pattern
-        canvas25D.createObject(0, 0, 0, "X", AnsiColor.RED);
-        canvas25D.createObject(2, 0, 0, "O", AnsiColor.BLUE);
-        canvas25D.createObject(-2, 0, 0, "O", AnsiColor.BLUE);
-        canvas25D.createObject(0, 2, 0, "O", AnsiColor.GREEN);
-        canvas25D.createObject(0, -2, 0, "O", AnsiColor.GREEN);
+    private static void startAnimationThread(ProcessLoop processLoop) {
+        animationThread = new Thread(() -> {
+            try {
+                final long targetFrameTime = 1000 / 30; // 30 FPS = ~33ms per frame
 
-        // Add some objects at different heights
-        canvas25D.createObject(4, 4, 1, "^", AnsiColor.YELLOW);
-        canvas25D.createObject(-4, -4, 1, "^", AnsiColor.YELLOW);
-        canvas25D.createObject(4, -4, -1, "v", AnsiColor.MAGENTA);
-        canvas25D.createObject(-4, 4, -1, "v", AnsiColor.MAGENTA);
+                while (!Thread.currentThread().isInterrupted()) {
+                    long frameStart = System.currentTimeMillis();
 
-        // Create a circle of objects
-        for (int i = 0; i < 8; i++) {
-            double angle = i * Math.PI / 4;
-            double x = 6 * Math.cos(angle);
-            double y = 6 * Math.sin(angle);
-            canvas25D.createObject(x, y, 0, "*", AnsiColor.CYAN);
-        }
-    }
+                    synchronized (animationLock) {
+                        if (isAnimating) {
+                            animationTime += 0.03; // Animation speed
+                            updateAnimatedScene();
 
-    /**
-     * Creates a maze-like scene with walls and passages.
-     */
-    private static void createMazeScene() {
-        // Create maze walls
-        char wallChar = '█';
-        AnsiColor wallColor = AnsiColor.WHITE;
+                            // Signal ProcessLoop that a refresh is needed
+                            processLoop.requestRedraw();
+                        }
+                    }
 
-        // Outer walls
-        for (int x = -8; x <= 8; x++) {
-            canvas25D.createObject(x, -8, 0, String.valueOf(wallChar), wallColor);
-            canvas25D.createObject(x, 8, 0, String.valueOf(wallChar), wallColor);
-        }
-        for (int y = -8; y <= 8; y++) {
-            canvas25D.createObject(-8, y, 0, String.valueOf(wallChar), wallColor);
-            canvas25D.createObject(8, y, 0, String.valueOf(wallChar), wallColor);
-        }
-
-        // Internal walls creating a simple maze
-        for (int x = -6; x <= 6; x += 2) {
-            for (int y = -6; y <= 2; y++) {
-                if (y != 0) canvas25D.createObject(x, y, 0, String.valueOf(wallChar), wallColor);
+                    // Frame rate limiting
+                    long frameTime = System.currentTimeMillis() - frameStart;
+                    long sleepTime = targetFrameTime - frameTime;
+                    if (sleepTime > 0) {
+                        Thread.sleep(sleepTime);
+                    }
+                }
+            } catch (InterruptedException e) {
+                // Thread was interrupted, exit gracefully
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                log.error("Error in animation thread", e);
             }
-        }
+        }, "2.5D-Animation-Thread");
 
-        // Add some items in the maze
-        canvas25D.createObject(0, 0, 0, "!", AnsiColor.YELLOW);
-        canvas25D.createObject(4, 4, 0, "$", AnsiColor.GREEN);
-        canvas25D.createObject(-4, -4, 0, "?", AnsiColor.BLUE);
-        canvas25D.createObject(6, -2, 0, "@", AnsiColor.RED);
+        animationThread.setDaemon(true);
+        animationThread.start();
     }
 
     /**
-     * Creates a garden scene with trees, flowers, and paths.
+     * Stops the animation thread.
      */
-    private static void createGardenScene() {
-        // Create trees (tall objects)
-        canvas25D.createObject(-5, -5, 2, "T", AnsiColor.GREEN);
-        canvas25D.createObject(5, -5, 2, "T", AnsiColor.GREEN);
-        canvas25D.createObject(-5, 5, 2, "T", AnsiColor.GREEN);
-        canvas25D.createObject(5, 5, 2, "T", AnsiColor.GREEN);
-
-        // Tree trunks
-        canvas25D.createObject(-5, -5, 0, "|", AnsiColor.BLACK);
-        canvas25D.createObject(5, -5, 0, "|", AnsiColor.BLACK);
-        canvas25D.createObject(-5, 5, 0, "|", AnsiColor.BLACK);
-        canvas25D.createObject(5, 5, 0, "|", AnsiColor.BLACK);
-
-        // Create flower beds
-        String[] flowers = {"*", "o", "+", "~"};
-        AnsiColor[] flowerColors = {AnsiColor.RED, AnsiColor.YELLOW, AnsiColor.MAGENTA, AnsiColor.BLUE};
-
-        for (int i = 0; i < 20; i++) {
-            double angle = i * Math.PI / 10;
-            double radius = 2 + Math.random() * 2;
-            double x = radius * Math.cos(angle);
-            double y = radius * Math.sin(angle);
-            int flowerType = (int) (Math.random() * flowers.length);
-            canvas25D.createObject(x, y, 0, flowers[flowerType], flowerColors[flowerType]);
-        }
-
-        // Create a path with stones
-        for (int i = -8; i <= 8; i++) {
-            if (i % 2 == 0) {
-                canvas25D.createObject(i, 0, -0.5, ".", AnsiColor.BLACK);
-                canvas25D.createObject(0, i, -0.5, ".", AnsiColor.BLACK);
+    private static void stopAnimationThread() {
+        if (animationThread != null && animationThread.isAlive()) {
+            animationThread.interrupt();
+            try {
+                animationThread.join(1000); // Wait max 1 second for thread to finish
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-        }
-    }
-
-    /**
-     * Creates a city scene with buildings of different heights.
-     */
-    private static void createCityScene() {
-        // Create buildings with different heights
-        int[][] buildings = {
-            {-6, -6, 3}, {-6, -2, 1}, {-6, 2, 4}, {-6, 6, 2},
-            {-2, -6, 2}, {-2, -2, 5}, {-2, 2, 1}, {-2, 6, 3},
-            {2, -6, 4}, {2, -2, 2}, {2, 2, 6}, {2, 6, 1},
-            {6, -6, 1}, {6, -2, 3}, {6, 2, 2}, {6, 6, 4}
-        };
-
-        for (int[] building : buildings) {
-            int x = building[0];
-            int y = building[1];
-            int height = building[2];
-
-            // Building base
-            canvas25D.createObject(x, y, 0, "█", AnsiColor.BLACK);
-
-            // Building top based on height
-            char topChar = switch (height) {
-                case 1 -> '▀';
-                case 2 -> '▄';
-                case 3 -> '█';
-                case 4 -> '▬';
-                case 5 -> '≡';
-                case 6 -> '▣';
-                default -> '■';
-            };
-
-            AnsiColor buildingColor = switch (height % 4) {
-                case 0 -> AnsiColor.BLUE;
-                case 1 -> AnsiColor.GREEN;
-                case 2 -> AnsiColor.YELLOW;
-                default -> AnsiColor.CYAN;
-            };
-
-            canvas25D.createObject(x, y, height, String.valueOf(topChar), buildingColor);
-        }
-
-        // Add some cars on the streets
-        canvas25D.createObject(-7, 0, 0, "C", AnsiColor.RED);
-        canvas25D.createObject(7, 0, 0, "C", AnsiColor.BLUE);
-        canvas25D.createObject(0, -7, 0, "C", AnsiColor.YELLOW);
-        canvas25D.createObject(0, 7, 0, "C", AnsiColor.GREEN);
-
-        // Add street lights
-        for (int i = -4; i <= 4; i += 4) {
-            canvas25D.createObject(i, 0, 1, "l", AnsiColor.WHITE);
-            canvas25D.createObject(0, i, 1, "l", AnsiColor.WHITE);
         }
     }
 }

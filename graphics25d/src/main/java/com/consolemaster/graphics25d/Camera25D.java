@@ -1,167 +1,155 @@
 package com.consolemaster.graphics25d;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Represents a 2.5D camera with position and viewing direction.
- * The camera is used to render the 2.5D scene from a specific viewpoint.
+ * Camera for 2.5D graphics with position and viewing direction.
+ * The camera supports 6 different viewing directions: front, right, back, left, top, bottom.
+ * The camera is positioned away from the projection plane to allow objects around it to be visible.
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Camera25D {
-    private Point25D position;
-    private int direction; // 0, 90, 180, 270 degrees
 
     /**
-     * Creates a new camera at the origin looking north (0 degrees).
+     * Viewing directions for the 2.5D camera.
      */
-    public Camera25D() {
-        this.position = new Point25D(0, 0, 0);
-        this.direction = 0;
-    }
+    public enum Direction {
+        FRONT(0),   // Looking towards positive Z
+        RIGHT(1),   // Looking towards positive X
+        BACK(2),    // Looking towards negative Z
+        LEFT(3),    // Looking towards negative X
+        TOP(4),     // Looking down (negative Y)
+        BOTTOM(5);  // Looking up (positive Y)
 
-    /**
-     * Creates a new camera at the specified position and direction.
-     *
-     * @param position the camera position
-     * @param direction the viewing direction (0, 90, 180, 270 degrees)
-     */
-    public Camera25D(Point25D position, int direction) {
-        this.position = position;
-        setDirection(direction);
-    }
+        private final int value;
 
-    /**
-     * Creates a new camera at the specified coordinates and direction.
-     *
-     * @param x the x-coordinate
-     * @param y the y-coordinate
-     * @param z the z-coordinate
-     * @param direction the viewing direction (0, 90, 180, 270 degrees)
-     */
-    public Camera25D(double x, double y, double z, int direction) {
-        this.position = new Point25D(x, y, z);
-        setDirection(direction);
-    }
-
-    /**
-     * Sets the viewing direction, ensuring it's one of the valid values.
-     *
-     * @param direction the direction in degrees (0, 90, 180, 270)
-     * @throws IllegalArgumentException if direction is not valid
-     */
-    public void setDirection(int direction) {
-        if (direction != 0 && direction != 90 && direction != 180 && direction != 270) {
-            throw new IllegalArgumentException("Direction must be 0, 90, 180, or 270 degrees");
+        Direction(int value) {
+            this.value = value;
         }
-        this.direction = direction;
+
+        public int getValue() {
+            return value;
+        }
+
+        public static Direction fromValue(int value) {
+            for (Direction dir : values()) {
+                if (dir.value == value) {
+                    return dir;
+                }
+            }
+            return FRONT;
+        }
+    }
+
+    private Point25D position = new Point25D(0, 0, 0);
+    private Direction direction = Direction.FRONT;
+    private double distance = 10.0; // Distance from camera to projection plane
+
+    /**
+     * Projects a 3D point to 2D screen coordinates based on camera position and direction.
+     * The projection uses isometric-style transformation for 2.5D effect.
+     */
+    public Point2D project(Point25D worldPoint) {
+        // Translate point relative to camera position
+        Point25D relative = worldPoint.subtract(position);
+
+        // Apply rotation based on camera direction
+        Point25D rotated = applyDirectionRotation(relative);
+
+        // Apply isometric projection (2.5D style)
+        // X coordinate: combine x and z with 45-degree angle effect
+        // Y coordinate: combine y with z depth effect
+        double screenX = rotated.getX() + (rotated.getZ() * 0.5);
+        double screenY = rotated.getY() - (rotated.getZ() * 0.5);
+
+        return new Point2D(screenX, screenY);
     }
 
     /**
-     * Rotates the camera by 90 degrees clockwise.
+     * Applies rotation transformation based on camera viewing direction.
+     */
+    private Point25D applyDirectionRotation(Point25D point) {
+        double x = point.getX();
+        double y = point.getY();
+        double z = point.getZ();
+
+        switch (direction) {
+            case FRONT:
+                return new Point25D(x, y, z);
+            case RIGHT:
+                return new Point25D(-z, y, x);
+            case BACK:
+                return new Point25D(-x, y, -z);
+            case LEFT:
+                return new Point25D(z, y, -x);
+            case TOP:
+                return new Point25D(x, -z, y);
+            case BOTTOM:
+                return new Point25D(x, z, -y);
+            default:
+                return point;
+        }
+    }
+
+    /**
+     * Moves the camera in the specified direction relative to its current orientation.
+     */
+    public void move(double deltaX, double deltaY, double deltaZ) {
+        Point25D delta = new Point25D(deltaX, deltaY, deltaZ);
+        // Apply inverse rotation to move in camera-relative coordinates
+        Point25D worldDelta = applyInverseDirectionRotation(delta);
+        position = position.add(worldDelta);
+    }
+
+    /**
+     * Applies inverse rotation for camera movement.
+     */
+    private Point25D applyInverseDirectionRotation(Point25D point) {
+        double x = point.getX();
+        double y = point.getY();
+        double z = point.getZ();
+
+        switch (direction) {
+            case FRONT:
+                return new Point25D(x, y, z);
+            case RIGHT:
+                return new Point25D(z, y, -x);
+            case BACK:
+                return new Point25D(-x, y, -z);
+            case LEFT:
+                return new Point25D(-z, y, x);
+            case TOP:
+                return new Point25D(x, -z, y);
+            case BOTTOM:
+                return new Point25D(x, z, -y);
+            default:
+                return point;
+        }
+    }
+
+    /**
+     * Rotates the camera to the next direction clockwise.
      */
     public void rotateClockwise() {
-        direction = (direction + 90) % 360;
+        int nextValue = (direction.getValue() + 1) % 6;
+        direction = Direction.fromValue(nextValue);
     }
 
     /**
-     * Rotates the camera by 90 degrees counter-clockwise.
+     * Rotates the camera to the previous direction counter-clockwise.
      */
     public void rotateCounterClockwise() {
-        direction = (direction - 90 + 360) % 360;
+        int prevValue = (direction.getValue() - 1 + 6) % 6;
+        direction = Direction.fromValue(prevValue);
     }
 
-    /**
-     * Moves the camera forward in the current viewing direction.
-     *
-     * @param distance the distance to move
-     */
-    public void moveForward(double distance) {
-        switch (direction) {
-            case 0:   // North
-                position.setY(position.getY() - distance);
-                break;
-            case 90:  // East
-                position.setX(position.getX() + distance);
-                break;
-            case 180: // South
-                position.setY(position.getY() + distance);
-                break;
-            case 270: // West
-                position.setX(position.getX() - distance);
-                break;
-        }
-    }
-
-    /**
-     * Moves the camera backward in the current viewing direction.
-     *
-     * @param distance the distance to move
-     */
-    public void moveBackward(double distance) {
-        moveForward(-distance);
-    }
-
-    /**
-     * Moves the camera left relative to the current viewing direction.
-     *
-     * @param distance the distance to move
-     */
-    public void moveLeft(double distance) {
-        switch (direction) {
-            case 0:   // North - left is west
-                position.setX(position.getX() - distance);
-                break;
-            case 90:  // East - left is north
-                position.setY(position.getY() - distance);
-                break;
-            case 180: // South - left is east
-                position.setX(position.getX() + distance);
-                break;
-            case 270: // West - left is south
-                position.setY(position.getY() + distance);
-                break;
-        }
-    }
-
-    /**
-     * Moves the camera right relative to the current viewing direction.
-     *
-     * @param distance the distance to move
-     */
-    public void moveRight(double distance) {
-        moveLeft(-distance);
-    }
-
-    /**
-     * Moves the camera up (increases z coordinate).
-     *
-     * @param distance the distance to move up
-     */
-    public void moveUp(double distance) {
-        position.setZ(position.getZ() + distance);
-    }
-
-    /**
-     * Moves the camera down (decreases z coordinate).
-     *
-     * @param distance the distance to move down
-     */
-    public void moveDown(double distance) {
-        position.setZ(position.getZ() - distance);
-    }
-
-    /**
-     * Gets the direction as a string.
-     *
-     * @return the direction name (North, East, South, West)
-     */
-    public String getDirectionName() {
-        return switch (direction) {
-            case 0 -> "North";
-            case 90 -> "East";
-            case 180 -> "South";
-            case 270 -> "West";
-            default -> "Unknown";
-        };
+    @Override
+    public String toString() {
+        return String.format("Camera25D[pos=%s, dir=%s, dist=%.1f]",
+                           position, direction, distance);
     }
 }

@@ -3,232 +3,315 @@ package com.consolemaster.graphics25d;
 import com.consolemaster.AnsiColor;
 import com.consolemaster.Canvas;
 import com.consolemaster.Graphics;
+import com.consolemaster.StyledChar;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * A Canvas implementation for rendering 2.5D graphics.
- * Objects are positioned in 3D space but rendered using a 2.5D perspective
- * where z-coordinate affects the apparent size and depth sorting.
+ * Canvas for rendering 2.5D graphics using isometric projection.
+ * Objects are rendered as if viewed on graph paper with Z-axis tiles inclined at 45 degrees.
+ * Supports both wireframe and solid rendering modes.
  */
-@Getter
-@Setter
+@Slf4j
 public class Graphics25DCanvas extends Canvas {
 
-    private final List<Object25D> objects;
-    private Camera25D camera;
-
-    // Rendering settings
-    private double viewDistance = 10.0; // Maximum viewing distance
-    private double perspectiveFactor = 1.0; // How much z affects size
-    private boolean depthSorting = true; // Whether to sort objects by distance
-    private char defaultChar = '█'; // Default character if texture is empty
-    private AnsiColor backgroundColor = AnsiColor.BLACK;
-
     /**
-     * Creates a new Graphics25DCanvas with the specified dimensions.
-     *
-     * @param name the name of the canvas
-     * @param width the width of the canvas
-     * @param height the height of the canvas
+     * Rendering modes for 2.5D graphics.
      */
+    public enum RenderMode {
+        WIREFRAME,  // Only draw edges
+        SOLID,      // Fill faces
+        BOTH        // Draw both edges and fill
+    }
+
+    @Getter @Setter
+    private Camera25D camera = new Camera25D();
+
+    @Getter @Setter
+    private RenderMode renderMode = RenderMode.WIREFRAME;
+
+    @Getter @Setter
+    private char wireframeChar = '+';
+
+    @Getter @Setter
+    private AnsiColor wireframeColor = AnsiColor.WHITE;
+
+    @Getter @Setter
+    private char defaultFillChar = '#';
+
+    @Getter @Setter
+    private AnsiColor defaultFillColor = AnsiColor.BRIGHT_WHITE;
+
+    @Getter
+    private final List<Object25D> objects = new ArrayList<>();
+
+    // Synchronization object for thread-safe access to objects list
+    private final Object objectsLock = new Object();
+
+    // Z-buffer for depth testing
+    private double[][] zBuffer;
+
     public Graphics25DCanvas(String name, int width, int height) {
         super(name, width, height);
-        this.objects = new ArrayList<>();
-        this.camera = new Camera25D();
+        initializeZBuffer();
     }
 
     /**
-     * Adds an object to the 2.5D scene.
-     *
-     * @param object the object to add
+     * Initializes the Z-buffer for depth testing.
+     */
+    private void initializeZBuffer() {
+        zBuffer = new double[getHeight()][getWidth()];
+        clearZBuffer();
+    }
+
+    /**
+     * Clears the Z-buffer with maximum depth values.
+     */
+    private void clearZBuffer() {
+        if (zBuffer == null || zBuffer.length != getHeight() || zBuffer[0].length != getWidth()) {
+            zBuffer = new double[getHeight()][getWidth()];
+        }
+        for (int y = 0; y < getHeight(); y++) {
+            for (int x = 0; x < getWidth(); x++) {
+                zBuffer[y][x] = Double.MAX_VALUE;
+            }
+        }
+    }
+
+    /**
+     * Adds an object to the scene.
      */
     public void addObject(Object25D object) {
-        objects.add(object);
+        synchronized (objectsLock) {
+            objects.add(object);
+        }
     }
 
     /**
-     * Removes an object from the 2.5D scene.
-     *
-     * @param object the object to remove
-     * @return true if the object was removed
+     * Removes an object from the scene.
      */
-    public boolean removeObject(Object25D object) {
-        return objects.remove(object);
+    public void removeObject(Object25D object) {
+        synchronized (objectsLock) {
+            objects.remove(object);
+        }
     }
 
     /**
      * Clears all objects from the scene.
      */
     public void clearObjects() {
-        objects.clear();
-    }
-
-    /**
-     * Gets the number of objects in the scene.
-     *
-     * @return the object count
-     */
-    public int getObjectCount() {
-        return objects.size();
-    }
-
-    /**
-     * Creates a simple object at the specified position.
-     *
-     * @param x the x-coordinate
-     * @param y the y-coordinate
-     * @param z the z-coordinate
-     * @param texture the texture string
-     * @param color the ANSI color
-     * @return the created object
-     */
-    public Object25D createObject(double x, double y, double z, String texture, AnsiColor color) {
-        Object25D object = new Object25D(x, y, z, texture, color);
-        addObject(object);
-        return object;
+        synchronized (objectsLock) {
+            objects.clear();
+        }
     }
 
     @Override
     public void paint(Graphics graphics) {
-        // Clear the background
-        graphics.setBackgroundColor(backgroundColor);
+        // Clear the canvas
         graphics.clear();
+        clearZBuffer();
 
-        if (objects.isEmpty()) {
-            return;
+        // Create a copy of objects list to avoid ConcurrentModificationException
+        List<Object25D> objectsCopy;
+        synchronized (objectsLock) {
+            objectsCopy = new ArrayList<>(objects);
         }
 
-        // Get the list of objects to render
-        List<Object25D> renderObjects = new ArrayList<>(objects);
-
-        // Filter objects by viewing distance
-        renderObjects.removeIf(obj -> obj.distanceTo(camera.getPosition()) > viewDistance);
-
-        // Sort objects by distance from camera if depth sorting is enabled
-        if (depthSorting) {
-            renderObjects.sort(Comparator.comparingDouble(obj -> -obj.distanceTo(camera.getPosition())));
-        }
+        // Sort objects by distance from camera for proper rendering order
+        objectsCopy.sort(Comparator.comparingDouble(obj ->
+            -camera.getPosition().distanceTo(obj.getPosition()))); // Negative for far-to-near sorting
 
         // Render each object
-        for (Object25D object : renderObjects) {
+        for (Object25D object : objectsCopy) {
             renderObject(graphics, object);
         }
     }
 
     /**
-     * Renders a single object to the graphics context.
-     *
-     * @param graphics the graphics context
-     * @param object the object to render
+     * Renders a single 2.5D object.
      */
     private void renderObject(Graphics graphics, Object25D object) {
-        Point25D objPos = object.getPosition();
-        Point25D camPos = camera.getPosition();
+        for (Object25D.Face25D face : object.getFaces()) {
+            if (isBackface(object, face)) {
+                continue; // Skip backfaces for performance
+            }
 
-        // Calculate relative position to camera
-        double relativeX = objPos.getX() - camPos.getX();
-        double relativeY = objPos.getY() - camPos.getY();
-        double relativeZ = objPos.getZ() - camPos.getZ();
+            List<Point2D> projectedVertices = new ArrayList<>();
+            List<Point25D> worldVertices = new ArrayList<>();
 
-        // Apply camera rotation
-        Point25D rotatedPos = applyCameraRotation(relativeX, relativeY, relativeZ);
+            // Project vertices to screen coordinates
+            for (Point25D vertex : face.getVertices()) {
+                Point25D worldVertex = object.getWorldVertex(vertex);
+                worldVertices.add(worldVertex);
+                Point2D projected = camera.project(worldVertex);
+                projectedVertices.add(projected);
+            }
 
-        // Convert 3D position to 2D screen coordinates
-        Point2D screenPos = projectTo2D(rotatedPos);
-
-        // Check if the object is within screen bounds
-        if (screenPos.getX() >= 0 && screenPos.getX() < getWidth() &&
-            screenPos.getY() >= 0 && screenPos.getY() < getHeight()) {
-
-            // Get the character to render
-            char renderChar = getCharacterFromTexture(object.getTexture());
-
-            // Set color and draw the character
-            graphics.setForegroundColor(object.getColor());
-            graphics.drawChar((int) screenPos.getX(), (int) screenPos.getY(), renderChar);
+            // Render based on mode
+            switch (renderMode) {
+                case WIREFRAME:
+                    renderWireframe(graphics, projectedVertices, worldVertices);
+                    break;
+                case SOLID:
+                    renderSolid(graphics, projectedVertices, worldVertices, face);
+                    break;
+                case BOTH:
+                    renderSolid(graphics, projectedVertices, worldVertices, face);
+                    renderWireframe(graphics, projectedVertices, worldVertices);
+                    break;
+            }
         }
     }
 
     /**
-     * Applies camera rotation to transform coordinates.
-     *
-     * @param x the x-coordinate relative to camera
-     * @param y the y-coordinate relative to camera
-     * @param z the z-coordinate relative to camera
-     * @return the rotated coordinates
+     * Simple backface culling based on face normal and camera direction.
      */
-    private Point25D applyCameraRotation(double x, double y, double z) {
-        double rotatedX, rotatedY;
+    private boolean isBackface(Object25D object, Object25D.Face25D face) {
+        if (face.getVertices().size() < 3) {
+            return false;
+        }
 
-        // Apply 2D rotation based on camera direction
-        double angleRad = Math.toRadians(camera.getDirection());
-        double cos = Math.cos(angleRad);
-        double sin = Math.sin(angleRad);
+        // Calculate face normal using first three vertices
+        Point25D v0 = object.getWorldVertex(face.getVertices().get(0));
+        Point25D v1 = object.getWorldVertex(face.getVertices().get(1));
+        Point25D v2 = object.getWorldVertex(face.getVertices().get(2));
 
-        rotatedX = x * cos - y * sin;
-        rotatedY = x * sin + y * cos;
+        Point25D edge1 = v1.subtract(v0);
+        Point25D edge2 = v2.subtract(v0);
 
-        return new Point25D(rotatedX, rotatedY, z);
+        // Cross product for normal (simplified)
+        double normalX = edge1.getY() * edge2.getZ() - edge1.getZ() * edge2.getY();
+        double normalY = edge1.getZ() * edge2.getX() - edge1.getX() * edge2.getZ();
+        double normalZ = edge1.getX() * edge2.getY() - edge1.getY() * edge2.getX();
+
+        // Vector from face to camera
+        Point25D faceCenter = v0.add(v1).add(v2).multiply(1.0/3.0);
+        Point25D toCamera = camera.getPosition().subtract(faceCenter);
+
+        // Dot product to determine if face is pointing away
+        double dot = normalX * toCamera.getX() + normalY * toCamera.getY() + normalZ * toCamera.getZ();
+        return dot < 0; // Face is pointing away from camera
     }
 
     /**
-     * Projects a 3D point to 2D screen coordinates.
-     *
-     * @param point the 3D point to project
-     * @return the 2D screen coordinates
+     * Renders the wireframe of a face.
      */
-    private Point2D projectTo2D(Point25D point) {
-        // Simple orthographic projection with perspective scaling
-        double distance = Math.sqrt(point.getX() * point.getX() + point.getY() * point.getY());
-        double scale = 1.0;
+    private void renderWireframe(Graphics graphics, List<Point2D> vertices, List<Point25D> worldVertices) {
+        for (int i = 0; i < vertices.size(); i++) {
+            Point2D start = vertices.get(i);
+            Point2D end = vertices.get((i + 1) % vertices.size());
+            Point25D worldStart = worldVertices.get(i);
+            Point25D worldEnd = worldVertices.get((i + 1) % worldVertices.size());
 
-        // Apply perspective based on z-coordinate
-        if (perspectiveFactor > 0) {
-            scale = 1.0 / (1.0 + point.getZ() * perspectiveFactor * 0.1);
+            drawLine(graphics, start, end, worldStart, worldEnd, wireframeChar, wireframeColor);
+        }
+    }
+
+    /**
+     * Renders a filled face.
+     */
+    private void renderSolid(Graphics graphics, List<Point2D> vertices, List<Point25D> worldVertices, Object25D.Face25D face) {
+        if (vertices.size() < 3) {
+            return; // Can't fill a face with less than 3 vertices
         }
 
+        // Simple triangle fan filling for convex polygons
+        Point2D center = vertices.get(0);
+        Point25D worldCenter = worldVertices.get(0);
+
+        char fillChar = face.getFillChar() != '\0' ? face.getFillChar() : defaultFillChar;
+        AnsiColor fillColor = face.getColor() != null ? face.getColor() : defaultFillColor;
+
+        for (int i = 1; i < vertices.size() - 1; i++) {
+            fillTriangle(graphics,
+                        center, vertices.get(i), vertices.get(i + 1),
+                        worldCenter, worldVertices.get(i), worldVertices.get(i + 1),
+                        fillChar, fillColor);
+        }
+    }
+
+    /**
+     * Draws a line between two points using Bresenham's algorithm with depth testing.
+     */
+    private void drawLine(Graphics graphics, Point2D start, Point2D end,
+                         Point25D worldStart, Point25D worldEnd, char ch, AnsiColor color) {
+        int x0 = start.getIntX() + getWidth() / 2;
+        int y0 = start.getIntY() + getHeight() / 2;
+        int x1 = end.getIntX() + getWidth() / 2;
+        int y1 = end.getIntY() + getHeight() / 2;
+
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        int x = x0, y = y0;
+        double totalDistance = Math.sqrt(dx * dx + dy * dy);
+
+        while (true) {
+            if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight()) {
+                // Calculate depth for this pixel
+                double pixelDistance = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
+                double t = totalDistance > 0 ? pixelDistance / totalDistance : 0;
+                double depth = worldStart.getZ() + t * (worldEnd.getZ() - worldStart.getZ());
+
+                // Depth test
+                if (depth < zBuffer[y][x]) {
+                    zBuffer[y][x] = depth;
+                    graphics.drawStyledChar(x, y, ch, color, null);
+                }
+            }
+
+            if (x == x1 && y == y1) break;
+
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y += sy;
+            }
+        }
+    }
+
+    /**
+     * Fills a triangle using scanline algorithm with depth testing.
+     */
+    private void fillTriangle(Graphics graphics, Point2D p0, Point2D p1, Point2D p2,
+                             Point25D world0, Point25D world1, Point25D world2,
+                             char fillChar, AnsiColor fillColor) {
         // Convert to screen coordinates
-        double screenX = (getWidth() / 2.0) + (point.getX() * scale);
-        double screenY = (getHeight() / 2.0) + (point.getY() * scale);
+        int x0 = p0.getIntX() + getWidth() / 2;
+        int y0 = p0.getIntY() + getHeight() / 2;
+        int x1 = p1.getIntX() + getWidth() / 2;
+        int y1 = p1.getIntY() + getHeight() / 2;
+        int x2 = p2.getIntX() + getWidth() / 2;
+        int y2 = p2.getIntY() + getHeight() / 2;
 
-        return new Point2D(screenX, screenY);
+        // Simple fill: just fill the center point for now (can be improved)
+        int centerX = (x0 + x1 + x2) / 3;
+        int centerY = (y0 + y1 + y2) / 3;
+        double centerDepth = (world0.getZ() + world1.getZ() + world2.getZ()) / 3.0;
+
+        if (centerX >= 0 && centerX < getWidth() && centerY >= 0 && centerY < getHeight()) {
+            if (centerDepth < zBuffer[centerY][centerX]) {
+                zBuffer[centerY][centerX] = centerDepth;
+                graphics.drawStyledChar(centerX, centerY, fillChar, fillColor, null);
+            }
+        }
     }
 
-    /**
-     * Extracts a character from the texture string.
-     * If texture is empty or null, returns the default character.
-     *
-     * @param texture the texture string
-     * @return the character to render
-     */
-    private char getCharacterFromTexture(String texture) {
-        if (texture == null || texture.isEmpty()) {
-            return defaultChar;
-        }
-
-        // For now, just use the first character of the texture
-        // Could be extended to support multi-character textures or animations
-        return texture.charAt(0);
-    }
-
-    /**
-     * Simple 2D point class for screen coordinates.
-     */
-    private static class Point2D {
-        private final double x;
-        private final double y;
-
-        public Point2D(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public double getX() { return x; }
-        public double getY() { return y; }
+    @Override
+    public String toString() {
+        return String.format("Graphics25DCanvas[%s, objects=%d, mode=%s, camera=%s]",
+                           getName(), objects.size(), renderMode, camera);
     }
 }
