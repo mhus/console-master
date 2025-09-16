@@ -87,6 +87,8 @@ public class NativeTerminal extends Terminal {
 
         } catch (Exception e) {
             throw new IOException("Failed to exit raw mode", e);
+        } finally {
+            clearScreen();
         }
     }
 

@@ -22,6 +22,8 @@ public class Graphic3DDemo {
     // Animation thread
     private static Thread animationThread;
     private static final Object animationLock = new Object();
+    private static Mesh3D rotatedCube;
+    private static Transformation cubeTransformation;
 
     public static void main(String[] args) {
         try {
@@ -151,32 +153,32 @@ public class Graphic3DDemo {
             });
 
             // Camera controls
-            screen.registerShortcut("UP", () -> {
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_UP.name(), () -> {
                 camera.moveForward(0.5);
                 lastAction = "Camera Forward";
             });
 
-            screen.registerShortcut("DOWN", () -> {
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_DOWN.name(), () -> {
                 camera.moveForward(-0.5);
                 lastAction = "Camera Backward";
             });
 
-            screen.registerShortcut("LEFT", () -> {
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_LEFT.name() , () -> {
                 camera.moveRight(-0.5);
                 lastAction = "Camera Left";
             });
 
-            screen.registerShortcut("RIGHT", () -> {
+            screen.registerShortcut(KeyEvent.SpecialKey.ARROW_RIGHT.name() , () -> {
                 camera.moveRight(0.5);
                 lastAction = "Camera Right";
             });
 
-            screen.registerShortcut("PageUp", () -> {
+            screen.registerShortcut(KeyEvent.SpecialKey.PAGE_UP.name(), () -> {
                 camera.moveUp(0.5);
                 lastAction = "Camera Up";
             });
 
-            screen.registerShortcut("PageDown", () -> {
+            screen.registerShortcut(KeyEvent.SpecialKey.PAGE_DOWN.name(), () -> {
                 camera.moveUp(-0.5);
                 lastAction = "Camera Down";
             });
@@ -215,69 +217,79 @@ public class Graphic3DDemo {
         }
     }
 
-    /**
-     * Creates the initial 3D scene with various objects.
-     */
     private static void createInitialScene() {
         canvas3D.clearMeshes();
 
-        // Create a simple cube at the origin for testing
-        Mesh3D simpleCube = Mesh3D.createCube(15);
-        canvas3D.addMesh(simpleCube);
+//        // Create a simple cube at the origin for testing
+//        Mesh3D simpleCube = Mesh3D.createCube(15);
+//        canvas3D.addMesh(simpleCube);
 
         // Add a rotated cube for better visibility
-        Mesh3D rotatedCube = Mesh3D.createCube(1.0);
-        Matrix4x4 rotation = Matrix4x4.rotationY(Math.PI / 4).multiply(Matrix4x4.rotationX(Math.PI / 6));
-        Matrix4x4 translation = Matrix4x4.translation(2, 0, 0);
-        Matrix4x4 transform = translation.multiply(rotation);
-        Mesh3D transformedCube = rotatedCube.transform(transform);
-        canvas3D.addMesh(transformedCube);
+        rotatedCube = Mesh3D.createCube(5.0);
+        cubeTransformation = new Transformation();
+        cubeTransformation.x = 2;
+        cubeTransformation.y = 0;
+        cubeTransformation.z = 0;
+        cubeTransformation.rotationX = 0;
+        cubeTransformation.rotationY = Math.toRadians(Math.PI / 4);
+        cubeTransformation.rotationZ = 0;
 
-        // Add a pyramid on the left
-        Mesh3D pyramid = Mesh3D.createPyramid(1.0);
-        Matrix4x4 pyramidTransform = Matrix4x4.translation(-2, 0, 0);
-        Mesh3D transformedPyramid = pyramid.transform(pyramidTransform);
-        canvas3D.addMesh(transformedPyramid);
+    }
+
+    /**
+     * Creates the initial 3D scene with various objects.
+     */
+    private static void updateAnimatedScene() {
+
+        // Add a rotated cube for better visibility
+        Mesh3D transformedCube = cubeTransformation.transform(rotatedCube);
+        canvas3D.addMesh(transformedCube);
+//
+//        // Add a pyramid on the left
+//        Mesh3D pyramid = Mesh3D.createPyramid(1.0);
+//        Matrix4x4 pyramidTransform = Matrix4x4.translation(-2, 0, 0);
+//        Mesh3D transformedPyramid = pyramid.transform(pyramidTransform);
+//        canvas3D.addMesh(transformedPyramid);
     }
 
     /**
      * Updates the animated 3D scene.
      */
-    private static void updateAnimatedScene() {
-        canvas3D.clearMeshes();
-
-        // Rotating colorful cube at center
-        Mesh3D colorfulCube = Mesh3D.createColorfulCube(2.0);
-        Matrix4x4 cubeRotation = Matrix4x4.rotationY(animationTime)
-                .multiply(Matrix4x4.rotationX(animationTime * 0.7));
-        Mesh3D animatedCube = colorfulCube.transform(cubeRotation);
-        canvas3D.addMesh(animatedCube);
-
-        // Orbiting textured cube
-        double orbitRadius = 4.0;
-        double orbitX = Math.cos(animationTime * 2) * orbitRadius;
-        double orbitZ = Math.sin(animationTime * 2) * orbitRadius;
-        double orbitY = Math.sin(animationTime * 3) * 1.5;
-
-        Mesh3D texturedCube = Mesh3D.createTexturedCube(1.2);
-        Matrix4x4 cubeOrbitRotation = Matrix4x4.rotationY(-animationTime * 2);
-        Matrix4x4 cubeOrbitTranslation = Matrix4x4.translation(orbitX, orbitY, orbitZ);
-        Matrix4x4 cubeOrbitTransform = cubeOrbitTranslation.multiply(cubeOrbitRotation);
-        Mesh3D orbitingTexturedCube = texturedCube.transform(cubeOrbitTransform);
-        canvas3D.addMesh(orbitingTexturedCube);
-
-        // Oscillating colorful pyramid on the left
-        double leftX = -4 + Math.sin(animationTime * 1.5) * 1.5;
-        double leftY = Math.cos(animationTime * 2) * 2;
-
-        Mesh3D colorfulPyramid = Mesh3D.createColorfulPyramid(1.0);
-        Matrix4x4 leftRotation = Matrix4x4.rotationZ(animationTime * 1.2)
-                .multiply(Matrix4x4.rotationX(animationTime * 0.8));
-        Matrix4x4 leftTranslation = Matrix4x4.translation(leftX, leftY, 0);
-        Matrix4x4 leftTransform = leftTranslation.multiply(leftRotation);
-        Mesh3D animatedColorfulPyramid = colorfulPyramid.transform(leftTransform);
-        canvas3D.addMesh(animatedColorfulPyramid);
-    }
+//    private static void updateAnimatedScene() {
+//        canvas3D.clearMeshes();
+//
+//        // Rotating colorful cube at center
+//        Mesh3D colorfulCube = Mesh3D.createColorfulCube(2.0);
+//        Matrix4x4 cubeRotation = Matrix4x4.rotationY(animationTime)
+//                .multiply(Matrix4x4.rotationX(animationTime * 0.7));
+//        Mesh3D animatedCube = colorfulCube.transform(cubeRotation);
+//        canvas3D.addMesh(animatedCube);
+//
+//        // Orbiting textured cube
+//        double orbitRadius = 4.0;
+//        double orbitX = Math.cos(animationTime * 2) * orbitRadius;
+//        double orbitZ = Math.sin(animationTime * 2) * orbitRadius;
+//        double orbitY = Math.sin(animationTime * 3) * 1.5;
+//
+//        Mesh3D texturedCube = Mesh3D.createTexturedCube(1.2);
+//        Matrix4x4 cubeOrbitRotation = Matrix4x4.rotationY(-animationTime * 2);
+//        Matrix4x4 cubeOrbitTranslation = Matrix4x4.translation(orbitX, orbitY, orbitZ);
+//        Matrix4x4 cubeOrbitTransform = cubeOrbitTranslation.multiply(cubeOrbitRotation);
+//        Mesh3D orbitingTexturedCube = texturedCube.transform(cubeOrbitTransform);
+//        canvas3D.addMesh(orbitingTexturedCube);
+//
+//        // Oscillating colorful pyramid on the left
+//        double leftX = -4 + Math.sin(animationTime * 1.5) * 1.5;
+//        double leftY = Math.cos(animationTime * 2) * 2;
+//
+//        Mesh3D colorfulPyramid = Mesh3D.createColorfulPyramid(1.0);
+//        Matrix4x4 leftRotation = Matrix4x4.rotationZ(animationTime * 1.2)
+//                .multiply(Matrix4x4.rotationX(animationTime * 0.8));
+//        Matrix4x4 leftTranslation = Matrix4x4.translation(leftX, leftY, 0);
+//        Matrix4x4 leftTransform = leftTranslation.multiply(leftRotation);
+//        Mesh3D animatedColorfulPyramid = colorfulPyramid.transform(leftTransform);
+//        canvas3D.addMesh(animatedColorfulPyramid);
+//    }
 
     /**
      * Creates a control button for the demo.
@@ -360,6 +372,7 @@ public class Graphic3DDemo {
                     synchronized (animationLock) {
                         if (isAnimating) {
                             animationTime += 0.03; // Animation speed
+                            cubeTransformation.rotationX = Math.cos(animationTime * 2);
                             updateAnimatedScene();
 
                             // Signal ProcessLoop that a refresh is needed
@@ -397,6 +410,25 @@ public class Graphic3DDemo {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+        }
+    }
+
+    private static class Transformation {
+        double x;
+        double y;
+        double z;
+        double rotationX;
+        double rotationY;
+        double rotationZ;
+
+        public Mesh3D transform(Mesh3D rotatedCube) {
+            Matrix4x4 translation = Matrix4x4.translation(x, y, z);
+            Matrix4x4 rotX = Matrix4x4.rotationX(rotationX);
+            Matrix4x4 rotY = Matrix4x4.rotationY(rotationY);
+            Matrix4x4 rotZ = Matrix4x4.rotationZ(rotationZ);
+
+            Matrix4x4 transform = translation.multiply(rotZ).multiply(rotY).multiply(rotX);
+            return rotatedCube.transform(transform);
         }
     }
 }
