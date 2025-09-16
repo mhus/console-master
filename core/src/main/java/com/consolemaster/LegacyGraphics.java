@@ -28,6 +28,11 @@ public class LegacyGraphics extends Graphics {
         }
     }
 
+    public LegacyGraphics(StyledChar[][] buffer) {
+        super(buffer.length > 0 ? buffer[0].length : 0, buffer.length);
+        this.buffer = buffer;
+    }
+
     /**
      * Creates a Graphics context with a StyledChar buffer.
      */
@@ -56,6 +61,11 @@ public class LegacyGraphics extends Graphics {
         this.currentForegroundColor = null;
         this.currentBackgroundColor = null;
         this.currentFormats = new AnsiFormat[0];
+    }
+
+    @Override
+    public StyledChar getStyledChar(int x, int y) {
+        return isValid(x, y) ? buffer[y][x] : null;
     }
 
     @Override

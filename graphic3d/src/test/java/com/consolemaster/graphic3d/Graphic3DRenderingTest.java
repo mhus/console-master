@@ -4,6 +4,7 @@ import com.consolemaster.AnsiColor;
 import com.consolemaster.LegacyGraphics;
 import com.consolemaster.Screenshot;
 import com.consolemaster.StyledChar;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;

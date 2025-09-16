@@ -8,10 +8,10 @@ import java.io.PrintStream;
  */
 public class Screenshot {
 
-    private final StyledChar[][] buffer;
     private final int width;
     private final int height;
     private final PrintStream output;
+    private final Graphics graphics;
 
     /**
      * Creates a Screenshot instance with a StyledChar buffer.
@@ -22,7 +22,7 @@ public class Screenshot {
      * @param output the PrintStream to output to
      */
     public Screenshot(StyledChar[][] buffer, int width, int height, PrintStream output) {
-        this.buffer = buffer;
+        this.graphics = new LegacyGraphics(buffer);
         this.width = width;
         this.height = height;
         this.output = output;
@@ -34,11 +34,15 @@ public class Screenshot {
      * @param graphics the LegacyGraphics context
      * @param output the PrintStream to output to
      */
-    public Screenshot(LegacyGraphics graphics, PrintStream output) {
-        this.buffer = graphics.getBuffer();
+    public Screenshot(Graphics graphics, PrintStream output) {
+        this.graphics = graphics;
         this.width = graphics.getWidth();
         this.height = graphics.getHeight();
         this.output = output;
+    }
+
+    public Screenshot(Graphics graphics) {
+        this(graphics, System.out);
     }
 
     /**
@@ -55,12 +59,13 @@ public class Screenshot {
         this.output = output;
 
         // Convert char buffer to StyledChar buffer
-        this.buffer = new StyledChar[height][width];
+        var buffer = new StyledChar[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                this.buffer[y][x] = new StyledChar(charBuffer[y][x]);
+                buffer[y][x] = new StyledChar(charBuffer[y][x]);
             }
         }
+        this.graphics = new LegacyGraphics(buffer);
     }
 
     /**
@@ -76,7 +81,7 @@ public class Screenshot {
         for (int y = 0; y < height; y++) {
             output.print("|");
             for (int x = 0; x < width; x++) {
-                StyledChar styledChar = buffer[y][x];
+                StyledChar styledChar = graphics.getStyledChar(x, y);
                 char c = styledChar.getCharacter();
 
                 // Handle null or zero characters
@@ -175,7 +180,7 @@ public class Screenshot {
         for (int y = 0; y < height; y++) {
             sb.append("|");
             for (int x = 0; x < width; x++) {
-                StyledChar styledChar = buffer[y][x];
+                StyledChar styledChar = graphics.getStyledChar(x, y);
                 char c = styledChar.getCharacter();
 
                 if (c == '\0') {

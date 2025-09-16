@@ -182,6 +182,11 @@ public class ClippingGraphics extends Graphics {
         }
     }
 
+    @Override
+    public StyledChar getStyledChar(int x, int y) {
+        return isValidAndInBounds(x, y) ? parentGraphics.getStyledChar(offsetX + x, offsetY + y) : null;
+    }
+
     /**
      * Creates a sub-region of this ClippingGraphics.
      * This allows for nested clipping regions.

@@ -143,4 +143,6 @@ public abstract class Graphics {
     public void fillRect(int x, int y, int width, int height, char c) {
         fillRectangle(x, y, width, height, c);
     }
+
+    public abstract StyledChar getStyledChar(int x, int y);
 }
