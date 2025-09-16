@@ -26,7 +26,7 @@ public class NativeTerminal extends Terminal {
      */
     public void enterRawMode() throws IOException {
         if (rawMode) return;
-
+        clearScreen();
         try {
             // Unix/Linux/macOS
             if (System.getProperty("os.name").toLowerCase().contains("nix") ||

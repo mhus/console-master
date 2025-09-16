@@ -117,7 +117,7 @@ public class Graphic3DDemo {
             processLoop.setTargetFPS(30); // 30 FPS for smooth 3D animation
 
             // Register keyboard controls
-            screen.registerShortcut("Ctrl+Q", () -> {
+            screen.registerShortcut("Q", () -> {
                 try {
                     stopAnimationThread();
                     processLoop.stop();
@@ -151,22 +151,22 @@ public class Graphic3DDemo {
             });
 
             // Camera controls
-            screen.registerShortcut("Up", () -> {
+            screen.registerShortcut("UP", () -> {
                 camera.moveForward(0.5);
                 lastAction = "Camera Forward";
             });
 
-            screen.registerShortcut("Down", () -> {
+            screen.registerShortcut("DOWN", () -> {
                 camera.moveForward(-0.5);
                 lastAction = "Camera Backward";
             });
 
-            screen.registerShortcut("Left", () -> {
+            screen.registerShortcut("LEFT", () -> {
                 camera.moveRight(-0.5);
                 lastAction = "Camera Left";
             });
 
-            screen.registerShortcut("Right", () -> {
+            screen.registerShortcut("RIGHT", () -> {
                 camera.moveRight(0.5);
                 lastAction = "Camera Right";
             });

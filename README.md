@@ -1,14 +1,22 @@
 # console-master
 
+```shell
+cd /Users/hummel/sources/mhus/console-master
+```
 ## Demo ausführen
 
 ```shell
-cd /Users/hummel/sources/mhus/console-master && mvn compile exec:java -Dexec.mainClass="com.consolemaster.BorderLayoutDemo" -pl demo
+mvn clean install exec:java -Dexec.mainClass="com.consolemaster.BorderLayoutDemo" -pl demo
 ```
 
 ## Demo Debuggen
 
 ```shell
-cd /Users/hummel/sources/mhus/console-master && mvn clean install
-cd /Users/hummel/sources/mhus/console-master && MAVEN_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" mvn compile exec:java -pl demo -Dexec.mainClass="com.consolemaster.MouseDemo"
+mvn clean install && MAVEN_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" mvn compile exec:java -pl demo -Dexec.mainClass="com.consolemaster.Graphic3DDemo"
+```
+
+Wait for debugger to attach
+
+```shell
+mvn clean install && MAVEN_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005" mvn compile exec:java -pl demo -Dexec.mainClass="com.consolemaster.Graphic3DDemo"
 ```
