@@ -1,4 +1,4 @@
-package com.consolemaster;
+package com.consolemaster.demo;
 
 import java.io.*;
 import java.time.LocalTime;

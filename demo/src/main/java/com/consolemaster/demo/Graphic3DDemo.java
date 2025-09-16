@@ -1,5 +1,16 @@
-package com.consolemaster;
+package com.consolemaster.demo;
 
+import com.consolemaster.AnsiColor;
+import com.consolemaster.BorderLayout;
+import com.consolemaster.Box;
+import com.consolemaster.Composite;
+import com.consolemaster.DefaultBorder;
+import com.consolemaster.FlowLayout;
+import com.consolemaster.KeyEvent;
+import com.consolemaster.PositionConstraint;
+import com.consolemaster.ProcessLoop;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.Text;
 import com.consolemaster.graphic3d.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -318,7 +329,7 @@ public class Graphic3DDemo {
     private static Box createControlButton(String text, AnsiColor color, Runnable action) {
         Box button = new Box("btn:" + text, 12, 3, new DefaultBorder()) {
             @Override
-            protected void onFocusChanged(boolean focused) {
+            public void onFocusChanged(boolean focused) {
                 super.onFocusChanged(focused);
                 updateButtonStyle(this, focused, color);
             }

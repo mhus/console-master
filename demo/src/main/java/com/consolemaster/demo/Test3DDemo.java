@@ -1,5 +1,8 @@
-package com.consolemaster;
+package com.consolemaster.demo;
 
+import com.consolemaster.AnsiColor;
+import com.consolemaster.GeneralGraphics;
+import com.consolemaster.Screenshot;
 import com.consolemaster.graphic3d.*;
 
 /**

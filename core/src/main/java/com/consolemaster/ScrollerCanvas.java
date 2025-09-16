@@ -493,7 +493,7 @@ public class ScrollerCanvas extends Canvas implements EventHandler, Composable {
     }
 
     @Override
-    protected void onFocusChanged(boolean focused) {
+    public void onFocusChanged(boolean focused) {
         super.onFocusChanged(focused);
         // Visual feedback for focus state could be added here
         // For example, change scrollbar colors when focused

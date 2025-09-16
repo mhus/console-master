@@ -1,5 +1,16 @@
-package com.consolemaster;
+package com.consolemaster.demo;
 
+import com.consolemaster.AnsiColor;
+import com.consolemaster.BorderLayout;
+import com.consolemaster.Box;
+import com.consolemaster.Composite;
+import com.consolemaster.DefaultBorder;
+import com.consolemaster.DisplayGridOverlayCanvas;
+import com.consolemaster.FlowLayout;
+import com.consolemaster.PositionConstraint;
+import com.consolemaster.ProcessLoop;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.Text;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -138,7 +149,7 @@ public class MouseDemo {
     private static Box createMouseButton(String text, AnsiColor color, Runnable clickAction) {
         Box button = new Box("box:"+text, 18, 6, new DefaultBorder()) {
             @Override
-            protected void onFocusChanged(boolean focused) {
+            public void onFocusChanged(boolean focused) {
                 super.onFocusChanged(focused);
                 updateButtonStyle(this, focused, false, color);
             }

@@ -1,4 +1,11 @@
-package com.consolemaster;
+package com.consolemaster.demo;
+
+import com.consolemaster.AnsiColor;
+import com.consolemaster.AnsiFormat;
+import com.consolemaster.Composite;
+import com.consolemaster.FlowLayout;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.Text;
 
 import java.io.IOException;
 

@@ -1,5 +1,14 @@
-package com.consolemaster;
+package com.consolemaster.demo;
 
+import com.consolemaster.AnsiColor;
+import com.consolemaster.BorderLayout;
+import com.consolemaster.Box;
+import com.consolemaster.Composite;
+import com.consolemaster.DefaultBorder;
+import com.consolemaster.FlowLayout;
+import com.consolemaster.PositionConstraint;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.Text;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -36,7 +45,7 @@ public class FocusDemo {
             // Left Panel - Focusable Button 1
             Box leftBox = new Box("leftBox", 20, 0, new DefaultBorder()) {
                 @Override
-                protected void onFocusChanged(boolean focused) {
+                public void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     // Change text styling when focused (border cannot be changed as it's final)
                     Text text = (Text) getChild();
@@ -62,7 +71,7 @@ public class FocusDemo {
             // Right Panel - Focusable Button 2
             Box rightBox = new Box("rightBox", 20, 0, new DefaultBorder()) {
                 @Override
-                protected void onFocusChanged(boolean focused) {
+                public void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     // Change text styling when focused (border cannot be changed as it's final)
                     Text text = (Text) getChild();
@@ -92,7 +101,7 @@ public class FocusDemo {
                 final int buttonNumber = i;
                 Box centerBox = new Box("centerBox_" + i, 15, 4, new DefaultBorder()) {
                     @Override
-                    protected void onFocusChanged(boolean focused) {
+                    public void onFocusChanged(boolean focused) {
                         super.onFocusChanged(focused);
                         // Change text styling when focused (border cannot be changed as it's final)
                         Text text = (Text) getChild();

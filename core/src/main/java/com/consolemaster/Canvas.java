@@ -280,7 +280,7 @@ public abstract class Canvas {
      *
      * @param focused true if the canvas gained focus, false if it lost focus
      */
-    protected void onFocusChanged(boolean focused) {
+    public void onFocusChanged(boolean focused) {
         // Default implementation does nothing
         // Subclasses can override to respond to focus changes
     }

@@ -17,3 +17,15 @@ a warning Canvas is displayeed instead of the actual content.
 ```text
 Der framework kann auch ANSI Farben und Formatierungen verwenden.
 ```
+
+## 02 Graphics 2.5D
+
+```text
+Es soll ein neues Modul 'graphics25d' erstellt werden.
+Das Modul soll eine Klasse 'Graphics25DCanvas' enthalten, die von Canvas erbt.
+Die Klasse soll die Methode paint() implementieren, um 2.5D Grafiken darzustellen.
+
+Die 2.5D Grafiken sollen aus einer Liste von Objekten bestehen, die jeweils eine Position (x, y, z), eine Textur (String) und eine Farbe (ANSI Farbe) haben.
+
+Die Darstellung kann von einem Punkt aus erfolgen (Camera25D), der eine Position (x, y, z) und eine Blickrichtung (0,90,180,270 Grad) hat.
+```

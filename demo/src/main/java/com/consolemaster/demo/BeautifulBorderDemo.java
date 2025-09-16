@@ -1,4 +1,12 @@
-package com.consolemaster;
+package com.consolemaster.demo;
+
+import com.consolemaster.AnsiColor;
+import com.consolemaster.AnsiFormat;
+import com.consolemaster.Box;
+import com.consolemaster.Composite;
+import com.consolemaster.DefaultBorder;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.Text;
 
 /**
  * Demo zur Demonstration der schönen UTF-8 Box-Drawing-Rahmen.

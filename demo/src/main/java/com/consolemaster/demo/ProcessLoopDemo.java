@@ -1,4 +1,20 @@
-package com.consolemaster;
+package com.consolemaster.demo;
+
+import com.consolemaster.AnsiColor;
+import com.consolemaster.BorderLayout;
+import com.consolemaster.Box;
+import com.consolemaster.Canvas;
+import com.consolemaster.Composite;
+import com.consolemaster.DefaultBorder;
+import com.consolemaster.Event;
+import com.consolemaster.EventHandler;
+import com.consolemaster.FlowLayout;
+import com.consolemaster.Graphics;
+import com.consolemaster.KeyEvent;
+import com.consolemaster.PositionConstraint;
+import com.consolemaster.ProcessLoop;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.Text;
 
 import java.io.IOException;
 
@@ -36,7 +52,7 @@ public class ProcessLoopDemo {
             // Counter button
             Box counterBox = new Box("counterBox", 20, 5, new DefaultBorder()) {
                 @Override
-                protected void onFocusChanged(boolean focused) {
+                public void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     updateButtonStyle(this, focused, AnsiColor.GREEN);
                 }
@@ -49,7 +65,7 @@ public class ProcessLoopDemo {
             // Help button
             Box helpBox = new Box("helpBox", 20, 5, new DefaultBorder()) {
                 @Override
-                protected void onFocusChanged(boolean focused) {
+                public void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     updateButtonStyle(this, focused, AnsiColor.BLUE);
                 }
@@ -62,7 +78,7 @@ public class ProcessLoopDemo {
             // Reset button
             Box resetBox = new Box("resetBox", 20, 5, new DefaultBorder()) {
                 @Override
-                protected void onFocusChanged(boolean focused) {
+                public void onFocusChanged(boolean focused) {
                     super.onFocusChanged(focused);
                     updateButtonStyle(this, focused, AnsiColor.RED);
                 }
@@ -205,7 +221,7 @@ public class ProcessLoopDemo {
             }
 
             @Override
-            protected void onFocusChanged(boolean focused) {
+            public void onFocusChanged(boolean focused) {
                 originalBox.setHasFocus(focused);
                 if (originalBox instanceof Box boxInstance) {
                     boxInstance.onFocusChanged(focused);
@@ -217,7 +233,7 @@ public class ProcessLoopDemo {
         Box eventBox = new Box("eventBox", box.getWidth(), box.getHeight(),
                               box.getBorder()) {
             @Override
-            protected void onFocusChanged(boolean focused) {
+            public void onFocusChanged(boolean focused) {
                 super.onFocusChanged(focused);
                 box.onFocusChanged(focused);
             }

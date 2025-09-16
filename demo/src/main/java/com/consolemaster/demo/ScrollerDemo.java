@@ -1,4 +1,17 @@
-package com.consolemaster;
+package com.consolemaster.demo;
+
+import com.consolemaster.AnsiColor;
+import com.consolemaster.BorderLayout;
+import com.consolemaster.Box;
+import com.consolemaster.Composite;
+import com.consolemaster.DefaultBorder;
+import com.consolemaster.FlowLayout;
+import com.consolemaster.NoLayout;
+import com.consolemaster.PositionConstraint;
+import com.consolemaster.ProcessLoop;
+import com.consolemaster.ScreenCanvas;
+import com.consolemaster.ScrollerCanvas;
+import com.consolemaster.Text;
 
 import java.io.IOException;
 
