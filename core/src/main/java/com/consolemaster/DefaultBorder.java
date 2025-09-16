@@ -5,7 +5,7 @@ import lombok.Setter;
 
 /**
  * A simple border implementation that can be drawn around a canvas.
- * Now uses native TextStyle instead of JLine's AttributedStyle.
+ * Now uses native TextStyle.
  */
 @Getter
 @Setter

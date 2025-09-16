@@ -5,17 +5,24 @@ import com.consolemaster.Graphics;
 import com.consolemaster.AnsiColor;
 import lombok.Getter;
 import lombok.Setter;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Canvas that can render 3D content using ASCII characters.
+ * A Canvas that can render 3D content using ASCII characters with BigDecimal precision.
  * Supports wireframe and filled rendering modes.
  */
 @Getter
 @Setter
 public class Graphic3DCanvas extends Canvas {
+
+    private static final MathContext MATH_CONTEXT = new MathContext(34, RoundingMode.HALF_UP);
+    private static final BigDecimal TWO = BigDecimal.valueOf(2);
+    private static final BigDecimal FOUR = BigDecimal.valueOf(4);
 
     private Camera3D camera;
     private List<Mesh3D> meshes;
@@ -25,7 +32,7 @@ public class Graphic3DCanvas extends Canvas {
     private AnsiColor wireframeColor;
     private AnsiColor fillColor;
     private boolean backfaceCulling;
-    private double[][] depthBuffer;
+    private BigDecimal[][] depthBuffer;
 
     /**
      * Rendering modes for 3D objects.
@@ -46,7 +53,7 @@ public class Graphic3DCanvas extends Canvas {
         this.wireframeColor = AnsiColor.WHITE;
         this.fillColor = AnsiColor.CYAN;
         this.backfaceCulling = true;
-        this.depthBuffer = new double[height][width];
+        this.depthBuffer = new BigDecimal[height][width];
     }
 
     /**
@@ -82,7 +89,7 @@ public class Graphic3DCanvas extends Canvas {
         clearDepthBuffer();
 
         // Calculate aspect ratio
-        double aspectRatio = (double) getWidth() / getHeight();
+        BigDecimal aspectRatio = BigDecimal.valueOf(getWidth()).divide(BigDecimal.valueOf(getHeight()), MATH_CONTEXT);
 
         // Get view-projection matrix
         Matrix4x4 viewProjection = camera.getViewProjectionMatrix(aspectRatio);
@@ -105,15 +112,15 @@ public class Graphic3DCanvas extends Canvas {
 
             // Convert from normalized device coordinates to screen coordinates
             // Center the projection in the canvas
-            double centerX = getWidth() / 2.0;
-            double centerY = getHeight() / 2.0;
+            BigDecimal centerX = BigDecimal.valueOf(getWidth()).divide(TWO, MATH_CONTEXT);
+            BigDecimal centerY = BigDecimal.valueOf(getHeight()).divide(TWO, MATH_CONTEXT);
 
             // Scale to fit canvas while maintaining aspect ratio
             // Use a smaller scale factor to ensure objects fit well
-            double scale = Math.min(getWidth(), getHeight()) / 4.0;
+            BigDecimal scale = BigDecimal.valueOf(Math.min(getWidth(), getHeight())).divide(FOUR, MATH_CONTEXT);
 
-            double screenX = centerX + projected.getX() * scale;
-            double screenY = centerY - projected.getY() * scale; // Flip Y for screen coordinates
+            BigDecimal screenX = centerX.add(projected.getX().multiply(scale, MATH_CONTEXT), MATH_CONTEXT);
+            BigDecimal screenY = centerY.subtract(projected.getY().multiply(scale, MATH_CONTEXT), MATH_CONTEXT); // Flip Y for screen coordinates
 
             projectedVertices.add(new Point3D(screenX, screenY, projected.getZ()));
         }
@@ -155,24 +162,24 @@ public class Graphic3DCanvas extends Canvas {
      */
     private boolean isBackface(Point3D v1, Point3D v2, Point3D v3) {
         // Calculate cross product of two edges
-        double edge1X = v2.getX() - v1.getX();
-        double edge1Y = v2.getY() - v1.getY();
-        double edge2X = v3.getX() - v1.getX();
-        double edge2Y = v3.getY() - v1.getY();
+        BigDecimal edge1X = v2.getX().subtract(v1.getX(), MATH_CONTEXT);
+        BigDecimal edge1Y = v2.getY().subtract(v1.getY(), MATH_CONTEXT);
+        BigDecimal edge2X = v3.getX().subtract(v1.getX(), MATH_CONTEXT);
+        BigDecimal edge2Y = v3.getY().subtract(v1.getY(), MATH_CONTEXT);
 
-        double crossProduct = edge1X * edge2Y - edge1Y * edge2X;
-        return crossProduct < 0; // Clockwise = backface
+        BigDecimal crossProduct = edge1X.multiply(edge2Y, MATH_CONTEXT).subtract(edge1Y.multiply(edge2X, MATH_CONTEXT), MATH_CONTEXT);
+        return crossProduct.compareTo(BigDecimal.ZERO) < 0; // Clockwise = backface
     }
 
     /**
      * Checks if any part of the triangle is visible on screen.
      */
     private boolean isTriangleVisible(Point3D v1, Point3D v2, Point3D v3) {
-        // Simple bounds check
-        double minX = Math.min(Math.min(v1.getX(), v2.getX()), v3.getX());
-        double maxX = Math.max(Math.max(v1.getX(), v2.getX()), v3.getX());
-        double minY = Math.min(Math.min(v1.getY(), v2.getY()), v3.getY());
-        double maxY = Math.max(Math.max(v1.getY(), v2.getY()), v3.getY());
+        // Simple bounds check - convert to double for simplicity
+        double minX = Math.min(Math.min(v1.getXAsDouble(), v2.getXAsDouble()), v3.getXAsDouble());
+        double maxX = Math.max(Math.max(v1.getXAsDouble(), v2.getXAsDouble()), v3.getXAsDouble());
+        double minY = Math.min(Math.min(v1.getYAsDouble(), v2.getYAsDouble()), v3.getYAsDouble());
+        double maxY = Math.max(Math.max(v1.getYAsDouble(), v2.getYAsDouble()), v3.getYAsDouble());
 
         return maxX >= 0 && minX < getWidth() && maxY >= 0 && minY < getHeight();
     }
@@ -191,9 +198,9 @@ public class Graphic3DCanvas extends Canvas {
      * Fills a triangle with the fill character, considering face color and texture.
      */
     private void fillTriangle(Graphics graphics, Point3D v1, Point3D v2, Point3D v3, Mesh3D.Face3D face) {
-        // Simple triangle filling using scanline algorithm
-        int minY = (int) Math.max(0, Math.min(Math.min(v1.getY(), v2.getY()), v3.getY()));
-        int maxY = (int) Math.min(getHeight() - 1, Math.max(Math.max(v1.getY(), v2.getY()), v3.getY()));
+        // Simple triangle filling using scanline algorithm - convert to double for simplicity
+        int minY = Math.max(0, (int) Math.min(Math.min(v1.getYAsDouble(), v2.getYAsDouble()), v3.getYAsDouble()));
+        int maxY = Math.min(getHeight() - 1, (int) Math.max(Math.max(v1.getYAsDouble(), v2.getYAsDouble()), v3.getYAsDouble()));
 
         for (int y = minY; y <= maxY; y++) {
             List<Double> intersections = new ArrayList<>();
@@ -205,16 +212,16 @@ public class Graphic3DCanvas extends Canvas {
 
             if (intersections.size() >= 2) {
                 intersections.sort(Double::compareTo);
-                int startX = (int) Math.max(0, intersections.get(0));
-                int endX = (int) Math.min(getWidth() - 1, intersections.get(intersections.size() - 1));
+                int startX = Math.max(0, intersections.get(0).intValue());
+                int endX = Math.min(getWidth() - 1, intersections.get(intersections.size() - 1).intValue());
 
                 for (int x = startX; x <= endX; x++) {
                     // Calculate depth for this pixel
                     double depth = interpolateDepth(v1, v2, v3, x, y);
 
                     // Depth test
-                    if (depth < depthBuffer[y][x]) {
-                        depthBuffer[y][x] = depth;
+                    if (depthBuffer[y][x] == null || BigDecimal.valueOf(depth).compareTo(depthBuffer[y][x]) < 0) {
+                        depthBuffer[y][x] = BigDecimal.valueOf(depth);
 
                         // Calculate texture coordinates (simplified)
                         double u = (double) (x - startX) / Math.max(1, endX - startX);
@@ -239,9 +246,12 @@ public class Graphic3DCanvas extends Canvas {
      * Adds line intersection with horizontal scanline if it exists.
      */
     private void addLineIntersection(List<Double> intersections, Point3D p1, Point3D p2, int y) {
-        if ((p1.getY() <= y && p2.getY() > y) || (p2.getY() <= y && p1.getY() > y)) {
-            double t = (y - p1.getY()) / (p2.getY() - p1.getY());
-            double x = p1.getX() + t * (p2.getX() - p1.getX());
+        double p1Y = p1.getYAsDouble();
+        double p2Y = p2.getYAsDouble();
+
+        if ((p1Y <= y && p2Y > y) || (p2Y <= y && p1Y > y)) {
+            double t = (y - p1Y) / (p2Y - p1Y);
+            double x = p1.getXAsDouble() + t * (p2.getXAsDouble() - p1.getXAsDouble());
             intersections.add(x);
         }
     }
@@ -250,25 +260,29 @@ public class Graphic3DCanvas extends Canvas {
      * Interpolates depth value at given pixel coordinates within triangle.
      */
     private double interpolateDepth(Point3D v1, Point3D v2, Point3D v3, int x, int y) {
-        // Barycentric coordinates for depth interpolation
-        double denom = (v2.getY() - v3.getY()) * (v1.getX() - v3.getX()) + (v3.getX() - v2.getX()) * (v1.getY() - v3.getY());
-        if (Math.abs(denom) < 1e-10) return v1.getZ();
+        // Barycentric coordinates for depth interpolation - using double for simplicity
+        double v1x = v1.getXAsDouble(), v1y = v1.getYAsDouble(), v1z = v1.getZAsDouble();
+        double v2x = v2.getXAsDouble(), v2y = v2.getYAsDouble(), v2z = v2.getZAsDouble();
+        double v3x = v3.getXAsDouble(), v3y = v3.getYAsDouble(), v3z = v3.getZAsDouble();
 
-        double a = ((v2.getY() - v3.getY()) * (x - v3.getX()) + (v3.getX() - v2.getX()) * (y - v3.getY())) / denom;
-        double b = ((v3.getY() - v1.getY()) * (x - v3.getX()) + (v1.getX() - v3.getX()) * (y - v3.getY())) / denom;
+        double denom = (v2y - v3y) * (v1x - v3x) + (v3x - v2x) * (v1y - v3y);
+        if (Math.abs(denom) < 1e-10) return v1z;
+
+        double a = ((v2y - v3y) * (x - v3x) + (v3x - v2x) * (y - v3y)) / denom;
+        double b = ((v3y - v1y) * (x - v3x) + (v1x - v3x) * (y - v3y)) / denom;
         double c = 1 - a - b;
 
-        return a * v1.getZ() + b * v2.getZ() + c * v3.getZ();
+        return a * v1z + b * v2z + c * v3z;
     }
 
     /**
      * Draws a line between two points using Bresenham's algorithm.
      */
     private void drawLine(Graphics graphics, Point3D p1, Point3D p2, char character) {
-        int x1 = (int) p1.getX();
-        int y1 = (int) p1.getY();
-        int x2 = (int) p2.getX();
-        int y2 = (int) p2.getY();
+        int x1 = (int) p1.getXAsDouble();
+        int y1 = (int) p1.getYAsDouble();
+        int x2 = (int) p2.getXAsDouble();
+        int y2 = (int) p2.getYAsDouble();
 
         int dx = Math.abs(x2 - x1);
         int dy = Math.abs(y2 - y1);
@@ -303,11 +317,11 @@ public class Graphic3DCanvas extends Canvas {
      */
     private void clearDepthBuffer() {
         if (depthBuffer == null || depthBuffer.length != getHeight() || depthBuffer[0].length != getWidth()) {
-            depthBuffer = new double[getHeight()][getWidth()];
+            depthBuffer = new BigDecimal[getHeight()][getWidth()];
         }
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
-                depthBuffer[y][x] = Double.MAX_VALUE;
+                depthBuffer[y][x] = null; // Use null to represent maximum depth
             }
         }
     }

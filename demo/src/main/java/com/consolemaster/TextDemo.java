@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /**
  * Demo application showcasing the Text component with various alignments and styling.
- * Now uses native terminal implementation instead of JLine.
+ * Now uses native terminal implementation.
  */
 public class TextDemo {
 

@@ -39,13 +39,13 @@ a warning Canvas is displayed instead of the actual content.
 - **Composite**: Container for multiple child canvases with automatic layout management
 - **ScreenCanvas**: Main entry point that manages terminal and minimum size validation
 - **TextCanvas**: Simple text display implementation (legacy)
-- **Text**: Modern text component with advanced styling and JLine integration
+- **Text**: Modern text component with advanced styling
 - **Box**: Specialized canvas with border support and single child containment
 - **Scroller**: Scrollable container for content larger than viewport
 
 ### Graphics and Rendering System
 - **Graphics (Abstract Base Class)**: Unified abstract base class for all graphics contexts
-- **JLineGraphics**: Enhanced graphics implementation using JLine's AttributedString for superior ANSI support
+- **GeneralGraphics**: Enhanced graphics implementation using Linux/Mac Terminal for superior ANSI support
 - **LegacyGraphics**: Backward-compatible implementation using StyledChar buffer
 - **ClippingGraphics**: Graphics wrapper that clips drawing operations to specified bounds
 - **AnsiColor**: Enum for ANSI foreground/background colors (standard + bright variants)
@@ -116,7 +116,6 @@ a warning Canvas is displayed instead of the actual content.
 - **ProcessLoop Integration**: Built-in output capture management
 
 ### Terminal Integration
-- JLine 3.24.1 for terminal management
 - ANSI color and formatting support
 - Automatic terminal size detection
 - Cross-platform terminal compatibility

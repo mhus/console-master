@@ -73,7 +73,7 @@ public class ConsoleOutput extends Canvas {
     }
 
     /**
-     * Paints a single stream using Graphics (works with both Legacy and JLine implementations).
+     * Paints a single stream using Graphics (works with both Legacy implementations).
      */
     private void paintSingleStream(Graphics graphics, List<String> lines, AnsiColor color, String prefix) {
         int startLine = calculateStartLine(lines.size());

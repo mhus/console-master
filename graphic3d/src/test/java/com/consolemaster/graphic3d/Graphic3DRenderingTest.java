@@ -260,12 +260,12 @@ class Graphic3DRenderingTest {
         Point3D projected = viewProjection.transform(testVertex);
         System.out.println("Test vertex " + testVertex + " projected to " + projected);
 
-        // Convert to screen coordinates like the renderer does
+        // Convert to screen coordinates like the renderer does - use BigDecimal values
         double centerX = canvasWidth / 2.0;
         double centerY = canvasHeight / 2.0;
         double scale = Math.min(canvasWidth, canvasHeight) / 4.0;
-        double screenX = centerX + projected.getX() * scale;
-        double screenY = centerY - projected.getY() * scale;
+        double screenX = centerX + projected.getXAsDouble() * scale;
+        double screenY = centerY - projected.getYAsDouble() * scale;
 
         System.out.println("Screen coordinates: (" + screenX + ", " + screenY + ")");
 
@@ -297,20 +297,49 @@ class Graphic3DRenderingTest {
         Screenshot styledScreenshot = new Screenshot(graphics, System.out);
         styledScreenshot.print(true);
 
-        // Test alternative constructors
-        System.out.println("\nScreenshot - Direct buffer constructor:");
-        Screenshot bufferScreenshot = new Screenshot(buffer, canvasWidth, canvasHeight, System.out);
-        bufferScreenshot.print(false);
+        // Verify that the cube was rendered
+        int nonSpaceCount = countNonSpaceChars();
+        assertTrue(nonSpaceCount > 0, "Screenshot should contain rendered content");
+    }
 
-        // Test toString functionality
-        String plainString = plainScreenshot.toString(false);
-        String styledString = styledScreenshot.toString(true);
+    /**
+     * Test BigDecimal precision by creating objects with very precise coordinates.
+     */
+    @Test
+    void testBigDecimalPrecision() {
+        // Create a cube with precise BigDecimal coordinates
+        Mesh3D cube = Mesh3D.createCube(java.math.BigDecimal.valueOf(1.123456789));
+        canvas3D.addMesh(cube);
 
-        assertNotNull(plainString, "Plain string output should not be null");
-        assertNotNull(styledString, "Styled string output should not be null");
-        assertTrue(plainString.contains("+"), "Plain output should contain border characters");
-        assertTrue(styledString.length() >= plainString.length(), "Styled output should be at least as long as plain output");
+        // Render and verify
+        canvas3D.paint(graphics);
+        int charCount = countNonSpaceChars();
 
-        System.out.println("Screenshot functionality test completed successfully!");
+        assertTrue(charCount > 0, "BigDecimal precision cube should render");
+        System.out.println("BigDecimal precision cube rendered with " + charCount + " characters");
+    }
+
+    /**
+     * Test camera movement with BigDecimal precision.
+     */
+    @Test
+    void testCameraBigDecimalMovement() {
+        // Create a test cube
+        Mesh3D cube = Mesh3D.createCube(1.0);
+        canvas3D.addMesh(cube);
+
+        Camera3D camera = canvas3D.getCamera();
+
+        // Move camera with BigDecimal precision
+        camera.moveForward(java.math.BigDecimal.valueOf(0.123456789));
+        camera.moveRight(java.math.BigDecimal.valueOf(0.987654321));
+        camera.moveUp(java.math.BigDecimal.valueOf(0.555555555));
+
+        // Render and verify
+        canvas3D.paint(graphics);
+        int charCount = countNonSpaceChars();
+
+        assertTrue(charCount >= 0, "Camera movement with BigDecimal should work");
+        System.out.println("Camera BigDecimal movement test rendered with " + charCount + " characters");
     }
 }

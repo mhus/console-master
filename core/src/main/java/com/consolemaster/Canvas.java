@@ -344,4 +344,9 @@ public abstract class Canvas {
     public boolean isHasFocus() {
         return hasFocus;
     }
+
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
 }

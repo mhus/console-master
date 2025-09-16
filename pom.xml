@@ -36,7 +36,6 @@
         <mockito.version>5.5.0</mockito.version>
         <slf4j.version>2.0.9</slf4j.version>
         <logback.version>1.4.11</logback.version>
-        <jline.version>3.24.1</jline.version>
     </properties>
 
     <dependencyManagement>
@@ -51,18 +50,6 @@
                 <groupId>de.mhus</groupId>
                 <artifactId>console-master-graphic3d</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-
-            <!-- JLine Terminal -->
-            <dependency>
-                <groupId>org.jline</groupId>
-                <artifactId>jline-terminal</artifactId>
-                <version>${jline.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jline</groupId>
-                <artifactId>jline-reader</artifactId>
-                <version>${jline.version}</version>
             </dependency>
 
             <!-- Lombok -->

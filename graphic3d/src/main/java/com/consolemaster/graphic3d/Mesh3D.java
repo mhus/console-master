@@ -3,15 +3,21 @@ package com.consolemaster.graphic3d;
 import com.consolemaster.AnsiColor;
 import lombok.Data;
 import lombok.AllArgsConstructor;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Represents a 3D mesh object consisting of vertices and faces.
+ * Represents a 3D mesh object consisting of vertices and faces using BigDecimal for precision.
  */
 @Data
 public class Mesh3D {
+    private static final MathContext MATH_CONTEXT = new MathContext(34, RoundingMode.HALF_UP);
+    private static final BigDecimal TWO = BigDecimal.valueOf(2);
+
     private final List<Point3D> vertices;
     private final List<Face3D> faces;
     private String name;
@@ -87,19 +93,19 @@ public class Mesh3D {
     /**
      * Creates a simple cube mesh.
      */
-    public static Mesh3D createCube(double size) {
+    public static Mesh3D createCube(BigDecimal size) {
         Mesh3D cube = new Mesh3D("cube");
-        double half = size / 2.0;
+        BigDecimal half = size.divide(TWO, MATH_CONTEXT);
 
         // Add 8 vertices of a cube
-        cube.addVertex(new Point3D(-half, -half, -half)); // 0
-        cube.addVertex(new Point3D(half, -half, -half));  // 1
-        cube.addVertex(new Point3D(half, half, -half));   // 2
-        cube.addVertex(new Point3D(-half, half, -half));  // 3
-        cube.addVertex(new Point3D(-half, -half, half));  // 4
-        cube.addVertex(new Point3D(half, -half, half));   // 5
+        cube.addVertex(new Point3D(half.negate(), half.negate(), half.negate())); // 0
+        cube.addVertex(new Point3D(half, half.negate(), half.negate()));  // 1
+        cube.addVertex(new Point3D(half, half, half.negate()));   // 2
+        cube.addVertex(new Point3D(half.negate(), half, half.negate()));  // 3
+        cube.addVertex(new Point3D(half.negate(), half.negate(), half));  // 4
+        cube.addVertex(new Point3D(half, half.negate(), half));   // 5
         cube.addVertex(new Point3D(half, half, half));    // 6
-        cube.addVertex(new Point3D(-half, half, half));   // 7
+        cube.addVertex(new Point3D(half.negate(), half, half));   // 7
 
         // Add 12 triangular faces (2 per cube face)
         // Front face
@@ -130,20 +136,27 @@ public class Mesh3D {
     }
 
     /**
+     * Creates a simple cube mesh (double for compatibility).
+     */
+    public static Mesh3D createCube(double size) {
+        return createCube(BigDecimal.valueOf(size));
+    }
+
+    /**
      * Creates a simple pyramid mesh.
      */
-    public static Mesh3D createPyramid(double size) {
+    public static Mesh3D createPyramid(BigDecimal size) {
         Mesh3D pyramid = new Mesh3D("pyramid");
-        double half = size / 2.0;
+        BigDecimal half = size.divide(TWO, MATH_CONTEXT);
 
         // Base vertices
-        pyramid.addVertex(new Point3D(-half, -half, 0)); // 0
-        pyramid.addVertex(new Point3D(half, -half, 0));  // 1
-        pyramid.addVertex(new Point3D(half, half, 0));   // 2
-        pyramid.addVertex(new Point3D(-half, half, 0));  // 3
+        pyramid.addVertex(new Point3D(half.negate(), half.negate(), BigDecimal.ZERO)); // 0
+        pyramid.addVertex(new Point3D(half, half.negate(), BigDecimal.ZERO));  // 1
+        pyramid.addVertex(new Point3D(half, half, BigDecimal.ZERO));   // 2
+        pyramid.addVertex(new Point3D(half.negate(), half, BigDecimal.ZERO));  // 3
 
         // Apex
-        pyramid.addVertex(new Point3D(0, 0, size));      // 4
+        pyramid.addVertex(new Point3D(BigDecimal.ZERO, BigDecimal.ZERO, size));      // 4
 
         // Base (2 triangles)
         pyramid.addTriangle(0, 2, 1);
@@ -159,21 +172,28 @@ public class Mesh3D {
     }
 
     /**
+     * Creates a simple pyramid mesh (double for compatibility).
+     */
+    public static Mesh3D createPyramid(double size) {
+        return createPyramid(BigDecimal.valueOf(size));
+    }
+
+    /**
      * Creates a colorful cube mesh with different colors for each face.
      */
-    public static Mesh3D createColorfulCube(double size) {
+    public static Mesh3D createColorfulCube(BigDecimal size) {
         Mesh3D cube = new Mesh3D("colorful_cube");
-        double half = size / 2.0;
+        BigDecimal half = size.divide(TWO, MATH_CONTEXT);
 
         // Add 8 vertices of a cube
-        cube.addVertex(new Point3D(-half, -half, -half)); // 0
-        cube.addVertex(new Point3D(half, -half, -half));  // 1
-        cube.addVertex(new Point3D(half, half, -half));   // 2
-        cube.addVertex(new Point3D(-half, half, -half));  // 3
-        cube.addVertex(new Point3D(-half, -half, half));  // 4
-        cube.addVertex(new Point3D(half, -half, half));   // 5
+        cube.addVertex(new Point3D(half.negate(), half.negate(), half.negate())); // 0
+        cube.addVertex(new Point3D(half, half.negate(), half.negate()));  // 1
+        cube.addVertex(new Point3D(half, half, half.negate()));   // 2
+        cube.addVertex(new Point3D(half.negate(), half, half.negate()));  // 3
+        cube.addVertex(new Point3D(half.negate(), half.negate(), half));  // 4
+        cube.addVertex(new Point3D(half, half.negate(), half));   // 5
         cube.addVertex(new Point3D(half, half, half));    // 6
-        cube.addVertex(new Point3D(-half, half, half));   // 7
+        cube.addVertex(new Point3D(half.negate(), half, half));   // 7
 
         // Add 12 triangular faces with different colors
         // Front face - Red
@@ -204,21 +224,28 @@ public class Mesh3D {
     }
 
     /**
+     * Creates a colorful cube mesh with different colors for each face (double for compatibility).
+     */
+    public static Mesh3D createColorfulCube(double size) {
+        return createColorfulCube(BigDecimal.valueOf(size));
+    }
+
+    /**
      * Creates a textured cube mesh with different textures for each face.
      */
-    public static Mesh3D createTexturedCube(double size) {
+    public static Mesh3D createTexturedCube(BigDecimal size) {
         Mesh3D cube = new Mesh3D("textured_cube");
-        double half = size / 2.0;
+        BigDecimal half = size.divide(TWO, MATH_CONTEXT);
 
         // Add 8 vertices of a cube
-        cube.addVertex(new Point3D(-half, -half, -half)); // 0
-        cube.addVertex(new Point3D(half, -half, -half));  // 1
-        cube.addVertex(new Point3D(half, half, -half));   // 2
-        cube.addVertex(new Point3D(-half, half, -half));  // 3
-        cube.addVertex(new Point3D(-half, -half, half));  // 4
-        cube.addVertex(new Point3D(half, -half, half));   // 5
+        cube.addVertex(new Point3D(half.negate(), half.negate(), half.negate())); // 0
+        cube.addVertex(new Point3D(half, half.negate(), half.negate()));  // 1
+        cube.addVertex(new Point3D(half, half, half.negate()));   // 2
+        cube.addVertex(new Point3D(half.negate(), half, half.negate()));  // 3
+        cube.addVertex(new Point3D(half.negate(), half.negate(), half));  // 4
+        cube.addVertex(new Point3D(half, half.negate(), half));   // 5
         cube.addVertex(new Point3D(half, half, half));    // 6
-        cube.addVertex(new Point3D(-half, half, half));   // 7
+        cube.addVertex(new Point3D(half.negate(), half, half));   // 7
 
         // Create different textures for each face
         Texture3D metalTexture = Texture3D.metallic(AnsiColor.WHITE);
@@ -257,20 +284,27 @@ public class Mesh3D {
     }
 
     /**
+     * Creates a textured cube mesh with different textures for each face (double for compatibility).
+     */
+    public static Mesh3D createTexturedCube(double size) {
+        return createTexturedCube(BigDecimal.valueOf(size));
+    }
+
+    /**
      * Creates a pyramid with gradient colors.
      */
-    public static Mesh3D createColorfulPyramid(double size) {
+    public static Mesh3D createColorfulPyramid(BigDecimal size) {
         Mesh3D pyramid = new Mesh3D("colorful_pyramid");
-        double half = size / 2.0;
+        BigDecimal half = size.divide(TWO, MATH_CONTEXT);
 
         // Base vertices
-        pyramid.addVertex(new Point3D(-half, -half, 0)); // 0
-        pyramid.addVertex(new Point3D(half, -half, 0));  // 1
-        pyramid.addVertex(new Point3D(half, half, 0));   // 2
-        pyramid.addVertex(new Point3D(-half, half, 0));  // 3
+        pyramid.addVertex(new Point3D(half.negate(), half.negate(), BigDecimal.ZERO)); // 0
+        pyramid.addVertex(new Point3D(half, half.negate(), BigDecimal.ZERO));  // 1
+        pyramid.addVertex(new Point3D(half, half, BigDecimal.ZERO));   // 2
+        pyramid.addVertex(new Point3D(half.negate(), half, BigDecimal.ZERO));  // 3
 
         // Apex
-        pyramid.addVertex(new Point3D(0, 0, size));      // 4
+        pyramid.addVertex(new Point3D(BigDecimal.ZERO, BigDecimal.ZERO, size));      // 4
 
         // Base (2 triangles) - Dark gray
         pyramid.addTriangle(0, 2, 1, AnsiColor.BLACK);
@@ -283,6 +317,13 @@ public class Mesh3D {
         pyramid.addTriangle(3, 0, 4, AnsiColor.YELLOW);
 
         return pyramid;
+    }
+
+    /**
+     * Creates a pyramid with gradient colors (double for compatibility).
+     */
+    public static Mesh3D createColorfulPyramid(double size) {
+        return createColorfulPyramid(BigDecimal.valueOf(size));
     }
 
     /**
@@ -349,25 +390,6 @@ public class Mesh3D {
             if (lightIntensity > 0.4) return '▒';
             if (lightIntensity > 0.2) return '░';
             return '·';
-        }
-
-        /**
-         * Calculates the normal vector of this face.
-         */
-        public Point3D calculateNormal(List<Point3D> vertices) {
-            Point3D p1 = vertices.get(v1);
-            Point3D p2 = vertices.get(v2);
-            Point3D p3 = vertices.get(v3);
-
-            Point3D edge1 = p2.subtract(p1);
-            Point3D edge2 = p3.subtract(p1);
-
-            // Cross product
-            double nx = edge1.getY() * edge2.getZ() - edge1.getZ() * edge2.getY();
-            double ny = edge1.getZ() * edge2.getX() - edge1.getX() * edge2.getZ();
-            double nz = edge1.getX() * edge2.getY() - edge1.getY() * edge2.getX();
-
-            return new Point3D(nx, ny, nz).normalize();
         }
     }
 }
