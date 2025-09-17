@@ -18,7 +18,7 @@ a warning Canvas is displayeed instead of the actual content.
 Der framework kann auch ANSI Farben und Formatierungen verwenden.
 ```
 
-## 02 Graphics 2.5D
+## 02 Graphics 2.5D - Canceled, das geht so nicht !!!
 
 ```text
 Es sollen im Modul 'graphics25d' Klassen erstellt werden.
@@ -76,6 +76,62 @@ Die Projektion kann umgestellt werden zwischen Wireframe (nur Kanten) und Solid 
 Ein Objekt hat Flächen, die jeweils eine Texturen haben. Texturen bestehen aus Arrays
 von StyledChar Objekten.
 
+In einer 2.5D welt sind alle Objekte Blöcke (Voxel), die aus Würfeln bestehen.
+Ein 3D Array wird für jeden Punkt (x, y, z) mit informationen über die Füllung
+(Zeichen oder 0 = kein Zeichen, Farbe, Hintergrundfarbe, Formatierung,
+Spezialeffekt - bei drehung änderung des Zeichens '- | / \' ) gespeichert.
+
+In einer 2.5D welt sind alle Objekte konkret und haben eine feste Position und 
+Größe (integer). 
+
+Beispiel Haus Linien:
+
+          /\
+         /  \
+        /    \
+       /\    /|
+      /  \  / |
+     /____\/  |
+    |      |  /
+    |      | /
+    |______|/
+
+
+
+Für Linien muss definiert sein wie sie verlaufen (horizontal, vertikal, diagonal).
+Dadurch können Kanten von Objekten gezeichnet werden. Zusätzlich werden Farbwerte
+für die Linien und Füllungen unterstützt.
+
+Beispiel Haus mit Füllung:
+
+     ==============
+   &&&&&&&&&&&&&&&&&&&
+  &&&&&&&&&&&&&&&&&&&&&
+ &&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&
+   
+  
 Erstelle eine Demo, du kannst dich an der Klasse 'Graphic3DDemo' orientieren um
 UI und Key Handling zu implementieren. Lese die Klasse aus dem Modul 'demo' ein.
+```
+
+## 03 Raycasting
+
+```text
+Es soll ein Modul 'raycasting' erstellt werden. In dem Modul soll eine Klasse 'RaycastingCanvas'
+erstellt werden, die von Canvas erbt.
+
+Raycasting ist eine einfache methode um eine 3D Welt in einer 2D Ansicht darzustellen.
+Die Welt besteht aus einer 2D Karte (Array von Strings), in der Wände und leere
+Räume definiert sind. Die Karte kann z.B. so aussehen:
+
+########
+#      #
+#  ##  #
+#      #
+########
+
+Die Wände sind durch das Zeichen '#' definiert, die leeren Räume durch das Zeichen ' '.
+
+Erstelle auch eine Demo Klasse 'RaycastingDemo' im Modul 'demo', die die RaycastingCanvas.
 ```
