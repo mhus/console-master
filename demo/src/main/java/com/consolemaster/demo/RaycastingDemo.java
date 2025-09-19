@@ -26,6 +26,8 @@ public class RaycastingDemo {
     private static String lastAction = "Demo Started";
     private static RaycastingCanvas raycastingCanvas;
     private static int currentMapIndex = 0;
+    private static char[] wallEdgeStyles = {'│', '#', '*', '+'};
+    private static int currentWallEdgeStyleIndex = 0;
 
     // Different maps to showcase
     private static final String[][] MAPS = {
@@ -79,8 +81,12 @@ public class RaycastingDemo {
                     new BorderLayout(1));
 
             // Create header
-            Box headerBox = new Box("headerBox", 0, 3, new DefaultBorder());
-            Text headerText = new Text("headerText", 0, 0, "Raycasting Demo - First Person 3D World", Text.Alignment.CENTER);
+            Box headerBox = new Box("headerBox", 0, 5, new DefaultBorder());
+            Text headerText = new Text("headerText", 0, 0,
+                "Raycasting Demo - First Person 3D World\n" +
+                "WASD: Move | Arrows: Rotate/Fine Move | M: Change Map | R: Reset\n" +
+                "E: Toggle Wall Edges | T: Edge Threshold | C: Edge Style | Q/ESC: Exit",
+                Text.Alignment.CENTER);
             headerText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             headerText.setBold(true);
             headerBox.setContent(headerText);
@@ -170,6 +176,25 @@ public class RaycastingDemo {
         screen.registerShortcut(KeyEvent.SpecialKey.ARROW_RIGHT.name(), () -> {
             raycastingCanvas.rotatePlayer(rotateSpeed);
             lastAction = "Rotate Right";
+        });
+
+        // Wall edge controls - basic version without getter methods
+        screen.registerShortcut("E", () -> {
+            raycastingCanvas.setDrawWallEdges(!raycastingCanvas.isDrawWallEdges());
+            lastAction = "Wall Edges toggled";
+        });
+
+        screen.registerShortcut("T", () -> {
+            raycastingCanvas.setWallEdgeThreshold(
+                raycastingCanvas.getWallEdgeThreshold() + 0.1 > 1.0 ? 0.0 : raycastingCanvas.getWallEdgeThreshold() + 0.1
+            );
+            lastAction = "Edge Threshold changed";
+        });
+
+        screen.registerShortcut("C", () -> {
+            currentWallEdgeStyleIndex = (currentWallEdgeStyleIndex + 1) % wallEdgeStyles.length;
+            raycastingCanvas.setWallEdgeChar(wallEdgeStyles[currentWallEdgeStyleIndex]);
+            lastAction = "Edge Character changed";
         });
 
         // Map change

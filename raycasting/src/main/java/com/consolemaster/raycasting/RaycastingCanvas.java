@@ -22,9 +22,13 @@ public class RaycastingCanvas extends Canvas {
     private char wallChar = '█';
     private char floorChar = '.';
     private char ceilingChar = ' ';
+    private char wallEdgeChar = '│'; // Character for vertical wall edges
     private AnsiColor wallColor = AnsiColor.WHITE;
     private AnsiColor floorColor = AnsiColor.YELLOW;
     private AnsiColor ceilingColor = AnsiColor.BLUE;
+    private AnsiColor wallEdgeColor = AnsiColor.BRIGHT_WHITE; // Color for wall edges
+    private boolean drawWallEdges = true; // Enable/disable wall edge drawing
+    private double wallEdgeThreshold = 0.3; // Threshold for detecting wall edges
 
     // Default map if none is provided
     private static final String[] DEFAULT_MAP = {
@@ -54,7 +58,10 @@ public class RaycastingCanvas extends Canvas {
         int mapWidth = map[0].length();
         int mapHeight = map.length;
 
-        // Cast rays for each column of the screen
+        // Store raycast results for edge detection
+        RaycastResult[] raycastResults = new RaycastResult[getWidth()];
+
+        // First pass: Cast rays and store results
         for (int x = 0; x < getWidth(); x++) {
             // Calculate ray angle
             double rayAngle = playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
@@ -64,7 +71,15 @@ public class RaycastingCanvas extends Canvas {
             double rayDirY = Math.sin(rayAngle);
 
             // Perform ray casting using DDA algorithm
-            RaycastResult result = castRayDDA(rayDirX, rayDirY, mapWidth, mapHeight);
+            raycastResults[x] = castRayDDA(rayDirX, rayDirY, mapWidth, mapHeight);
+        }
+
+        // Second pass: Render columns with edge detection
+        for (int x = 0; x < getWidth(); x++) {
+            RaycastResult result = raycastResults[x];
+
+            // Calculate ray angle for fish-eye correction
+            double rayAngle = playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
 
             // Apply fish-eye correction
             double correctedDistance = result.distance * Math.cos(rayAngle - playerAngle);
@@ -79,15 +94,28 @@ public class RaycastingCanvas extends Canvas {
             int wallStart = Math.max(0, (getHeight() - wallHeight) / 2);
             int wallEnd = Math.min(getHeight() - 1, (getHeight() + wallHeight) / 2);
 
+            // Check if this column is a wall edge
+            boolean isLeftEdge = isWallEdge(raycastResults, x, true);
+            boolean isRightEdge = isWallEdge(raycastResults, x, false);
+
             // Draw ceiling
             for (int y = 0; y < wallStart; y++) {
                 graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
             }
 
-            // Draw wall with distance-based shading
+            // Draw wall with possible edge highlighting
             for (int y = wallStart; y <= wallEnd; y++) {
                 AnsiColor wallShade = getWallShade(correctedDistance, result.isVerticalWall);
-                graphics.drawStyledChar(x, y, wallChar, wallShade, null);
+                char charToDraw = wallChar;
+                AnsiColor colorToDraw = wallShade;
+
+                // Draw edge lines if enabled and this is an edge
+                if (drawWallEdges && (isLeftEdge || isRightEdge)) {
+                    charToDraw = wallEdgeChar;
+                    colorToDraw = wallEdgeColor;
+                }
+
+                graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
             }
 
             // Draw floor
@@ -95,6 +123,44 @@ public class RaycastingCanvas extends Canvas {
                 graphics.drawStyledChar(x, y, floorChar, floorColor, null);
             }
         }
+    }
+
+    /**
+     * Determines if a column represents a wall edge by comparing distances with neighboring columns.
+     */
+    private boolean isWallEdge(RaycastResult[] raycastResults, int x, boolean checkLeft) {
+        if (!drawWallEdges || raycastResults == null) {
+            return false;
+        }
+
+        int neighborX = checkLeft ? x - 1 : x + 1;
+
+        // Check bounds
+        if (neighborX < 0 || neighborX >= raycastResults.length) {
+            return true; // Edge of screen is always an edge
+        }
+
+        RaycastResult current = raycastResults[x];
+        RaycastResult neighbor = raycastResults[neighborX];
+
+        if (current == null || neighbor == null) {
+            return false;
+        }
+
+        // Calculate difference in corrected distances
+        double currentDistance = current.distance * Math.cos(getCurrentRayAngle(x) - playerAngle);
+        double neighborDistance = neighbor.distance * Math.cos(getCurrentRayAngle(neighborX) - playerAngle);
+
+        // Edge detected if distance difference exceeds threshold
+        double distanceDiff = Math.abs(currentDistance - neighborDistance);
+        return distanceDiff > wallEdgeThreshold;
+    }
+
+    /**
+     * Calculate the ray angle for a given column x.
+     */
+    private double getCurrentRayAngle(int x) {
+        return playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
     }
 
     /**
