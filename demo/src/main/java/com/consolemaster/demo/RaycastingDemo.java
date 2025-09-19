@@ -70,12 +70,12 @@ public class RaycastingDemo {
     public static void main(String[] args) {
         try {
             // Create the main screen canvas
-            ScreenCanvas screen = new ScreenCanvas(120, 40);
+            ScreenCanvas screen = new ScreenCanvas(80, 25);
 
             // Create main container with BorderLayout
             Composite mainContainer = new Composite("mainContainer",
-                    screen.getWidth() - 2,
-                    screen.getHeight() - 2,
+                    screen.getWidth() - 4,
+                    screen.getHeight() - 4,
                     new BorderLayout(1));
 
             // Create header
@@ -87,61 +87,28 @@ public class RaycastingDemo {
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
             // Create raycasting canvas
-            raycastingCanvas = new RaycastingCanvas("Raycasting World", 90, 30);
+            raycastingCanvas = new RaycastingCanvas("Raycasting World", 0, 0);
             raycastingCanvas.setMap(MAPS[currentMapIndex]);
             raycastingCanvas.setPlayerPosition(2.5, 2.5);
             raycastingCanvas.setWallColor(AnsiColor.WHITE);
             raycastingCanvas.setFloorColor(AnsiColor.YELLOW);
             raycastingCanvas.setCeilingColor(AnsiColor.BLUE);
-
-            // Wrap raycasting canvas in a box for better presentation
-            Box canvasBox = new Box("canvasBox", raycastingCanvas.getWidth() + 2, raycastingCanvas.getHeight() + 2, new DefaultBorder());
-            canvasBox.setContent(raycastingCanvas);
-            canvasBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
-
-            // Create control panel
-            Composite controlPanel = new Composite("controlPanel", 0, 0, new FlowLayout(2, 1));
-
-            // Create control buttons
-            Box moveBtn = createControlButton("Move\nW/A/S/D", AnsiColor.GREEN, null);
-            controlPanel.addChild(moveBtn);
-
-            Box rotateBtn = createControlButton("Rotate\nArrows", AnsiColor.CYAN, null);
-            controlPanel.addChild(rotateBtn);
-
-            Box mapBtn = createControlButton("Change Map\n(M)", AnsiColor.YELLOW, () -> {
-                currentMapIndex = (currentMapIndex + 1) % MAPS.length;
-                raycastingCanvas.setMap(MAPS[currentMapIndex]);
-                raycastingCanvas.setPlayerPosition(2.5, 2.5);
-                lastAction = "Changed to Map " + (currentMapIndex + 1);
-            });
-            controlPanel.addChild(mapBtn);
-
-            Box resetBtn = createControlButton("Reset\n(R)", AnsiColor.RED, () -> {
-                raycastingCanvas.setPlayerPosition(2.5, 2.5);
-                raycastingCanvas.setPlayerAngle(0.0);
-                lastAction = "Player Reset";
-            });
-            controlPanel.addChild(resetBtn);
-
-            controlPanel.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
+            raycastingCanvas.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
             // Create status panel
             Text statusText = new Text("statusText", 0, 0, "", Text.Alignment.LEFT);
             statusText.setForegroundColor(AnsiColor.WHITE);
-            Box statusBox = new Box("statusBox", 0, 2, new DefaultBorder());
+            Box statusBox = new Box("statusBox", 0, 3, new DefaultBorder());
             statusBox.setContent(statusText);
-            statusBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_LEFT));
+            statusBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
 
             // Add all components to main container
             mainContainer.addChild(headerBox);
-            mainContainer.addChild(canvasBox);
-            mainContainer.addChild(controlPanel);
+            mainContainer.addChild(raycastingCanvas);
             mainContainer.addChild(statusBox);
 
             // Position the main container
-            mainContainer.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
-            screen.addChild(mainContainer);
+            screen.setContentCanvas(mainContainer);
 
             // Register keyboard shortcuts
             registerKeyboardControls(screen);

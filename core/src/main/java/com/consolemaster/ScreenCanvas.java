@@ -161,7 +161,7 @@ public class ScreenCanvas extends Composite {
         };
     }
 
-    private void updateDisplay() {
+    public void updateDisplay() {
         removeAllChildren();
 
         if (meetsMinimumSize() && contentCanvas != null) {
