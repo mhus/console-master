@@ -147,7 +147,7 @@ public class RaycastingCanvas extends Canvas {
             }
 
             // Draw wall with cached texture data
-            renderWallColumn(graphics, x, wallStart, wallEnd, hit, correctedDistance, isLeftEdge, isRightEdge);
+            renderWallColumn(graphics, x, wallStart, wallEnd, hit, correctedDistance, isLeftEdge, isRightEdge, wallHeight);
 
             // Draw floor with dynamic colors based on floor EntryInfo
             for (int y = wallEnd + 1; y < getHeight(); y++) {
@@ -476,7 +476,7 @@ public class RaycastingCanvas extends Canvas {
      * Render a column of the wall with support for textures and EntryInfo properties.
      */
     private void renderWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, RaycastHit hit,
-                                  double distance, boolean isLeftEdge, boolean isRightEdge) {
+                                  double distance, boolean isLeftEdge, boolean isRightEdge, double actualWallHeight) {
 
         // Check if texture is available
         Texture texture = hit.texture;
@@ -484,7 +484,7 @@ public class RaycastingCanvas extends Canvas {
 
         // If texture is available, render using texture
         if (texture != null) {
-            renderTexturedWallColumn(graphics, x, wallStart, wallEnd, hit, !isVertical, isLeftEdge, isRightEdge);
+            renderTexturedWallColumn(graphics, x, wallStart, wallEnd, hit, !isVertical, isLeftEdge, isRightEdge, actualWallHeight);
         } else {
             // Render without texture using EntryInfo properties
             renderPlainWallColumn(graphics, x, wallStart, wallEnd, hit.result.hitEntry, isVertical, distance, isLeftEdge, isRightEdge);
@@ -495,15 +495,27 @@ public class RaycastingCanvas extends Canvas {
      * Render a textured wall column.
      */
     private void renderTexturedWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, RaycastHit hit,
-                                         boolean isDarkSide, boolean isLeftEdge, boolean isRightEdge) {
-        int wallHeight = wallEnd - wallStart + 1;
+                                         boolean isDarkSide, boolean isLeftEdge, boolean isRightEdge, double actualWallHeight) {
         Texture texture = hit.texture;
         EntryInfo hitEntry = hit.result.hitEntry;
         int textureColumn = hit.textureColumn;
 
+        // Calculate the actual wall center position
+        double screenCenter = getHeight() / 2.0;
+        double actualWallStart = screenCenter - actualWallHeight / 2.0;
+        double actualWallEnd = screenCenter + actualWallHeight / 2.0;
+
         for (int y = wallStart; y <= wallEnd; y++) {
-            // Calculate Y coordinate in texture based on wall progress
-            double wallProgress = (double) (y - wallStart) / wallHeight;
+            // Calculate position relative to the actual (unclipped) wall
+            double actualY = y;
+
+            // Calculate progress along the actual wall height (not just visible portion)
+            double wallProgress = (actualY - actualWallStart) / actualWallHeight;
+
+            // Ensure wallProgress is within valid range
+            wallProgress = Math.max(0.0, Math.min(1.0, wallProgress));
+
+            // Map to texture Y coordinate
             int textureY = (int) (wallProgress * texture.getHeight());
             textureY = Math.max(0, Math.min(textureY, texture.getHeight() - 1));
 
