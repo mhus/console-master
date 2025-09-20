@@ -98,7 +98,7 @@ public class RaycastingDemo {
                     // Stone floor
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character('.')
                             .name("Stone Floor")
@@ -110,7 +110,7 @@ public class RaycastingDemo {
                     // Grass floor
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character(',')
                             .name("Grass Floor")
@@ -122,7 +122,7 @@ public class RaycastingDemo {
                     // Sand floor
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character('°')
                             .name("Sand Floor")
@@ -168,7 +168,7 @@ public class RaycastingDemo {
         // Add custom colored walls with specific light/dark combinations
         EntryInfo greenWall = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('█')
                 .name("Green Wall")
@@ -179,7 +179,7 @@ public class RaycastingDemo {
 
         EntryInfo purpleWall = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▓')
                 .name("Purple Wall")
@@ -196,7 +196,7 @@ public class RaycastingDemo {
         // Add water area (blue floor)
         EntryInfo water = EntryInfo.builder()
                 .isWall(false)
-                .isFallthrough(true)
+                .isWalkThrough(true)
                 .isTransparent(true)
                 .character('~')
                 .name("Water")
@@ -239,7 +239,7 @@ public class RaycastingDemo {
         // Add castle features with enhanced colors
         EntryInfo tower = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('♦')
                 .name("Tower")
@@ -250,7 +250,7 @@ public class RaycastingDemo {
 
         EntryInfo gate = EntryInfo.builder()
                 .isWall(false)
-                .isFallthrough(true)
+                .isWalkThrough(true)
                 .isTransparent(true)
                 .character('|')
                 .name("Gate")
@@ -261,7 +261,7 @@ public class RaycastingDemo {
 
         EntryInfo courtyard = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▒')
                 .name("Courtyard Wall")
@@ -311,7 +311,7 @@ public class RaycastingDemo {
             for (int x = 0; x < map[y].length; x++) {
                 map[y][x] = EntryInfo.builder()
                         .isWall(false)
-                        .isFallthrough(true)
+                        .isWalkThrough(true)
                         .isTransparent(true)
                         .character(',')
                         .name("Grass Floor")
@@ -327,7 +327,7 @@ public class RaycastingDemo {
             for (int x = 4; x <= 9; x++) {
                 map[y][x] = EntryInfo.builder()
                         .isWall(false)
-                        .isFallthrough(true)
+                        .isWalkThrough(true)
                         .isTransparent(true)
                         .character('~')
                         .name("Water")
@@ -363,7 +363,7 @@ public class RaycastingDemo {
             for (int x = 0; x < map[y].length; x++) {
                 map[y][x] = EntryInfo.builder()
                         .isWall(false)
-                        .isFallthrough(true)
+                        .isWalkThrough(true)
                         .isTransparent(true)
                         .character(',')
                         .name("Grass")
@@ -395,7 +395,7 @@ public class RaycastingDemo {
             for (int x = 1; x <= 8; x++) {
                 map[y][x] = EntryInfo.builder()
                         .isWall(false)
-                        .isFallthrough(true)
+                        .isWalkThrough(true)
                         .isTransparent(true)
                         .character('~')
                         .name("Water")
@@ -420,7 +420,7 @@ public class RaycastingDemo {
             for (int x = 0; x < map[y].length; x++) {
                 map[y][x] = EntryInfo.builder()
                         .isWall(false)
-                        .isFallthrough(true)
+                        .isWalkThrough(true)
                         .isTransparent(true)
                         .character(',')
                         .name("Grass")
@@ -631,7 +631,7 @@ public class RaycastingDemo {
                     // Stone floor area
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character('.')
                             .name("Stone Floor")
@@ -644,7 +644,7 @@ public class RaycastingDemo {
                     // Wooden floor area
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character('=')
                             .name("Wood Floor")
@@ -657,7 +657,7 @@ public class RaycastingDemo {
                     // Tiled floor area
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character('▓')
                             .name("Tiled Floor")
@@ -670,7 +670,7 @@ public class RaycastingDemo {
                     // Grass floor area
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character(',')
                             .name("Grass Floor")
@@ -724,22 +724,22 @@ public class RaycastingDemo {
                     // White squares
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
-                            .character('█')
+                            .character('~')
                             .name("White Tile")
                             .colorLight(AnsiColor.BRIGHT_WHITE)
                             .colorDark(AnsiColor.WHITE)
                             .height(0.0)
-                            .texture("checker_floor")
+                            .texture("wave")
                             .build();
                 } else {
                     // Black squares
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
-                            .character('▓')
+                            .character('.')
                             .name("Black Tile")
                             .colorLight(AnsiColor.BRIGHT_BLACK)
                             .colorDark(AnsiColor.BLACK)
@@ -784,7 +784,7 @@ public class RaycastingDemo {
                     // Border walls with background colors
                     map[y][x] = EntryInfo.builder()
                             .isWall(true)
-                            .isFallthrough(false)
+                            .isWalkThrough(false)
                             .isTransparent(false)
                             .character('█')
                             .name("Background Wall")
@@ -807,7 +807,7 @@ public class RaycastingDemo {
 
                     map[y][x] = EntryInfo.builder()
                             .isWall(false)
-                            .isFallthrough(true)
+                            .isWalkThrough(true)
                             .isTransparent(true)
                             .character('·')
                             .name("Colored Floor")
@@ -824,7 +824,7 @@ public class RaycastingDemo {
         // Add some special walls with different background colors
         EntryInfo redBgWall = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▓')
                 .name("Red Background Wall")
@@ -837,7 +837,7 @@ public class RaycastingDemo {
 
         EntryInfo greenBgWall = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▒')
                 .name("Green Background Wall")
@@ -850,7 +850,7 @@ public class RaycastingDemo {
 
         EntryInfo purpleBgWall = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('░')
                 .name("Purple Background Wall")
@@ -872,7 +872,7 @@ public class RaycastingDemo {
         // Add glass walls with background colors
         EntryInfo glassBg = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(true)
                 .character('|')
                 .name("Colored Glass")

@@ -377,7 +377,7 @@ public class RaycastingCanvas extends Canvas {
 
         // Check if the position allows movement using EntryInfo
         EntryInfo entry = mapProvider.getEntry(mapX, mapY);
-        return entry.isFallthrough();
+        return entry.isWalkThrough();
     }
 
     /**
@@ -392,7 +392,7 @@ public class RaycastingCanvas extends Canvas {
             for (int y = 0; y < this.mapProvider.getHeight(); y++) {
                 for (int x = 0; x < this.mapProvider.getWidth(); x++) {
                     EntryInfo entry = this.mapProvider.getEntry(x, y);
-                    if (entry.isFallthrough()) {
+                    if (entry.isWalkThrough()) {
                         playerX = x + 0.5;
                         playerY = y + 0.5;
                         return;
@@ -563,10 +563,11 @@ public class RaycastingCanvas extends Canvas {
             // Default values
             AnsiColor defaultFloorColor = floorColor;
             char defaultFloorChar = floorChar;
+            EntryInfo floorEntry = null;
 
             // Check if floor position is within map bounds and get EntryInfo
             if (floorMapX >= 0 && floorMapX < mapProvider.getWidth() && floorMapY >= 0 && floorMapY < mapProvider.getHeight()) {
-                EntryInfo floorEntry = mapProvider.getEntry(floorMapX, floorMapY);
+                floorEntry = mapProvider.getEntry(floorMapX, floorMapY);
 
                 // Use floor entry colors if available
                 if (floorEntry.getColor(false) != null) {
@@ -579,46 +580,62 @@ public class RaycastingCanvas extends Canvas {
                 }
             }
 
-            // Check for floor texture
+            // Check for floor texture - use EntryInfo texture if available, otherwise try generic "floor"
             Texture texture = null;
-            int textureColumn = 0;
+            String textureKey = null;
 
             if (textureProvider != null && textureCache != null) {
-                // Use cached texture if available
-                String textureKey = "floor"; // Default key for floor texture
+                // First try to get texture from the specific floor entry
+                if (floorEntry != null && floorEntry.getTexture() != null) {
+                    textureKey = floorEntry.getTexture();
+                }
+
                 texture = textureCache.get(textureKey);
 
-                if (texture == null) {
+                if (texture == null && textureKey != null) {
                     // Texture not cached, create a new one
                     int floorHeight = 1; // Fixed height for floor texture
-                    texture = textureProvider.getTexture(textureKey, 1, floorHeight, null, false);
+                    texture = textureProvider.getTexture(textureKey, 1, floorHeight, floorEntry, false);
 
                     if (texture != null) {
                         // Cache the newly created texture
                         textureCache.put(textureKey, texture);
                     }
                 }
-
-                // Calculate texture column based on floor position
-                if (texture != null) {
-                    double floorXFrac = floorX - Math.floor(floorX);
-                    textureColumn = (int) (floorXFrac * texture.getWidth());
-                    textureColumn = Math.max(0, Math.min(textureColumn, texture.getWidth() - 1));
-                }
             }
 
             // Draw the floor pixel
-            StyledChar floorPixel = texture != null ? texture.getCharAt(textureColumn, 0) : null;
+            StyledChar floorPixel = null;
+            if (texture != null) {
+                // Calculate both texture coordinates based on floor position
+                double floorXFrac = floorX - Math.floor(floorX);
+                double floorYFrac = floorY - Math.floor(floorY);
+
+                int textureX = (int) (floorXFrac * texture.getWidth());
+                int textureY = (int) (floorYFrac * texture.getHeight());
+
+                textureX = Math.max(0, Math.min(textureX, texture.getWidth() - 1));
+                textureY = Math.max(0, Math.min(textureY, texture.getHeight() - 1));
+
+                floorPixel = texture.getCharAt(textureX, textureY);
+            }
 
             char charToDraw = defaultFloorChar;
             AnsiColor colorToDraw = defaultFloorColor;
+            AnsiColor backgroundColorToDraw = null;
 
             if (floorPixel != null) {
                 charToDraw = floorPixel.getCharacter();
                 colorToDraw = floorPixel.getForegroundColor();
+                backgroundColorToDraw = floorPixel.getBackgroundColor();
             }
 
-            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
+            // Check if floor entry has background color and use it if texture doesn't provide one
+            if (backgroundColorToDraw == null && floorEntry != null) {
+                backgroundColorToDraw = floorEntry.getBackgroundColor(false); // Use light background for floor
+            }
+
+            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, backgroundColorToDraw);
         }
     }
 

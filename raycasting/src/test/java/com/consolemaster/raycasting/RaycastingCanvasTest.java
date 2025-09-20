@@ -40,11 +40,11 @@ class RaycastingCanvasTest {
         // Test wall detection using EntryInfo
         EntryInfo wallEntry = canvas.getMapProvider().getEntry(0, 0);
         assertTrue(wallEntry.isWall());
-        assertFalse(wallEntry.isFallthrough());
+        assertFalse(wallEntry.isWalkThrough());
 
         EntryInfo floorEntry = canvas.getMapProvider().getEntry(1, 1);
         assertFalse(floorEntry.isWall());
-        assertTrue(floorEntry.isFallthrough());
+        assertTrue(floorEntry.isWalkThrough());
     }
 
     @Test
@@ -64,12 +64,12 @@ class RaycastingCanvasTest {
         // Test conversion from legacy characters to EntryInfo
         EntryInfo wallInfo = EntryInfo.fromCharacter('#');
         assertTrue(wallInfo.isWall());
-        assertFalse(wallInfo.isFallthrough());
+        assertFalse(wallInfo.isWalkThrough());
         assertEquals("Wall", wallInfo.getName());
 
         EntryInfo floorInfo = EntryInfo.fromCharacter(' ');
         assertFalse(floorInfo.isWall());
-        assertTrue(floorInfo.isFallthrough());
+        assertTrue(floorInfo.isWalkThrough());
         assertEquals("Empty", floorInfo.getName());
     }
 
@@ -94,7 +94,7 @@ class RaycastingCanvasTest {
         // Test glass properties
         EntryInfo glassEntry = canvas.getMapProvider().getEntry(1, 1);
         assertTrue(glassEntry.isWall()); // Blocks movement
-        assertFalse(glassEntry.isFallthrough()); // Can't walk through
+        assertFalse(glassEntry.isWalkThrough()); // Can't walk through
         assertTrue(glassEntry.isTransparent()); // But is transparent
         assertEquals("Glass", glassEntry.getName());
     }
@@ -152,7 +152,7 @@ class RaycastingCanvasTest {
         // Test stone wall
         EntryInfo stoneWall = EntryInfo.createStoneWall();
         assertTrue(stoneWall.isWall());
-        assertFalse(stoneWall.isFallthrough());
+        assertFalse(stoneWall.isWalkThrough());
         assertEquals("Stone Wall", stoneWall.getName());
         assertEquals(AnsiColor.WHITE, stoneWall.getColorLight());
         assertEquals(AnsiColor.BRIGHT_BLACK, stoneWall.getColorDark());
@@ -272,7 +272,7 @@ class RaycastingCanvasTest {
 
                 bgColorMap[y][x] = EntryInfo.builder()
                         .isWall(false)
-                        .isFallthrough(true)
+                        .isWalkThrough(true)
                         .character('.')
                         .name("Colored Floor")
                         .colorLight(AnsiColor.WHITE)
@@ -346,7 +346,7 @@ class RaycastingCanvasTest {
         // Test creating custom wall with background colors
         EntryInfo customBgWall = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▓')
                 .name("Custom Background Wall")
@@ -369,7 +369,7 @@ class RaycastingCanvasTest {
         // Test glass wall with background colors for special effects
         EntryInfo coloredGlass = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(true)
                 .character('|')
                 .name("Colored Glass")
@@ -381,7 +381,7 @@ class RaycastingCanvasTest {
                 .build();
 
         assertTrue(coloredGlass.isWall());
-        assertFalse(coloredGlass.isFallthrough());
+        assertFalse(coloredGlass.isWalkThrough());
         assertTrue(coloredGlass.isTransparent()); // Transparent but has background color
         assertEquals(AnsiColor.BLUE, coloredGlass.getBackgroundColor(false));
         assertEquals(AnsiColor.BRIGHT_BLUE, coloredGlass.getBackgroundColor(true));
@@ -478,7 +478,7 @@ class RaycastingCanvasTest {
         // Test EntryInfo with texture reference
         EntryInfo texturedWall = EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('█')
                 .name("Textured Wall")

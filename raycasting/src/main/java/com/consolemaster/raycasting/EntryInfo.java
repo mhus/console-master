@@ -28,7 +28,7 @@ public class EntryInfo {
      * True if the player can walk through this entry (opposite of collision).
      */
     @Builder.Default
-    private boolean isFallthrough = true;
+    private boolean isWalkThrough = true;
 
     /**
      * True if this entry is transparent and allows vision through it.
@@ -177,7 +177,7 @@ public class EntryInfo {
     public static EntryInfo createWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('█')
                 .name("Wall")
@@ -193,7 +193,7 @@ public class EntryInfo {
     public static EntryInfo createFloor() {
         return EntryInfo.builder()
                 .isWall(false)
-                .isFallthrough(true)
+                .isWalkThrough(true)
                 .isTransparent(true)
                 .character('.')
                 .name("Floor")
@@ -209,7 +209,7 @@ public class EntryInfo {
     public static EntryInfo createEmpty() {
         return EntryInfo.builder()
                 .isWall(false)
-                .isFallthrough(true)
+                .isWalkThrough(true)
                 .isTransparent(true)
                 .character(' ')
                 .name("Empty")
@@ -225,7 +225,7 @@ public class EntryInfo {
     public static EntryInfo createGlass() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(true)
                 .character('|')
                 .name("Glass")
@@ -241,7 +241,7 @@ public class EntryInfo {
     public static EntryInfo createLowWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▄')
                 .name("Low Wall")
@@ -257,7 +257,7 @@ public class EntryInfo {
     public static EntryInfo createStoneWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('█')
                 .name("Stone Wall")
@@ -273,7 +273,7 @@ public class EntryInfo {
     public static EntryInfo createBrickWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▓')
                 .name("Brick Wall")
@@ -289,7 +289,7 @@ public class EntryInfo {
     public static EntryInfo createMetalWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▒')
                 .name("Metal Wall")
@@ -305,7 +305,7 @@ public class EntryInfo {
     public static EntryInfo createTree() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('♠')
                 .name("Tree")
@@ -321,7 +321,7 @@ public class EntryInfo {
     public static EntryInfo createWoodenWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('▓')
                 .name("Wooden Wall")
@@ -338,7 +338,7 @@ public class EntryInfo {
     public static EntryInfo createDottedWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('•')
                 .name("Dotted Wall")
@@ -355,7 +355,7 @@ public class EntryInfo {
     public static EntryInfo createHashWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('#')
                 .name("Hash Wall")
@@ -372,7 +372,7 @@ public class EntryInfo {
     public static EntryInfo createWaveWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('~')
                 .name("Wave Wall")
@@ -389,7 +389,7 @@ public class EntryInfo {
     public static EntryInfo createTilingBrickWall() {
         return EntryInfo.builder()
                 .isWall(true)
-                .isFallthrough(false)
+                .isWalkThrough(false)
                 .isTransparent(false)
                 .character('█')
                 .name("Tiling Brick Wall")
@@ -413,7 +413,7 @@ public class EntryInfo {
             case ' ' -> createEmpty();
             default -> EntryInfo.builder()
                     .isWall(false)
-                    .isFallthrough(true)
+                    .isWalkThrough(true)
                     .isTransparent(true)
                     .character(character)
                     .name("Custom")
@@ -441,6 +441,6 @@ public class EntryInfo {
     @Override
     public String toString() {
         return String.format("EntryInfo{name='%s', char='%c', wall=%s, fallthrough=%s, transparent=%s, height=%.1f, colors=[%s,%s]}",
-                name, character, isWall, isFallthrough, isTransparent, height, colorLight, colorDark);
+                name, character, isWall, isWalkThrough, isTransparent, height, colorLight, colorDark);
     }
 }
