@@ -112,22 +112,12 @@ public class Advanced8DirectionDemo {
                 statusText.setText("Last action: " + lastAction);
             });
 
-            new Thread(() -> {
-                while (true) {
-                    try {
-                        Thread.sleep(UPDATE_INTERVAL);
-                        updateGameObjects(raycastingCanvas);
-                        lastUpdateTime = System.currentTimeMillis();
-                        processLoop.requestRedraw();
+            // Create and add game update animation ticker
+            GameUpdateTicker gameUpdateTicker = new GameUpdateTicker(raycastingCanvas, processLoop);
+            processLoop.addAnimationTicker(gameUpdateTicker);
 
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    } catch (Exception e) {
-                        log.error("Error in game update loop", e);
-                    }
-                }
-            }).start();
+            // Set animation tick rate for smooth gameplay (5 updates per second)
+            processLoop.setAnimationTicksPerSecond(5);
 
             log.info("Starting Advanced 8-Direction Sprite Demo...");
             processLoop.start();
@@ -389,6 +379,33 @@ public class Advanced8DirectionDemo {
         canvas.setPlayerAngle(0.0);
         setupAdvancedGameObjects(canvas);
         lastAction = "Demo reset!";
+    }
+
+    /**
+     * AnimationTicker implementation for game object updates.
+     * Replaces the manual thread with proper AnimationManager integration.
+     */
+    private static class GameUpdateTicker implements com.consolemaster.AnimationTicker {
+        private final RaycastingCanvas canvas;
+        private final ProcessLoop processLoop;
+        private long lastUpdateTime = 0;
+
+        public GameUpdateTicker(RaycastingCanvas canvas, ProcessLoop processLoop) {
+            this.canvas = canvas;
+            this.processLoop = processLoop;
+        }
+
+        @Override
+        public boolean tick() {
+            try {
+                updateGameObjects(canvas);
+                lastUpdateTime = System.currentTimeMillis();
+                return true; // Request redraw after each update
+            } catch (Exception e) {
+                log.error("Error in game update loop", e);
+                return false; // Don't request redraw on error
+            }
+        }
     }
 
     /**
