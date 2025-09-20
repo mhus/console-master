@@ -1066,6 +1066,7 @@ public class RaycastingDemo {
                 .isWalkThrough(false)
                 .isTransparent(false)
                 .character('█')
+                .character('0')
                 .name("Tall Border Wall")
                 .colorLight(AnsiColor.BRIGHT_WHITE)
                 .colorDark(AnsiColor.WHITE)
@@ -1103,10 +1104,15 @@ public class RaycastingDemo {
 
         // Characters for visual variety
         char[][] characters = {
-            {'▄', '▓', '█'},
-            {'▒', '█', '▓'},
-            {'█', '▓', '█'}
+            {'1', '2', '3'},
+            {'4', '5', '6'},
+            {'7', '8', '9'}
         };
+//        char[][] characters = {
+//                {'▄', '▓', '█'},
+//                {'▒', '█', '▓'},
+//                {'█', '▓', '█'}
+//        };
 
         // Place the 3x3 ascending height walls
         for (int gridY = 0; gridY < 3; gridY++) {
@@ -1302,6 +1308,14 @@ public class RaycastingDemo {
             raycastingCanvas.setMapProvider(MAP_PROVIDERS[currentMapIndex]);
             raycastingCanvas.setPlayerPosition(2.5, 2.5);
             lastAction = "Changed to " + MAP_PROVIDERS[currentMapIndex].getName();
+        });
+
+        // Map change backwards
+        screen.registerShortcut("N", () -> {
+            currentMapIndex = (currentMapIndex - 1 + MAP_PROVIDERS.length) % MAP_PROVIDERS.length;
+            raycastingCanvas.setMapProvider(MAP_PROVIDERS[currentMapIndex]);
+            raycastingCanvas.setPlayerPosition(2.5, 2.5);
+            lastAction = "Changed to " + MAP_PROVIDERS[currentMapIndex].getName() + " (backwards)";
         });
 
         // Reset player

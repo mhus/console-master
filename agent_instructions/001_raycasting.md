@@ -115,3 +115,34 @@ Hintergrundfarben. Im EntryInfo um die Eigenschaft:
 - Erweitere RaycastingCanvasDemo um die Demonstration von Hintergrundfarben.
 - Erweitere RaycastingCanvasTest um die Unterstützung für Hintergrundfarben.
 ```
+
+## 05 Sprites
+
+```text
+Ich habe eine Raycasting-Engine mit einer Klasse RaycastingCanvas.
+Bitte erweitere die Engine so, dass Objekte (z. B. Kisten, Gegner, Automaten) nicht nur als einfache Billboards dargestellt werden, sondern mit 8 Blickrichtungen. Je nachdem, aus welchem Winkel der Spieler auf ein Objekt schaut, soll automatisch die passende Sprite-Variante gewählt und gerendert werden.
+
+Implementiere dazu:
+	1.	Interface Sprite
+	•	Repräsentiert ein einzelnes Bild (z. B. Textur), das später auf die Leinwand gezeichnet wird.
+	•	Enthält mindestens Methoden/Properties für:
+	•	getImage() oder Ähnliches für den Zugriff auf die Bilddaten
+	•	optionale Breite/Höhe oder Skalierungsinformationen
+	2.	Interface SpriteProvider
+	•	Liefert für ein Objekt die passenden 8 Sprite-Instanzen.
+	•	Hat eine Methode wie getSpriteForAngle(double relativeAngle), die anhand des relativen Blickwinkels des Spielers die richtige Sprite-Variante zurückgibt.
+	3.	Klasse GameObject (oder ähnlich)
+	•	Enthält Position (x, y), Orientierung (orientation in 45°-Schritten), und einen Verweis auf einen SpriteProvider.
+	•	Kann später auch weitere Eigenschaften enthalten (interactable, enemy, hp, etc.).
+	4.	Änderungen in RaycastingCanvas
+	•	Beim Rendern der Objekte berechnest du den Winkel vom Spieler zum Objekt (atan2).
+	•	Ermittle den relativen Winkel zwischen Spielerblickrichtung und Objektorientierung.
+	•	Übergib diesen relativen Winkel an den SpriteProvider, um das richtige Sprite auszuwählen.
+	•	Zeichne das Sprite abhängig von Entfernung und Tiefe korrekt mit Z-Buffering.
+	5.	Beispielimplementierung
+	•	Implementiere einen konkreten SimpleSpriteProvider, der ein Array mit 8 Bildern (Sprite[8]) hält und basierend auf dem Winkel den richtigen Index auswählt.
+	•	Baue ein Beispiel-GameObject (z. B. eine Kiste oder ein Gegner) ein, das diesen SimpleSpriteProvider nutzt.
+
+Bitte schreibe sauberen, modularen Code, sodass ich später leicht weitere Objekte mit unterschiedlichen SpriteProvidern hinzufügen kann.
+Die Sprache ist [hier deine Programmiersprache einsetzen, z. B. Java oder Python].
+```
