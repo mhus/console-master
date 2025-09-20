@@ -6,7 +6,7 @@ package com.consolemaster.raycasting;
  */
 public class DefaultMapProvider implements MapProvider {
 
-    private final String[] map;
+    private final EntryInfo[][] map;
     private final String name;
     private final int width;
     private final int height;
@@ -28,31 +28,76 @@ public class DefaultMapProvider implements MapProvider {
     }
 
     /**
-     * Create a DefaultMapProvider with a custom map.
+     * Create a DefaultMapProvider with a custom map from string array.
      *
      * @param name the name of the map
-     * @param map the map data as string array
+     * @param mapData the map data as string array
      */
-    public DefaultMapProvider(String name, String[] map) {
+    public DefaultMapProvider(String name, String[] mapData) {
         this.name = name != null ? name : "Unnamed Map";
-        this.map = map != null ? map.clone() : DEFAULT_MAP.clone();
-        this.height = this.map.length;
-        this.width = this.height > 0 ? this.map[0].length() : 0;
+        String[] sourceMap = mapData != null ? mapData : DEFAULT_MAP;
+        this.height = sourceMap.length;
+        this.width = this.height > 0 ? sourceMap[0].length() : 0;
 
         // Validate that all rows have the same width
-        for (String row : this.map) {
+        for (String row : sourceMap) {
             if (row.length() != this.width) {
                 throw new IllegalArgumentException("All map rows must have the same width");
+            }
+        }
+
+        // Convert string map to EntryInfo map
+        this.map = new EntryInfo[height][width];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                char c = sourceMap[y].charAt(x);
+                this.map[y][x] = EntryInfo.fromCharacter(c);
+            }
+        }
+    }
+
+    /**
+     * Create a DefaultMapProvider with EntryInfo map.
+     *
+     * @param name the name of the map
+     * @param entryMap the map data as EntryInfo array
+     */
+    public DefaultMapProvider(String name, EntryInfo[][] entryMap) {
+        this.name = name != null ? name : "Unnamed Map";
+        if (entryMap == null || entryMap.length == 0) {
+            // Fall back to default map
+            this.height = DEFAULT_MAP.length;
+            this.width = this.height > 0 ? DEFAULT_MAP[0].length() : 0;
+            this.map = new EntryInfo[height][width];
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    char c = DEFAULT_MAP[y].charAt(x);
+                    this.map[y][x] = EntryInfo.fromCharacter(c);
+                }
+            }
+        } else {
+            this.height = entryMap.length;
+            this.width = entryMap[0].length;
+
+            // Validate dimensions and copy map
+            this.map = new EntryInfo[height][width];
+            for (int y = 0; y < height; y++) {
+                if (entryMap[y].length != width) {
+                    throw new IllegalArgumentException("All map rows must have the same width");
+                }
+                for (int x = 0; x < width; x++) {
+                    this.map[y][x] = entryMap[y][x] != null ? entryMap[y][x] : EntryInfo.createEmpty();
+                }
             }
         }
     }
 
     @Override
-    public char getEntry(int x, int y) {
+    public EntryInfo getEntry(int x, int y) {
         if (x < 0 || x >= width || y < 0 || y >= height) {
-            return '#'; // Return wall for out-of-bounds access
+            return EntryInfo.createWall(); // Return wall for out-of-bounds access
         }
-        return map[y].charAt(x);
+        return map[y][x];
     }
 
     @Override
@@ -77,5 +122,22 @@ public class DefaultMapProvider implements MapProvider {
      */
     public static String[] getDefaultMap() {
         return DEFAULT_MAP.clone();
+    }
+
+    /**
+     * Convert the EntryInfo map back to a string array for compatibility.
+     *
+     * @return string array representation of the map
+     */
+    public String[] toStringArray() {
+        String[] result = new String[height];
+        for (int y = 0; y < height; y++) {
+            StringBuilder row = new StringBuilder();
+            for (int x = 0; x < width; x++) {
+                row.append(map[y][x].toCharacter());
+            }
+            result[y] = row.toString();
+        }
+        return result;
     }
 }

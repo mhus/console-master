@@ -8,13 +8,13 @@ package com.consolemaster.raycasting;
 public interface MapProvider {
 
     /**
-     * Get the entry at the specified coordinates.
+     * Get the entry information at the specified coordinates.
      *
      * @param x the x coordinate
      * @param y the y coordinate
-     * @return the character at the specified position
+     * @return the EntryInfo at the specified position
      */
-    char getEntry(int x, int y);
+    EntryInfo getEntry(int x, int y);
 
     /**
      * Get the width of the map.

@@ -13,6 +13,7 @@ import com.consolemaster.Text;
 import com.consolemaster.raycasting.RaycastingCanvas;
 import com.consolemaster.raycasting.DefaultMapProvider;
 import com.consolemaster.raycasting.MapProvider;
+import com.consolemaster.raycasting.EntryInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class RaycastingDemo {
 
     // Different map providers to showcase
     private static final MapProvider[] MAP_PROVIDERS = {
-        // Default simple map
+        // Simple map with basic walls and floors
         new DefaultMapProvider("Simple Maze", new String[]{
             "########",
             "#      #",
@@ -40,7 +41,11 @@ public class RaycastingDemo {
             "#      #",
             "########"
         }),
-        // Maze map
+
+        // Advanced map with different EntryInfo types
+        createAdvancedMapProvider(),
+
+        // Complex maze map
         new DefaultMapProvider("Complex Maze", new String[]{
             "################",
             "#              #",
@@ -54,74 +59,172 @@ public class RaycastingDemo {
             "#              #",
             "################"
         }),
-        // Complex map
-        new DefaultMapProvider("Large Arena", new String[]{
-            "################### #",
-            "#                   #",
-            "#  ###  ####  ###   #",
-            "#  #              # #",
-            "#  #  ##########  # #",
-            "#     #        #    #",
-            "##### # ###### # ####",
-            "#       #    #      #",
-            "#  ####  ####  #### #",
-            "#                   #",
-            "#####################"
-        }),
-        // Large complex castle/dungeon map
-        new DefaultMapProvider("Castle Dungeon", new String[]{
-            "###############################################################################",
-            "#                                                                             #",
-            "#  ########    #############    ########    #############    ########         #",
-            "#  #      #    #           #    #      #    #           #    #      #         #",
-            "#  #  ##  #    #  #######  #    #  ##  #    #  #######  #    #  ##  #         #",
-            "#  #  ##  #    #  #     #  #    #  ##  #    #  #     #  #    #  ##  #         #",
-            "#  #      #    #  #  #  #  #    #      #    #  #  #  #  #    #      #         #",
-            "#  ########    #  #  #  #  #    ########    #  #  #  #  #    ########         #",
-            "#              #  #  #  #  #                #  #  #  #  #                     #",
-            "#  ############   #  #  #  #################   #  #  #  #################     #",
-            "#  #          #   #     #                  #   #     #                  #     #",
-            "#  #  ######  #   #######  ##############  #   #######  ##############  #     #",
-            "#  #  #    #  #            #            #  #            #            #  #     #",
-            "#  #  #    #  ##############  ########  ################  ########  ####      #",
-            "#  #  #    #                  #      #                    #      #            #",
-            "#  #  ######  ################  ####  ################    ######  ##########   ",
-            "#  #          #              #  #  #  #              #          #          #   ",
-            "#  ############  ##########  #  #  #  #  ##########  ############  ######  #   ",
-            "#               #        #   #     #  #   #        #               #    #  #   ",
-            "#  #############  ######  #  #######  #  #  ######  #############  #    #  #   ",
-            "#  #           #  #    #  #           #  #  #    #  #           #  #    #  #   ",
-            "#  #  #######  #  #    #  #############  #  #    #  #  #######  #  ######  #   ",
-            "#  #  #     #  #  #    #                 #  #    #  #  #     #  #          #   ",
-            "#  #  #  #  #  #  ######  ###############  ######  #  #  #  #  ############    ",
-            "#  #  #  #  #  #          #             #          #  #  #  #                 #",
-            "#  #  #  #  #  ############  #########  ############  #  #  #  ############    ",
-            "#  #     #  #               #         #               #  #     #          #    ",
-            "#  #######  #################  #####  #################  #######  ######  #    ",
-            "#                            #       #                            #    #  #    ",
-            "#  ##########################  #####  ##########################  #    #  #    ",
-            "#  #                        #       #                        #  #    #  #      ",
-            "#  #                        #       #                        #  #    #  #      ",
-            "#  #  ####################  #  ###  #  ####################  #  ######  #      ",
-            "#  #  #                  #  #   #   #  #                  #  #          #      ",
-            "#  #  #  ##############  #  #####   #  #  ##############  #  ############      ",
-            "#  #  #  #            #  #           #  #  #            #  #              #    ",
-            "#  #  #  #  ########  #  #############  #  #  ########  #  ##############      ",
-            "#  #  #  #  #      #  #                 #  #  #      #  #              #       ",
-            "#  #  #  #  #  ##  #  ###################  #  #  ##  #  ##############  #      ",
-            "#  #  #  #  #  ##  #                       #  #  ##  #              #  #       ",
-            "#  #  #  #  #      #########################  #      ##############  #  #      ",
-            "#  #  #  #  ########                          ########            #  #  #      ",
-            "#  #  #  #                                                        #  #  #      ",
-            "#  #  #  ##########################################################  #  #      ",
-            "#  #  #                                                              #  #      ",
-            "#  #  ################################################################  #      ",
-            "#  #                                                                    #      ",
-            "#  ######################################################################      ",
-            "#                                                                        #     ",
-            "##########################################################################     "
-        })
+
+        // Castle dungeon with mixed entry types
+        createCastleMapProvider()
     };
+
+    /**
+     * Creates an advanced map provider showcasing different EntryInfo features.
+     */
+    private static MapProvider createAdvancedMapProvider() {
+        EntryInfo[][] map = new EntryInfo[8][12];
+
+        // Initialize with floors
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.createFloor();
+            }
+        }
+
+        // Create walls around the border using stone walls
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Add some glass walls (transparent but blocking)
+        map[2][3] = EntryInfo.createGlass();
+        map[2][4] = EntryInfo.createGlass();
+        map[2][5] = EntryInfo.createGlass();
+
+        // Add low walls (half height)
+        map[4][2] = EntryInfo.createLowWall();
+        map[4][3] = EntryInfo.createLowWall();
+        map[5][2] = EntryInfo.createLowWall();
+        map[5][3] = EntryInfo.createLowWall();
+
+        // Add brick walls with proper light/dark colors
+        map[3][7] = EntryInfo.createBrickWall();
+        map[3][8] = EntryInfo.createBrickWall();
+        map[4][7] = EntryInfo.createBrickWall();
+        map[4][8] = EntryInfo.createBrickWall();
+
+        // Add metal walls
+        map[6][7] = EntryInfo.createMetalWall();
+        map[6][8] = EntryInfo.createMetalWall();
+
+        // Add custom colored walls with specific light/dark combinations
+        EntryInfo greenWall = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('█')
+                .name("Green Wall")
+                .colorLight(AnsiColor.BRIGHT_GREEN)
+                .colorDark(AnsiColor.GREEN)
+                .height(1.0)
+                .build();
+
+        EntryInfo purpleWall = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Purple Wall")
+                .colorLight(AnsiColor.MAGENTA)
+                .colorDark(AnsiColor.BRIGHT_MAGENTA)
+                .height(1.2)
+                .build();
+
+        map[6][4] = greenWall;
+        map[6][5] = greenWall;
+        map[5][9] = purpleWall;
+        map[6][9] = purpleWall;
+
+        return new DefaultMapProvider("Advanced Features", map);
+    }
+
+    /**
+     * Creates a castle map with various EntryInfo types.
+     */
+    private static MapProvider createCastleMapProvider() {
+        EntryInfo[][] map = new EntryInfo[12][16];
+
+        // Initialize with floors
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.createFloor();
+            }
+        }
+
+        // Create outer walls with stone
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Add castle features with enhanced colors
+        EntryInfo tower = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('♦')
+                .name("Tower")
+                .colorLight(AnsiColor.BRIGHT_WHITE)
+                .colorDark(AnsiColor.WHITE)
+                .height(1.5)
+                .build();
+
+        EntryInfo gate = EntryInfo.builder()
+                .isWall(false)
+                .isFallthrough(true)
+                .isTransparent(true)
+                .character('|')
+                .name("Gate")
+                .colorLight(AnsiColor.YELLOW)
+                .colorDark(AnsiColor.BRIGHT_YELLOW)
+                .height(0.8)
+                .build();
+
+        EntryInfo courtyard = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('▒')
+                .name("Courtyard Wall")
+                .colorLight(AnsiColor.CYAN)
+                .colorDark(AnsiColor.BLUE)
+                .height(0.7)
+                .build();
+
+        // Place towers
+        map[2][2] = tower;
+        map[2][13] = tower;
+        map[9][2] = tower;
+        map[9][13] = tower;
+
+        // Create gates
+        map[5][0] = gate;
+        map[6][0] = gate;
+
+        // Add interior walls with different materials
+        for (int x = 4; x < 12; x++) {
+            if (x != 7 && x != 8) { // Leave doorway
+                if (x < 8) {
+                    map[5][x] = EntryInfo.createBrickWall();
+                } else {
+                    map[5][x] = EntryInfo.createMetalWall();
+                }
+            }
+        }
+
+        // Add courtyard walls
+        map[7][3] = courtyard;
+        map[8][3] = courtyard;
+        map[7][12] = courtyard;
+        map[8][12] = courtyard;
+
+        return new DefaultMapProvider("Castle", map);
+    }
 
     public static void main(String[] args) {
         try {

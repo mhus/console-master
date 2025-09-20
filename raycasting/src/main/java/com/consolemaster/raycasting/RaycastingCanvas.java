@@ -78,8 +78,12 @@ public class RaycastingCanvas extends Canvas {
             // Prevent division by zero
             if (correctedDistance < 0.1) correctedDistance = 0.1;
 
-            // Calculate wall height based on corrected distance
-            int wallHeight = (int) (getHeight() / correctedDistance);
+            // Get entry info for this hit
+            EntryInfo hitEntry = result.hitEntry;
+
+            // Calculate wall height based on corrected distance and entry height
+            int baseWallHeight = (int) (getHeight() / correctedDistance);
+            int wallHeight = (int) (baseWallHeight * hitEntry.getHeight());
 
             // Calculate wall start and end positions
             int wallStart = Math.max(0, (getHeight() - wallHeight) / 2);
@@ -94,11 +98,15 @@ public class RaycastingCanvas extends Canvas {
                 graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
             }
 
-            // Draw wall with possible edge highlighting
+            // Draw wall with EntryInfo properties
             for (int y = wallStart; y <= wallEnd; y++) {
-                AnsiColor wallShade = getWallShade(correctedDistance, result.isVerticalWall);
-                char charToDraw = wallChar;
-                AnsiColor colorToDraw = wallShade;
+                // Use EntryInfo color based on wall orientation (light for vertical, dark for horizontal)
+                boolean isDarkSide = !result.isVerticalWall;
+                AnsiColor entryColor = hitEntry.getColor(isDarkSide);
+                AnsiColor colorToDraw = entryColor != null ? entryColor : getWallShade(correctedDistance, result.isVerticalWall);
+
+                // Use EntryInfo character or fall back to default wall char
+                char charToDraw = hitEntry.getCharacter() != ' ' ? hitEntry.getCharacter() : wallChar;
 
                 // Draw edge lines if enabled and this is an edge
                 if (drawWallEdges && (isLeftEdge || isRightEdge)) {
@@ -160,10 +168,12 @@ public class RaycastingCanvas extends Canvas {
     private static class RaycastResult {
         final double distance;
         final boolean isVerticalWall;
+        final EntryInfo hitEntry;
 
-        RaycastResult(double distance, boolean isVerticalWall) {
+        RaycastResult(double distance, boolean isVerticalWall, EntryInfo hitEntry) {
             this.distance = distance;
             this.isVerticalWall = isVerticalWall;
+            this.hitEntry = hitEntry;
         }
     }
 
@@ -202,6 +212,7 @@ public class RaycastingCanvas extends Canvas {
         // Perform DDA
         boolean hit = false;
         boolean side = false; // false = x-side, true = y-side
+        EntryInfo hitEntry = EntryInfo.createWall(); // Default to wall
 
         while (!hit) {
             // Jump to next map square, either in x-direction, or in y-direction
@@ -217,12 +228,18 @@ public class RaycastingCanvas extends Canvas {
 
             // Check if ray is out of bounds
             if (mapX < 0 || mapX >= mapWidth || mapY < 0 || mapY >= mapHeight) {
+                hit = true;
+                hitEntry = EntryInfo.createWall(); // Out of bounds is treated as wall
                 break;
             }
 
-            // Check if ray has hit a wall
-            if (mapProvider.getEntry(mapX, mapY) == '#') {
+            // Get entry info at current position
+            EntryInfo currentEntry = mapProvider.getEntry(mapX, mapY);
+
+            // Check if ray has hit a solid entry (wall or non-transparent obstacle)
+            if (currentEntry.isWall()) {
                 hit = true;
+                hitEntry = currentEntry;
             }
         }
 
@@ -234,7 +251,7 @@ public class RaycastingCanvas extends Canvas {
             perpWallDist = (mapY - playerY + (1 - stepY) / 2) / rayDirY;
         }
 
-        return new RaycastResult(Math.abs(perpWallDist), !side);
+        return new RaycastResult(Math.abs(perpWallDist), !side, hitEntry);
     }
 
     /**
@@ -295,8 +312,8 @@ public class RaycastingCanvas extends Canvas {
     }
 
     /**
-     * Check if a position is valid (not a wall).
-     * Made public for testing purposes.
+     * Check if a position is valid for player movement.
+     * Uses EntryInfo properties to determine walkability.
      */
     public boolean isValidPosition(double x, double y) {
         if (mapProvider == null) return false;
@@ -309,8 +326,9 @@ public class RaycastingCanvas extends Canvas {
             return false;
         }
 
-        // Check if the position is in a wall
-        return mapProvider.getEntry(mapX, mapY) != '#';
+        // Check if the position allows movement using EntryInfo
+        EntryInfo entry = mapProvider.getEntry(mapX, mapY);
+        return entry.isFallthrough();
     }
 
     /**
@@ -321,10 +339,11 @@ public class RaycastingCanvas extends Canvas {
 
         // Reset player position to a safe location if current position is invalid
         if (!isValidPosition(playerX, playerY)) {
-            // Find first empty space
+            // Find first walkable space
             for (int y = 0; y < this.mapProvider.getHeight(); y++) {
                 for (int x = 0; x < this.mapProvider.getWidth(); x++) {
-                    if (this.mapProvider.getEntry(x, y) == ' ') {
+                    EntryInfo entry = this.mapProvider.getEntry(x, y);
+                    if (entry.isFallthrough()) {
                         playerX = x + 0.5;
                         playerY = y + 0.5;
                         return;
@@ -352,16 +371,21 @@ public class RaycastingCanvas extends Canvas {
     }
 
     /**
-     * Get the current map as string array.
+     * Get the current map as string array for backward compatibility.
      */
     public String[] getMap() {
         if (mapProvider == null) return new String[0];
 
+        if (mapProvider instanceof DefaultMapProvider defaultProvider) {
+            return defaultProvider.toStringArray();
+        }
+
+        // Fallback: convert EntryInfo back to characters
         String[] map = new String[mapProvider.getHeight()];
         for (int y = 0; y < mapProvider.getHeight(); y++) {
             StringBuilder row = new StringBuilder();
             for (int x = 0; x < mapProvider.getWidth(); x++) {
-                row.append(mapProvider.getEntry(x, y));
+                row.append(mapProvider.getEntry(x, y).toCharacter());
             }
             map[y] = row.toString();
         }
