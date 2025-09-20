@@ -243,6 +243,22 @@ public class EntryInfo {
     }
 
     /**
+     * Creates a tree wall with natural colors.
+     */
+    public static EntryInfo createTree() {
+        return EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('♠')
+                .name("Tree")
+                .colorLight(AnsiColor.BRIGHT_GREEN)
+                .colorDark(AnsiColor.GREEN)
+                .height(1.3)
+                .build();
+    }
+
+    /**
      * Creates an entry from a legacy character representation.
      *
      * @param character the legacy character

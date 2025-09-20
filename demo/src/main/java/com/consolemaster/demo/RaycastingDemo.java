@@ -60,6 +60,9 @@ public class RaycastingDemo {
             "################"
         }),
 
+        // Natural landscape with water and grass
+        createNaturalLandscapeProvider(),
+
         // Castle dungeon with mixed entry types
         createCastleMapProvider()
     };
@@ -277,6 +280,58 @@ public class RaycastingDemo {
         map[8][12] = courtyard;
 
         return new DefaultMapProvider("Castle", map);
+    }
+
+    /**
+     * Creates a natural landscape map with water and grass.
+     */
+    private static MapProvider createNaturalLandscapeProvider() {
+        EntryInfo[][] map = new EntryInfo[10][14];
+
+        // Initialize with grass floor
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isFallthrough(true)
+                        .isTransparent(true)
+                        .character(',')
+                        .name("Grass Floor")
+                        .colorLight(AnsiColor.BRIGHT_GREEN)
+                        .colorDark(AnsiColor.GREEN)
+                        .height(0.0)
+                        .build();
+            }
+        }
+
+        // Create water areas
+        for (int y = 2; y <= 3; y++) {
+            for (int x = 4; x <= 9; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isFallthrough(true)
+                        .isTransparent(true)
+                        .character('~')
+                        .name("Water")
+                        .colorLight(AnsiColor.BRIGHT_CYAN)
+                        .colorDark(AnsiColor.CYAN)
+                        .height(0.0)
+                        .build();
+            }
+        }
+
+        // Create island with trees
+        for (int y = 1; y <= 8; y++) {
+            for (int x = 1; x <= 12; x++) {
+                if (x == 1 || x == 12 || y == 1 || y == 8) {
+                    map[y][x] = EntryInfo.createStoneWall();
+                } else if ((x + y) % 4 == 0) {
+                    map[y][x] = EntryInfo.createTree();
+                }
+            }
+        }
+
+        return new DefaultMapProvider("Natural Landscape", map);
     }
 
     public static void main(String[] args) {
