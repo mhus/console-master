@@ -11,13 +11,15 @@ import com.consolemaster.ProcessLoop;
 import com.consolemaster.ScreenCanvas;
 import com.consolemaster.Text;
 import com.consolemaster.raycasting.RaycastingCanvas;
+import com.consolemaster.raycasting.DefaultMapProvider;
+import com.consolemaster.raycasting.MapProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
 /**
  * Interactive raycasting demo showcasing first-person 3D perspective in a 2D world.
- * Features player movement, rotation, and different map environments.
+ * Features player movement, rotation, and different map environments using MapProvider.
  */
 @Slf4j
 public class RaycastingDemo {
@@ -28,18 +30,18 @@ public class RaycastingDemo {
     private static char[] wallEdgeStyles = {'│', '#', '*', '+'};
     private static int currentWallEdgeStyleIndex = 0;
 
-    // Different maps to showcase
-    private static final String[][] MAPS = {
+    // Different map providers to showcase
+    private static final MapProvider[] MAP_PROVIDERS = {
         // Default simple map
-        {
+        new DefaultMapProvider("Simple Maze", new String[]{
             "########",
             "#      #",
             "#  ##  #",
             "#      #",
             "########"
-        },
+        }),
         // Maze map
-        {
+        new DefaultMapProvider("Complex Maze", new String[]{
             "################",
             "#              #",
             "# #### ## #### #",
@@ -48,76 +50,77 @@ public class RaycastingDemo {
             "#              #",
             "# ## #### ## # #",
             "#  #      #  # #",
-            "## # #### # ##",
+            "## # #### # ####",
             "#              #",
             "################"
-        },
+        }),
         // Complex map
-        {
-            "####################",
-            "#                  #",
-            "#  ###  ####  ###  #",
+        new DefaultMapProvider("Large Arena", new String[]{
+            "################### #",
+            "#                   #",
+            "#  ###  ####  ###   #",
             "#  #              # #",
             "#  #  ##########  # #",
             "#     #        #    #",
             "##### # ###### # ####",
             "#       #    #      #",
             "#  ####  ####  #### #",
-            "#                  #",
-            "####################"
-        },
+            "#                   #",
+            "#####################"
+        }),
         // Large complex castle/dungeon map
-        {
-            "################################################################################",
-            "#                                                                              #",
-            "#  ########    #############    ########    #############    ########        #",
-            "#  #      #    #           #    #      #    #           #    #      #        #",
-            "#  #  ##  #    #  #######  #    #  ##  #    #  #######  #    #  ##  #        #",
-            "#  #  ##  #    #  #     #  #    #  ##  #    #  #     #  #    #  ##  #        #",
-            "#  #      #    #  #  #  #  #    #      #    #  #  #  #  #    #      #        #",
-            "#  ########    #  #  #  #  #    ########    #  #  #  #  #    ########        #",
-            "#              #  #  #  #  #                #  #  #  #  #                    #",
-            "#  ############   #  #  #  #################   #  #  #  #################    #",
-            "#  #          #   #     #                  #   #     #                  #    #",
-            "#  #  ######  #   #######  ##############  #   #######  ##############  #    #",
-            "#  #  #    #  #            #            #  #            #            #  #    #",
-            "#  #  #    #  ##############  ########  ################  ########  ####    #",
-            "#  #  #    #                  #      #                    #      #          #",
-            "#  #  ######  ################  ####  ################    ######  ##########",
-            "#  #          #              #  #  #  #              #          #          #",
-            "#  ############  ##########  #  #  #  #  ##########  ############  ######  #",
-            "#               #        #   #     #  #   #        #               #    #  #",
-            "#  #############  ######  #  #######  #  #  ######  #############  #    #  #",
-            "#  #           #  #    #  #           #  #  #    #  #           #  #    #  #",
-            "#  #  #######  #  #    #  #############  #  #    #  #  #######  #  ######  #",
-            "#  #  #     #  #  #    #                 #  #    #  #  #     #  #          #",
-            "#  #  #  #  #  #  ######  ###############  ######  #  #  #  #  ############",
-            "#  #  #  #  #  #          #             #          #  #  #  #              #",
-            "#  #  #  #  #  ############  #########  ############  #  #  #  ############",
-            "#  #     #  #               #         #               #  #     #          #",
-            "#  #######  #################  #####  #################  #######  ######  #",
-            "#                            #       #                            #    #  #",
-            "#  ##########################  #####  ##########################  #    #  #",
-            "#  #                        #       #                        #  #    #  #",
-            "#  #  ####################  #  ###  #  ####################  #  ######  #",
-            "#  #  #                  #  #   #   #  #                  #  #          #",
-            "#  #  #  ##############  #  #####   #  #  ##############  #  ############",
-            "#  #  #  #            #  #           #  #  #            #  #              #",
-            "#  #  #  #  ########  #  #############  #  #  ########  #  ##############",
-            "#  #  #  #  #      #  #                 #  #  #      #  #              #",
-            "#  #  #  #  #  ##  #  ###################  #  #  ##  #  ##############  #",
-            "#  #  #  #  #  ##  #                       #  #  ##  #              #  #",
-            "#  #  #  #  #      #########################  #      ##############  #  #",
-            "#  #  #  #  ########                          ########            #  #  #",
-            "#  #  #  #                                                        #  #  #",
-            "#  #  #  ##########################################################  #  #",
-            "#  #  #                                                              #  #",
-            "#  #  ################################################################  #",
-            "#  #                                                                    #",
-            "#  ######################################################################",
-            "#                                                                        #",
-            "##########################################################################"
-        }
+        new DefaultMapProvider("Castle Dungeon", new String[]{
+            "###############################################################################",
+            "#                                                                             #",
+            "#  ########    #############    ########    #############    ########         #",
+            "#  #      #    #           #    #      #    #           #    #      #         #",
+            "#  #  ##  #    #  #######  #    #  ##  #    #  #######  #    #  ##  #         #",
+            "#  #  ##  #    #  #     #  #    #  ##  #    #  #     #  #    #  ##  #         #",
+            "#  #      #    #  #  #  #  #    #      #    #  #  #  #  #    #      #         #",
+            "#  ########    #  #  #  #  #    ########    #  #  #  #  #    ########         #",
+            "#              #  #  #  #  #                #  #  #  #  #                     #",
+            "#  ############   #  #  #  #################   #  #  #  #################     #",
+            "#  #          #   #     #                  #   #     #                  #     #",
+            "#  #  ######  #   #######  ##############  #   #######  ##############  #     #",
+            "#  #  #    #  #            #            #  #            #            #  #     #",
+            "#  #  #    #  ##############  ########  ################  ########  ####      #",
+            "#  #  #    #                  #      #                    #      #            #",
+            "#  #  ######  ################  ####  ################    ######  ##########   ",
+            "#  #          #              #  #  #  #              #          #          #   ",
+            "#  ############  ##########  #  #  #  #  ##########  ############  ######  #   ",
+            "#               #        #   #     #  #   #        #               #    #  #   ",
+            "#  #############  ######  #  #######  #  #  ######  #############  #    #  #   ",
+            "#  #           #  #    #  #           #  #  #    #  #           #  #    #  #   ",
+            "#  #  #######  #  #    #  #############  #  #    #  #  #######  #  ######  #   ",
+            "#  #  #     #  #  #    #                 #  #    #  #  #     #  #          #   ",
+            "#  #  #  #  #  #  ######  ###############  ######  #  #  #  #  ############    ",
+            "#  #  #  #  #  #          #             #          #  #  #  #                 #",
+            "#  #  #  #  #  ############  #########  ############  #  #  #  ############    ",
+            "#  #     #  #               #         #               #  #     #          #    ",
+            "#  #######  #################  #####  #################  #######  ######  #    ",
+            "#                            #       #                            #    #  #    ",
+            "#  ##########################  #####  ##########################  #    #  #    ",
+            "#  #                        #       #                        #  #    #  #      ",
+            "#  #                        #       #                        #  #    #  #      ",
+            "#  #  ####################  #  ###  #  ####################  #  ######  #      ",
+            "#  #  #                  #  #   #   #  #                  #  #          #      ",
+            "#  #  #  ##############  #  #####   #  #  ##############  #  ############      ",
+            "#  #  #  #            #  #           #  #  #            #  #              #    ",
+            "#  #  #  #  ########  #  #############  #  #  ########  #  ##############      ",
+            "#  #  #  #  #      #  #                 #  #  #      #  #              #       ",
+            "#  #  #  #  #  ##  #  ###################  #  #  ##  #  ##############  #      ",
+            "#  #  #  #  #  ##  #                       #  #  ##  #              #  #       ",
+            "#  #  #  #  #      #########################  #      ##############  #  #      ",
+            "#  #  #  #  ########                          ########            #  #  #      ",
+            "#  #  #  #                                                        #  #  #      ",
+            "#  #  #  ##########################################################  #  #      ",
+            "#  #  #                                                              #  #      ",
+            "#  #  ################################################################  #      ",
+            "#  #                                                                    #      ",
+            "#  ######################################################################      ",
+            "#                                                                        #     ",
+            "##########################################################################     "
+        })
     };
 
     public static void main(String[] args) {
@@ -134,7 +137,7 @@ public class RaycastingDemo {
             // Create header
             Box headerBox = new Box("headerBox", 0, 5, new DefaultBorder());
             Text headerText = new Text("headerText", 0, 0,
-                "Raycasting Demo - First Person 3D World\n" +
+                "Raycasting Demo - First Person 3D World (MapProvider)\n" +
                 "WASD: Move | Arrows: Rotate/Fine Move | M: Change Map | R: Reset\n" +
                 "E: Toggle Wall Edges | T: Edge Threshold | C: Edge Style | Q/ESC: Exit",
                 Text.Alignment.CENTER);
@@ -143,9 +146,8 @@ public class RaycastingDemo {
             headerBox.setContent(headerText);
             headerBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
 
-            // Create raycasting canvas
-            raycastingCanvas = new RaycastingCanvas("Raycasting World", 0, 0);
-            raycastingCanvas.setMap(MAPS[currentMapIndex]);
+            // Create raycasting canvas with MapProvider
+            raycastingCanvas = new RaycastingCanvas("Raycasting World", 0, 0, MAP_PROVIDERS[currentMapIndex]);
             raycastingCanvas.setPlayerPosition(2.5, 2.5);
             raycastingCanvas.setWallColor(AnsiColor.WHITE);
             raycastingCanvas.setFloorColor(AnsiColor.YELLOW);
@@ -173,19 +175,20 @@ public class RaycastingDemo {
             // Create and start the process loop
             ProcessLoop processLoop = new ProcessLoop(screen);
             processLoop.setUpdateCallback(() -> {
-                // Update status text
+                // Update status text with MapProvider information
                 statusText.setText(String.format(
-                    "Position: (%.1f, %.1f) | Angle: %.0f° | %s | Map: %d/%d",
+                    "Position: (%.1f, %.1f) | Angle: %.0f° | %s | Map: %s (%d/%d)",
                     raycastingCanvas.getPlayerX(),
                     raycastingCanvas.getPlayerY(),
                     Math.toDegrees(raycastingCanvas.getPlayerAngle()),
                     lastAction,
+                    raycastingCanvas.getMapProvider().getName(),
                     currentMapIndex + 1,
-                    MAPS.length
+                    MAP_PROVIDERS.length
                 ));
             });
 
-            log.info("Starting Raycasting Demo...");
+            log.info("Starting Raycasting Demo with MapProvider...");
             processLoop.start();
 
         } catch (IOException e) {
@@ -229,7 +232,7 @@ public class RaycastingDemo {
             lastAction = "Rotate Right";
         });
 
-        // Wall edge controls - basic version without getter methods
+        // Wall edge controls
         screen.registerShortcut("E", () -> {
             raycastingCanvas.setDrawWallEdges(!raycastingCanvas.isDrawWallEdges());
             lastAction = "Wall Edges toggled";
@@ -248,12 +251,12 @@ public class RaycastingDemo {
             lastAction = "Edge Character changed";
         });
 
-        // Map change
+        // Map change - now uses MapProvider
         screen.registerShortcut("M", () -> {
-            currentMapIndex = (currentMapIndex + 1) % MAPS.length;
-            raycastingCanvas.setMap(MAPS[currentMapIndex]);
+            currentMapIndex = (currentMapIndex + 1) % MAP_PROVIDERS.length;
+            raycastingCanvas.setMapProvider(MAP_PROVIDERS[currentMapIndex]);
             raycastingCanvas.setPlayerPosition(2.5, 2.5);
-            lastAction = "Changed to Map " + (currentMapIndex + 1);
+            lastAction = "Changed to " + MAP_PROVIDERS[currentMapIndex].getName();
         });
 
         // Reset player

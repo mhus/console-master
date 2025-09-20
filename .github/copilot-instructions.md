@@ -13,6 +13,7 @@ Multi-module Maven project with clear separation of concerns:
 - **Core Module** (`console-master-core`): Framework implementation with all core classes and tests
 - **Demo Module** (`console-master-demo`): Example applications demonstrating framework features
 - **Graphic3D Module** (`console-master-graphic3d`): 3D graphics extension for rendering 3D content in console
+- **Raycasting Module** (`console-master-raycasting`): Advanced 3D rendering using raycasting technique
 
 ## Libraries and Frameworks
 
@@ -77,6 +78,18 @@ a warning Canvas is displayed instead of the actual content.
   - Scanline triangle filling for solid surfaces
   - ASCII-based 3D rendering optimized for console output
 
+### Raycasting System (raycasting module)
+- **RaycastingCanvas**: Advanced 3D rendering canvas using raycasting technique for first-person perspective
+  - DDA (Digital Differential Analyzer) algorithm for precise ray casting
+  - Fish-eye correction for realistic perspective rendering
+  - Distance-based wall shading for depth perception
+  - Configurable field of view (FOV) and rendering parameters
+  - Wall edge detection with configurable threshold and styling
+  - Multiple wall characters and colors for visual variety
+  - Player movement system with collision detection (forward/backward, strafing, rotation)
+  - Support for complex 2D map layouts represented as string arrays
+  - Automatic safe player positioning when changing maps
+
 ### Layout System
 - **Layout**: Interface for automatic component arrangement
 - **NoLayout**: Default layout that preserves manual positioning
@@ -138,6 +151,7 @@ a warning Canvas is displayed instead of the actual content.
 - **ConsoleInputDemo**: Console input handling demonstration
 - **NativeTerminalDemo**: Native terminal features demonstration
 - **Graphic3DDemo**: 3D graphics system demonstration with various 3D objects and rendering modes
+- **RaycastingDemo**: Interactive first-person 3D raycasting demonstration with multiple complex maps
 
 ### 3D Graphics Usage Examples
 
@@ -164,6 +178,39 @@ Mesh3D rotatedCube = cube.transform(rotation);
 canvas3D.addMesh(rotatedCube);
 ```
 
+### Raycasting Usage Examples
+
+```java
+// Create a raycasting canvas
+RaycastingCanvas raycastingCanvas = new RaycastingCanvas("3D World", 80, 25);
+
+// Configure rendering parameters
+raycastingCanvas.setWallColor(AnsiColor.WHITE);
+raycastingCanvas.setFloorColor(AnsiColor.YELLOW);
+raycastingCanvas.setCeilingColor(AnsiColor.BLUE);
+raycastingCanvas.setDrawWallEdges(true);
+raycastingCanvas.setWallEdgeThreshold(0.3);
+
+// Set custom map
+String[] customMap = {
+    "########",
+    "#      #",
+    "#  ##  #",
+    "#      #",
+    "########"
+};
+raycastingCanvas.setMap(customMap);
+
+// Position player
+raycastingCanvas.setPlayerPosition(2.5, 2.5);
+raycastingCanvas.setPlayerAngle(0.0);
+
+// Player movement
+raycastingCanvas.movePlayer(0.1);           // Move forward
+raycastingCanvas.strafePlayer(-0.1);        // Strafe left
+raycastingCanvas.rotatePlayer(Math.PI/6);   // Rotate 30 degrees
+```
+
 ### Development Guidelines
 
 - Use unified `paint(Graphics graphics)` method for all components
@@ -177,3 +224,4 @@ canvas3D.addMesh(rotatedCube);
 - Core framework development happens in the `core` module
 - 3D graphics development happens in the `graphic3d` module with dependency on core
 - Demo applications are developed in the `demo` module with dependency on core and graphic3d as needed
+- For raycasting development, use the raycasting module with proper DDA algorithm implementation and map handling

@@ -18,7 +18,7 @@ class RaycastingCanvasDebugTest {
             "########"
         };
 
-        RaycastingCanvas canvas = new RaycastingCanvas("Debug", 80, 40, testMap);
+        RaycastingCanvas canvas = new RaycastingCanvas("Debug", 80, 40, new DefaultMapProvider("test",testMap));
 
         System.out.println("Initial position: (" + canvas.getPlayerX() + ", " + canvas.getPlayerY() + ")");
 

@@ -8,13 +8,13 @@ import lombok.Setter;
 
 /**
  * A canvas that renders a 3D world using raycasting technique.
- * The world is represented as a 2D map where '#' represents walls and ' ' represents empty space.
+ * The world is represented by a MapProvider where '#' represents walls and ' ' represents empty space.
  */
 @Getter
 @Setter
 public class RaycastingCanvas extends Canvas {
 
-    private String[] map;
+    private MapProvider mapProvider;
     private double playerX = 2.0;
     private double playerY = 2.0;
     private double playerAngle = 0.0;
@@ -30,33 +30,24 @@ public class RaycastingCanvas extends Canvas {
     private boolean drawWallEdges = true; // Enable/disable wall edge drawing
     private double wallEdgeThreshold = 0.3; // Threshold for detecting wall edges
 
-    // Default map if none is provided
-    private static final String[] DEFAULT_MAP = {
-        "########",
-        "#      #",
-        "#  ##  #",
-        "#      #",
-        "########"
-    };
-
     public RaycastingCanvas(String name, int width, int height) {
         super(name, width, height);
-        this.map = DEFAULT_MAP;
+        this.mapProvider = new DefaultMapProvider();
     }
 
-    public RaycastingCanvas(String name, int width, int height, String[] map) {
+    public RaycastingCanvas(String name, int width, int height, MapProvider mapProvider) {
         super(name, width, height);
-        this.map = map != null ? map : DEFAULT_MAP;
+        this.mapProvider = mapProvider != null ? mapProvider : new DefaultMapProvider();
     }
 
     @Override
     public void paint(Graphics graphics) {
-        if (!isVisible() || map == null || map.length == 0) {
+        if (!isVisible() || mapProvider == null) {
             return;
         }
 
-        int mapWidth = map[0].length();
-        int mapHeight = map.length;
+        int mapWidth = mapProvider.getWidth();
+        int mapHeight = mapProvider.getHeight();
 
         // Store raycast results for edge detection
         RaycastResult[] raycastResults = new RaycastResult[getWidth()];
@@ -230,7 +221,7 @@ public class RaycastingCanvas extends Canvas {
             }
 
             // Check if ray has hit a wall
-            if (map[mapY].charAt(mapX) == '#') {
+            if (mapProvider.getEntry(mapX, mapY) == '#') {
                 hit = true;
             }
         }
@@ -308,32 +299,32 @@ public class RaycastingCanvas extends Canvas {
      * Made public for testing purposes.
      */
     public boolean isValidPosition(double x, double y) {
-        if (map == null || map.length == 0) return false;
+        if (mapProvider == null) return false;
 
         int mapX = (int) Math.floor(x);
         int mapY = (int) Math.floor(y);
 
         // Check bounds
-        if (mapX < 0 || mapX >= map[0].length() || mapY < 0 || mapY >= map.length) {
+        if (mapX < 0 || mapX >= mapProvider.getWidth() || mapY < 0 || mapY >= mapProvider.getHeight()) {
             return false;
         }
 
         // Check if the position is in a wall
-        return map[mapY].charAt(mapX) != '#';
+        return mapProvider.getEntry(mapX, mapY) != '#';
     }
 
     /**
-     * Set a new map for the raycasting world.
+     * Set a new map provider for the raycasting world.
      */
-    public void setMap(String[] map) {
-        this.map = map != null ? map : DEFAULT_MAP;
+    public void setMapProvider(MapProvider mapProvider) {
+        this.mapProvider = mapProvider != null ? mapProvider : new DefaultMapProvider();
 
         // Reset player position to a safe location if current position is invalid
         if (!isValidPosition(playerX, playerY)) {
             // Find first empty space
-            for (int y = 0; y < this.map.length; y++) {
-                for (int x = 0; x < this.map[y].length(); x++) {
-                    if (this.map[y].charAt(x) == ' ') {
+            for (int y = 0; y < this.mapProvider.getHeight(); y++) {
+                for (int x = 0; x < this.mapProvider.getWidth(); x++) {
+                    if (this.mapProvider.getEntry(x, y) == ' ') {
                         playerX = x + 0.5;
                         playerY = y + 0.5;
                         return;
@@ -341,6 +332,13 @@ public class RaycastingCanvas extends Canvas {
                 }
             }
         }
+    }
+
+    /**
+     * Set a new map for the raycasting world (creates a DefaultMapProvider).
+     */
+    public void setMap(String[] map) {
+        setMapProvider(new DefaultMapProvider("Custom Map", map));
     }
 
     /**
@@ -354,9 +352,19 @@ public class RaycastingCanvas extends Canvas {
     }
 
     /**
-     * Get the current map.
+     * Get the current map as string array.
      */
     public String[] getMap() {
-        return map.clone();
+        if (mapProvider == null) return new String[0];
+
+        String[] map = new String[mapProvider.getHeight()];
+        for (int y = 0; y < mapProvider.getHeight(); y++) {
+            StringBuilder row = new StringBuilder();
+            for (int x = 0; x < mapProvider.getWidth(); x++) {
+                row.append(mapProvider.getEntry(x, y));
+            }
+            map[y] = row.toString();
+        }
+        return map;
     }
 }
