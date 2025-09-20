@@ -10,121 +10,160 @@ import com.consolemaster.ProcessLoop;
 import com.consolemaster.ScreenCanvas;
 import com.consolemaster.Text;
 import com.consolemaster.raycasting.*;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
 
 /**
  * Demo application showcasing the 8-directional sprite system for game objects
  * in the raycasting engine. Demonstrates different types of objects with various
  * sprite configurations.
  */
+@Slf4j
 public class ObjectSpriteDemo {
 
     private static String lastAction = "Demo Started";
+    private static RaycastingCanvas raycastingCanvas;
 
     public static void main(String[] args) {
-        // Create main screen
-        ScreenCanvas screen = new ScreenCanvas("Object Sprite Demo", 100, 30);
+        try {
+            // Create main screen
+            ScreenCanvas screen = new ScreenCanvas(100, 30);
 
-        // Create raycasting canvas
-        RaycastingCanvas raycastingCanvas = new RaycastingCanvas("3D World", 80, 25);
+            // Create raycasting canvas
+            raycastingCanvas = new RaycastingCanvas("3D World", 80, 25);
 
-        // Setup a simple map
-        String[] map = {
-            "####################",
-            "#                  #",
-            "#  ####    ####    #",
-            "#  #  #    #  #    #",
-            "#  #  #    #  #    #",
-            "#  ####    ####    #",
-            "#                  #",
-            "#                  #",
-            "#     ######       #",
-            "#                  #",
-            "#                  #",
-            "####################"
-        };
-        raycastingCanvas.setMap(map);
-        raycastingCanvas.setPlayerPosition(2.5, 2.5);
-        raycastingCanvas.setPlayerAngle(0.0);
+            // Setup a simple map
+            String[] map = {
+                "####################",
+                "#                  #",
+                "#  ####    ####    #",
+                "#  #  #    #  #    #",
+                "#  #  #    #  #    #",
+                "#  ####    ####    #",
+                "#                  #",
+                "#                  #",
+                "#     ######       #",
+                "#                  #",
+                "#                  #",
+                "####################"
+            };
+            raycastingCanvas.setMap(map);
+            raycastingCanvas.setPlayerPosition(2.5, 2.5);
+            raycastingCanvas.setPlayerAngle(0.0);
 
-        // Create different types of game objects with sprites
-        setupGameObjects(raycastingCanvas);
+            // Create different types of game objects with sprites
+            setupGameObjects(raycastingCanvas);
 
-        // Create info panel using Box component
-        Text infoText = new Text("Controls", 20, 6,
-            "WASD: Move/Strafe | Q/E: Rotate | ESC: Exit\n" +
-            "Objects showcase 8-directional sprites:\n" +
-            "- Red enemies with directional sprites\n" +
-            "- Yellow crates (symmetric)\n" +
-            "- Brown barrels (round)\n" +
-            "- Interactive items (press F near them)"
-        );
-        infoText.setForegroundColor(AnsiColor.CYAN);
+            // Create main container
+            Composite mainContainer = new Composite("mainContainer",
+                screen.getWidth() - 4,
+                screen.getHeight() - 4,
+                new com.consolemaster.BorderLayout(1));
 
-        Box infoBox = new Box("Info", 20, 6, new DefaultBorder());
-        infoBox.setChild(infoText);
+            // Create info panel using Box component
+            Text infoText = new Text("infoText", 0, 0,
+                "Controls\n" +
+                "WASD: Move/Strafe | Q/E: Rotate | ESC: Exit\n" +
+                "Objects showcase 8-directional sprites:\n" +
+                "- Red enemies with directional sprites\n" +
+                "- Yellow crates (symmetric)\n" +
+                "- Brown barrels (round)\n" +
+                "- Interactive items (press F near them)",
+                Text.Alignment.LEFT
+            );
+            infoText.setForegroundColor(AnsiColor.CYAN);
 
-        // Create status display
-        Text statusText = new Text("Status", 20, 3, "Last action: " + lastAction);
-        statusText.setForegroundColor(AnsiColor.YELLOW);
+            Box infoBox = new Box("Info", 20, 8, new DefaultBorder());
+            infoBox.setContent(infoText);
+            infoBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_RIGHT));
 
-        Box statusBox = new Box("Status", 20, 3, new DefaultBorder());
-        statusBox.setChild(statusText);
+            // Create status display
+            Text statusText = new Text("statusText", 0, 0, "Last action: " + lastAction, Text.Alignment.LEFT);
+            statusText.setForegroundColor(AnsiColor.YELLOW);
 
-        // Add components to composite
-        Composite composite = new Composite("Main", 100, 30);
-        composite.addCanvas(raycastingCanvas, PositionConstraint.of(0, 0));
-        composite.addCanvas(infoBox, PositionConstraint.of(80, 0));
-        composite.addCanvas(statusBox, PositionConstraint.of(80, 25));
+            Box statusBox = new Box("Status", 20, 3, new DefaultBorder());
+            statusBox.setContent(statusText);
+            statusBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_RIGHT));
 
-        screen.addCanvas(composite, PositionConstraint.CENTER);
+            // Set canvas position
+            raycastingCanvas.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
-        // Create process loop for interactive controls
-        ProcessLoop processLoop = new ProcessLoop(screen);
+            // Add components to main container
+            mainContainer.addChild(raycastingCanvas);
+            mainContainer.addChild(infoBox);
+            mainContainer.addChild(statusBox);
 
-        // Add keyboard controls
-        processLoop.addKeyboardEventHandler(event -> {
-            switch (event.getKey()) {
-                case 'w', 'W' -> {
-                    raycastingCanvas.movePlayer(0.1);
-                    lastAction = "Moved forward";
-                }
-                case 's', 'S' -> {
-                    raycastingCanvas.movePlayer(-0.1);
-                    lastAction = "Moved backward";
-                }
-                case 'a', 'A' -> {
-                    raycastingCanvas.strafePlayer(-0.1);
-                    lastAction = "Strafed left";
-                }
-                case 'd', 'D' -> {
-                    raycastingCanvas.strafePlayer(0.1);
-                    lastAction = "Strafed right";
-                }
-                case 'q', 'Q' -> {
-                    raycastingCanvas.rotatePlayer(-0.1);
-                    lastAction = "Rotated left";
-                }
-                case 'e', 'E' -> {
-                    raycastingCanvas.rotatePlayer(0.1);
-                    lastAction = "Rotated right";
-                }
-                case 'f', 'F' -> {
-                    handleInteraction(raycastingCanvas);
-                    lastAction = "Interaction attempt";
-                }
-                case 27 -> { // ESC
-                    processLoop.stop();
-                    return true;
-                }
-            }
+            // Set main container
+            screen.setContent(mainContainer);
 
-            // Update status display
-            statusText.setText("Last action: " + lastAction);
-            return true;
+            // Register keyboard shortcuts using the correct API
+            registerKeyboardControls(screen, statusText);
+
+            // Create process loop for interactive controls
+            ProcessLoop processLoop = new ProcessLoop(screen);
+            processLoop.setUpdateCallback(() -> {
+                // Update status display
+                statusText.setText("Last action: " + lastAction);
+            });
+
+            log.info("Starting Object Sprite Demo...");
+            processLoop.start();
+
+        } catch (IOException e) {
+            log.error("Error initializing Object Sprite Demo", e);
+        }
+    }
+
+    /**
+     * Registers keyboard controls using the correct framework API.
+     */
+    private static void registerKeyboardControls(ScreenCanvas screen, Text statusText) {
+        double moveSpeed = 0.1;
+        double rotateSpeed = 0.1;
+
+        // Movement controls
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_UP.name(), () -> {
+            raycastingCanvas.movePlayer(moveSpeed);
+            lastAction = "Moved forward";
         });
 
-        // Start the demo
-        processLoop.start();
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_DOWN.name(), () -> {
+            raycastingCanvas.movePlayer(-moveSpeed);
+            lastAction = "Moved backward";
+        });
+
+        screen.registerShortcut("A", () -> {
+            raycastingCanvas.strafePlayer(-moveSpeed);
+            lastAction = "Strafed left";
+        });
+
+        screen.registerShortcut("D", () -> {
+            raycastingCanvas.strafePlayer(moveSpeed);
+            lastAction = "Strafed right";
+        });
+
+        // Rotation controls
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_LEFT.name(), () -> {
+            raycastingCanvas.rotatePlayer(-rotateSpeed);
+            lastAction = "Rotated left";
+        });
+
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_RIGHT.name(), () -> {
+            raycastingCanvas.rotatePlayer(rotateSpeed);
+            lastAction = "Rotated right";
+        });
+
+        screen.registerShortcut("F", () -> {
+            handleInteraction(raycastingCanvas);
+            lastAction = "Interaction attempt";
+        });
+
+        // Exit controls
+        screen.registerShortcut(KeyEvent.SpecialKey.ESC.name(), () -> {
+            log.info("Exiting Object Sprite Demo...");
+            System.exit(0);
+        });
     }
 
     /**

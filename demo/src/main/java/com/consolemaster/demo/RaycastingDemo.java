@@ -1342,7 +1342,7 @@ public class RaycastingDemo {
             System.exit(0);
         });
 
-        screen.registerShortcut(KeyEvent.SpecialKey.ESCAPE.name(), () -> {
+        screen.registerShortcut(KeyEvent.SpecialKey.ESC.name(), () -> {
             log.info("Exiting Raycasting Demo...");
             System.exit(0);
         });

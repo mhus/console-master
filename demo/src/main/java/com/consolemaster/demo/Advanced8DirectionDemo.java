@@ -1,7 +1,6 @@
 package com.consolemaster.demo;
 
 import com.consolemaster.AnsiColor;
-import com.consolemaster.BorderLayout;
 import com.consolemaster.Box;
 import com.consolemaster.Composite;
 import com.consolemaster.DefaultBorder;
@@ -11,6 +10,7 @@ import com.consolemaster.ProcessLoop;
 import com.consolemaster.ScreenCanvas;
 import com.consolemaster.Text;
 import com.consolemaster.raycasting.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
@@ -19,134 +19,179 @@ import java.io.IOException;
  * This demo creates enemies that patrol and show different sprites based on
  * their movement direction and the player's viewing angle.
  */
+@Slf4j
 public class Advanced8DirectionDemo {
 
     private static long lastUpdateTime = 0;
     private static final long UPDATE_INTERVAL = 200; // Update every 200ms
     private static String lastAction = "Demo Started";
+    private static RaycastingCanvas raycastingCanvas;
 
-    public static void main(String[] args) throws IOException {
-        // Create main screen
-        ScreenCanvas screen = new ScreenCanvas("Advanced 8-Direction Sprite Demo", 100, 35);
+    public static void main(String[] args) {
+        try {
+            // Create main screen
+            ScreenCanvas screen = new ScreenCanvas(100, 35);
 
-        // Create raycasting canvas
-        RaycastingCanvas raycastingCanvas = new RaycastingCanvas("3D World", 80, 30);
+            // Create raycasting canvas
+            raycastingCanvas = new RaycastingCanvas("3D World", 80, 30);
 
-        // Setup a more complex map
-        String[] map = {
-            "########################",
-            "#                      #",
-            "#  ###            ###  #",
-            "#  # #            # #  #",
-            "#  # #            # #  #",
-            "#  ###            ###  #",
-            "#                      #",
-            "#                      #",
-            "#      ##########      #",
-            "#      #        #      #",
-            "#      #        #      #",
-            "#      #        #      #",
-            "#      ##########      #",
-            "#                      #",
-            "#                      #",
-            "########################"
-        };
-        raycastingCanvas.setMap(map);
-        raycastingCanvas.setPlayerPosition(2.5, 2.5);
-        raycastingCanvas.setPlayerAngle(0.0);
+            // Setup a more complex map
+            String[] map = {
+                "########################",
+                "#                      #",
+                "#  ###            ###  #",
+                "#  # #            # #  #",
+                "#  # #            # #  #",
+                "#  ###            ###  #",
+                "#                      #",
+                "#                      #",
+                "#      ##########      #",
+                "#      #        #      #",
+                "#      #        #      #",
+                "#      #        #      #",
+                "#      ##########      #",
+                "#                      #",
+                "#                      #",
+                "########################"
+            };
+            raycastingCanvas.setMap(map);
+            raycastingCanvas.setPlayerPosition(2.5, 2.5);
+            raycastingCanvas.setPlayerAngle(0.0);
 
-        // Create patrolling enemies with proper 8-directional sprites
-        setupAdvancedGameObjects(raycastingCanvas);
+            // Create patrolling enemies with proper 8-directional sprites
+            setupAdvancedGameObjects(raycastingCanvas);
 
-        // Create detailed info panel
-        Text infoText = new Text("Advanced 8-Direction Demo", 20, 6,
-            "WASD: Move/Strafe | Q/E: Rotate | R: Reset | ESC: Exit\n" +
-            "Watch how enemies show different sprites based on:\n" +
-            "• Their movement direction (8 directions)\n" +
-            "• Your viewing angle relative to their orientation\n" +
-            "• Distance-based shading effects\n" +
-            "Objects: Patrolling Guards, Static Guards, Treasures"
-        );
-        infoText.setForegroundColor(AnsiColor.CYAN);
+            // Create main container
+            Composite mainContainer = new Composite("mainContainer",
+                screen.getWidth() - 4,
+                screen.getHeight() - 4,
+                new com.consolemaster.BorderLayout(1));
 
-        Box infoBox = new Box("Info", 20, 6, new DefaultBorder());
-        infoBox.setChild(infoText);
+            // Create detailed info panel
+            Text infoText = new Text("infoText", 0, 0,
+                "Advanced 8-Direction Demo\n" +
+                "WASD: Move/Strafe | Q/E: Rotate | R: Reset | ESC: Exit\n" +
+                "Watch how enemies show different sprites based on:\n" +
+                "• Their movement direction (8 directions)\n" +
+                "• Your viewing angle relative to their orientation\n" +
+                "• Distance-based shading effects\n" +
+                "Objects: Patrolling Guards, Static Guards, Treasures",
+                Text.Alignment.LEFT);
+            infoText.setForegroundColor(AnsiColor.CYAN);
 
-        // Create status display
-        Text statusText = new Text("Status", 20, 3, "Last action: " + lastAction);
-        statusText.setForegroundColor(AnsiColor.YELLOW);
+            Box infoBox = new Box("Info", 20, 8, new DefaultBorder());
+            infoBox.setContent(infoText);
+            infoBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_RIGHT));
 
-        Box statusBox = new Box("Status", 20, 3, new DefaultBorder());
-        statusBox.setChild(statusText);
+            // Create status display
+            Text statusText = new Text("statusText", 0, 0, "Last action: " + lastAction, Text.Alignment.LEFT);
+            statusText.setForegroundColor(AnsiColor.YELLOW);
 
-        // Add components to composite
-        Composite composite = new Composite("Main", 100, 35, new BorderLayout());
-        composite.addChild(raycastingCanvas, PositionConstraint.CENTER);
-        composite.addChild(infoBox, PositionConstraint.NORTH);
-        composite.addChild(statusBox, PositionConstraint.SOUTH);
+            Box statusBox = new Box("Status", 20, 3, new DefaultBorder());
+            statusBox.setContent(statusText);
+            statusBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_RIGHT));
 
-        screen.setContent(composite);
+            // Set canvas position
+            raycastingCanvas.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
 
-        // Create process loop for interactive controls and animations
-        ProcessLoop processLoop = new ProcessLoop(screen);
+            // Add components to main container
+            mainContainer.addChild(raycastingCanvas);
+            mainContainer.addChild(infoBox);
+            mainContainer.addChild(statusBox);
 
-        // Add keyboard controls
-        processLoop.addKeyboardEventHandler(event -> {
-            switch (event.getKey()) {
-                case 'w', 'W' -> {
-                    raycastingCanvas.movePlayer(0.1);
-                    lastAction = "Moved forward";
+            // Set main container
+            screen.setContent(mainContainer);
+
+            // Register keyboard shortcuts using the correct API
+            registerKeyboardControls(screen, statusText);
+
+            // Create process loop for animations
+            ProcessLoop processLoop = new ProcessLoop(screen);
+            processLoop.setUpdateCallback(() -> {
+                // Update status display
+                statusText.setText("Last action: " + lastAction);
+            });
+
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(UPDATE_INTERVAL);
+                        updateGameObjects(raycastingCanvas);
+                        lastUpdateTime = System.currentTimeMillis();
+                        processLoop.requestRedraw();
+
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    } catch (Exception e) {
+                        log.error("Error in game update loop", e);
+                    }
                 }
-                case 's', 'S' -> {
-                    raycastingCanvas.movePlayer(-0.1);
-                    lastAction = "Moved backward";
-                }
-                case 'a', 'A' -> {
-                    raycastingCanvas.strafePlayer(-0.1);
-                    lastAction = "Strafed left";
-                }
-                case 'd', 'D' -> {
-                    raycastingCanvas.strafePlayer(0.1);
-                    lastAction = "Strafed right";
-                }
-                case 'q', 'Q' -> {
-                    raycastingCanvas.rotatePlayer(-0.1);
-                    lastAction = "Rotated left";
-                }
-                case 'e', 'E' -> {
-                    raycastingCanvas.rotatePlayer(0.1);
-                    lastAction = "Rotated right";
-                }
-                case 'r', 'R' -> {
-                    resetDemo(raycastingCanvas);
-                    lastAction = "Demo reset";
-                }
-                case 'f', 'F' -> {
-                    handleInteraction(raycastingCanvas);
-                    lastAction = "Interaction attempt";
-                }
-                case 27 -> { // ESC
-                    processLoop.stop();
-                    return true;
-                }
-            }
+            }).start();
 
-            // Update status display
-            statusText.setText("Last action: " + lastAction);
-            return true;
+            log.info("Starting Advanced 8-Direction Sprite Demo...");
+            processLoop.start();
+
+        } catch (IOException e) {
+            log.error("Error initializing Advanced 8-Direction Demo", e);
+        }
+    }
+
+    /**
+     * Registers keyboard controls using the correct framework API.
+     */
+    private static void registerKeyboardControls(ScreenCanvas screen, Text statusText) {
+        double moveSpeed = 0.1;
+        double rotateSpeed = 0.1;
+
+        // Movement controls
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_UP.name(), () -> {
+            raycastingCanvas.movePlayer(moveSpeed);
+            lastAction = "Moved forward";
         });
 
-        // Add animation update using pre-render callback
-        processLoop.setPreRenderAction(() -> {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastUpdateTime > UPDATE_INTERVAL) {
-                updateGameObjects(raycastingCanvas);
-                lastUpdateTime = currentTime;
-            }
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_DOWN.name(), () -> {
+            raycastingCanvas.movePlayer(-moveSpeed);
+            lastAction = "Moved backward";
         });
 
-        // Start the demo
-        processLoop.start();
+        screen.registerShortcut("A", () -> {
+            raycastingCanvas.strafePlayer(-moveSpeed);
+            lastAction = "Strafed left";
+        });
+
+        screen.registerShortcut("D", () -> {
+            raycastingCanvas.strafePlayer(moveSpeed);
+            lastAction = "Strafed right";
+        });
+
+        // Rotation controls
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_LEFT.name(), () -> {
+            raycastingCanvas.rotatePlayer(-rotateSpeed);
+            lastAction = "Rotated left";
+        });
+
+        screen.registerShortcut(KeyEvent.SpecialKey.ARROW_RIGHT.name(), () -> {
+            raycastingCanvas.rotatePlayer(rotateSpeed);
+            lastAction = "Rotated right";
+        });
+
+        // Demo control
+        screen.registerShortcut("R", () -> {
+            resetDemo(raycastingCanvas);
+            lastAction = "Demo reset";
+        });
+
+        screen.registerShortcut("F", () -> {
+            handleInteraction(raycastingCanvas);
+            lastAction = "Interaction attempt";
+        });
+
+        // Exit controls
+        screen.registerShortcut(KeyEvent.SpecialKey.ESC.name(), () -> {
+            log.info("Exiting Advanced 8-Direction Demo...");
+            System.exit(0);
+        });
     }
 
     /**

@@ -214,6 +214,7 @@ public class NativeInputHandler implements InputHandler {
             case 10, 13 -> specialKey = KeyEvent.SpecialKey.ENTER;
             case 127 -> specialKey = KeyEvent.SpecialKey.BACKSPACE;
             case 8 -> specialKey = KeyEvent.SpecialKey.BACKSPACE; // Alternative backspace
+            case 27 -> specialKey = KeyEvent.SpecialKey.ESC; // ESC key
             default -> {
                 // Check for Ctrl combinations
                 if (ch < 32) {

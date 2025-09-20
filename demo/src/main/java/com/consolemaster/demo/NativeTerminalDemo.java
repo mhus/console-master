@@ -38,14 +38,14 @@ public class NativeTerminalDemo {
             northText.setForegroundColor(AnsiColor.BRIGHT_CYAN);
             northText.setFormats(AnsiFormat.BOLD);
             northBox.setContent(northText);
-            northBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.NORTH));
+            northBox.setLayoutConstraint(PositionConstraint.NORTH);
 
             // Create SOUTH component (Footer)
             Box southBox = new Box("SouthBox", 0, 3, new DefaultBorder());
             Text southText = new Text("SouthText", 0, 0, "SOUTH - Press 'q' to quit, TAB to navigate", Text.Alignment.CENTER);
             southText.setForegroundColor(AnsiColor.BRIGHT_GREEN);
             southBox.setContent(southText);
-            southBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.SOUTH));
+            southBox.setLayoutConstraint(PositionConstraint.SOUTH);
 
             // Create WEST component (Sidebar)
             Box westBox = new Box("WestBox", 20, 0, new DefaultBorder());
@@ -74,7 +74,7 @@ public class NativeTerminalDemo {
             westContent.addChild(westInfo4);
 
             westBox.setContent(westContent);
-            westBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.WEST));
+            westBox.setLayoutConstraint(PositionConstraint.WEST);
 
             // Create EAST component (Status)
             Box eastBox = new Box("EastBox", 20, 0, new DefaultBorder());
@@ -96,7 +96,7 @@ public class NativeTerminalDemo {
             eastContent.addChild(sizeText);
 
             eastBox.setContent(eastContent);
-            eastBox.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.EAST));
+            eastBox.setLayoutConstraint(PositionConstraint.EAST);
 
             // Create CENTER component (Main content)
             Box centerBox = new Box("CenterBox", 0, 0, new DefaultBorder());

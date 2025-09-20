@@ -12,7 +12,7 @@ public class KeyEvent implements Event {
      * Special key constants for non-printable keys.
      */
     public enum SpecialKey {
-        TAB, ENTER, ESCAPE, ESC, BACKSPACE, DELETE, INSERT,
+        TAB, ENTER, ESC, BACKSPACE, DELETE, INSERT,
         ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT,
         HOME, END, PAGE_UP, PAGE_DOWN,
         F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12
