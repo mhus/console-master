@@ -216,4 +216,77 @@ class RaycastingCanvasTest {
         assertFalse(centerSpace.isWall());
         assertTrue(centerSpace.isFallthrough());
     }
+
+    @Test
+    void testFloorColorSupport() {
+        // Create a map with different floor types
+        EntryInfo[][] customMap = new EntryInfo[3][3];
+
+        // Create different floor types with specific colors
+        EntryInfo stoneFloor = EntryInfo.builder()
+                .isWall(false)
+                .isFallthrough(true)
+                .isTransparent(true)
+                .character('.')
+                .name("Stone Floor")
+                .colorLight(AnsiColor.WHITE)
+                .colorDark(AnsiColor.BRIGHT_BLACK)
+                .height(0.0)
+                .build();
+
+        EntryInfo grassFloor = EntryInfo.builder()
+                .isWall(false)
+                .isFallthrough(true)
+                .isTransparent(true)
+                .character(',')
+                .name("Grass Floor")
+                .colorLight(AnsiColor.BRIGHT_GREEN)
+                .colorDark(AnsiColor.GREEN)
+                .height(0.0)
+                .build();
+
+        EntryInfo waterFloor = EntryInfo.builder()
+                .isWall(false)
+                .isFallthrough(true)
+                .isTransparent(true)
+                .character('~')
+                .name("Water")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .height(0.0)
+                .build();
+
+        // Fill map with different floor types
+        customMap[0][0] = EntryInfo.createWall(); // Border
+        customMap[0][1] = EntryInfo.createWall();
+        customMap[0][2] = EntryInfo.createWall();
+        customMap[1][0] = EntryInfo.createWall();
+        customMap[1][1] = stoneFloor; // Stone floor in center
+        customMap[1][2] = EntryInfo.createWall();
+        customMap[2][0] = grassFloor; // Grass floor
+        customMap[2][1] = waterFloor; // Water floor
+        customMap[2][2] = EntryInfo.createWall();
+
+        MapProvider floorProvider = new DefaultMapProvider("Floor Test", customMap);
+        canvas.setMapProvider(floorProvider);
+
+        // Test floor entry properties
+        EntryInfo centerFloor = canvas.getMapProvider().getEntry(1, 1);
+        assertEquals("Stone Floor", centerFloor.getName());
+        assertEquals(AnsiColor.WHITE, centerFloor.getColor(false)); // Light color
+        assertEquals(AnsiColor.BRIGHT_BLACK, centerFloor.getColor(true)); // Dark color
+        assertEquals('.', centerFloor.getCharacter());
+        assertTrue(centerFloor.isFallthrough());
+        assertFalse(centerFloor.isWall());
+
+        EntryInfo grassEntry = canvas.getMapProvider().getEntry(0, 2);
+        assertEquals("Grass Floor", grassEntry.getName());
+        assertEquals(AnsiColor.BRIGHT_GREEN, grassEntry.getColor(false));
+        assertEquals(',', grassEntry.getCharacter());
+
+        EntryInfo waterEntry = canvas.getMapProvider().getEntry(1, 2);
+        assertEquals("Water", waterEntry.getName());
+        assertEquals(AnsiColor.BRIGHT_CYAN, waterEntry.getColor(false));
+        assertEquals('~', waterEntry.getCharacter());
+    }
 }

@@ -70,10 +70,46 @@ public class RaycastingDemo {
     private static MapProvider createAdvancedMapProvider() {
         EntryInfo[][] map = new EntryInfo[8][12];
 
-        // Initialize with floors
+        // Initialize with different floor types
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[y].length; x++) {
-                map[y][x] = EntryInfo.createFloor();
+                if ((x + y) % 3 == 0) {
+                    // Stone floor
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('.')
+                            .name("Stone Floor")
+                            .colorLight(AnsiColor.WHITE)
+                            .colorDark(AnsiColor.BRIGHT_BLACK)
+                            .height(0.0)
+                            .build();
+                } else if ((x + y) % 3 == 1) {
+                    // Grass floor
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character(',')
+                            .name("Grass Floor")
+                            .colorLight(AnsiColor.BRIGHT_GREEN)
+                            .colorDark(AnsiColor.GREEN)
+                            .height(0.0)
+                            .build();
+                } else {
+                    // Sand floor
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('°')
+                            .name("Sand Floor")
+                            .colorLight(AnsiColor.BRIGHT_YELLOW)
+                            .colorDark(AnsiColor.YELLOW)
+                            .height(0.0)
+                            .build();
+                }
             }
         }
 
@@ -135,6 +171,23 @@ public class RaycastingDemo {
         map[6][5] = greenWall;
         map[5][9] = purpleWall;
         map[6][9] = purpleWall;
+
+        // Add water area (blue floor)
+        EntryInfo water = EntryInfo.builder()
+                .isWall(false)
+                .isFallthrough(true)
+                .isTransparent(true)
+                .character('~')
+                .name("Water")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .height(0.0)
+                .build();
+
+        map[3][9] = water;
+        map[3][10] = water;
+        map[4][9] = water;
+        map[4][10] = water;
 
         return new DefaultMapProvider("Advanced Features", map);
     }

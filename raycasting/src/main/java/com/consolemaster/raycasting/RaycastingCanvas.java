@@ -72,6 +72,10 @@ public class RaycastingCanvas extends Canvas {
             // Calculate ray angle for fish-eye correction
             double rayAngle = playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
 
+            // Ray direction (needed for floor rendering)
+            double rayDirX = Math.cos(rayAngle);
+            double rayDirY = Math.sin(rayAngle);
+
             // Apply fish-eye correction
             double correctedDistance = result.distance * Math.cos(rayAngle - playerAngle);
 
@@ -117,9 +121,38 @@ public class RaycastingCanvas extends Canvas {
                 graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
             }
 
-            // Draw floor
+            // Draw floor with dynamic colors based on floor EntryInfo
             for (int y = wallEnd + 1; y < getHeight(); y++) {
-                graphics.drawStyledChar(x, y, floorChar, floorColor, null);
+                // Calculate floor position using ray casting for floor rendering
+                double floorDistance = getHeight() / (2.0 * y - getHeight());
+
+                // Calculate floor world position
+                double floorX = playerX + floorDistance * rayDirX;
+                double floorY = playerY + floorDistance * rayDirY;
+
+                // Get floor EntryInfo at calculated position
+                int floorMapX = (int) Math.floor(floorX);
+                int floorMapY = (int) Math.floor(floorY);
+
+                AnsiColor floorColorToDraw = floorColor; // Default fallback
+                char floorCharToDraw = floorChar;
+
+                // Check if floor position is within map bounds
+                if (floorMapX >= 0 && floorMapX < mapWidth && floorMapY >= 0 && floorMapY < mapHeight) {
+                    EntryInfo floorEntry = mapProvider.getEntry(floorMapX, floorMapY);
+
+                    // Use floor entry colors if available
+                    if (floorEntry.getColor(false) != null) {
+                        floorColorToDraw = floorEntry.getColor(false); // Use light color for floor
+                    }
+
+                    // Use floor entry character if it's not a wall
+                    if (!floorEntry.isWall() && floorEntry.getCharacter() != ' ') {
+                        floorCharToDraw = floorEntry.getCharacter();
+                    }
+                }
+
+                graphics.drawStyledChar(x, y, floorCharToDraw, floorColorToDraw, null);
             }
         }
     }
