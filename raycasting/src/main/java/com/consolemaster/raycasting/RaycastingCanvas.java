@@ -82,11 +82,11 @@ public class RaycastingCanvas extends Canvas {
                 // Get texture from cache or load it
                 texture = textureCache.get(textureKey);
                 if (texture == null) {
-                    // Calculate wall height for texture loading
+                    // Calculate wall height for texture loading using effective height
                     double correctedDistance = result.distance * Math.cos(rayAngle - playerAngle);
                     if (correctedDistance < 0.1) correctedDistance = 0.1;
                     int baseWallHeight = (int) (getHeight() / correctedDistance);
-                    int wallHeight = (int) (baseWallHeight * result.hitEntry.getHeight());
+                    int wallHeight = (int) (baseWallHeight * result.hitEntry.getEffectiveHeight());
 
                     // Load texture and cache it
                     texture = textureProvider.getTexture(textureKey, 1, wallHeight, result.hitEntry, !result.isVerticalWall);
@@ -129,9 +129,9 @@ public class RaycastingCanvas extends Canvas {
             // Get entry info for this hit
             EntryInfo hitEntry = result.hitEntry;
 
-            // Calculate wall height based on corrected distance and entry height
+            // Calculate wall height based on corrected distance and entry effective height
             int baseWallHeight = (int) (getHeight() / correctedDistance);
-            int wallHeight = (int) (baseWallHeight * hitEntry.getHeight());
+            int wallHeight = (int) (baseWallHeight * hitEntry.getEffectiveHeight());
 
             // Calculate wall start and end positions
             int wallStart = Math.max(0, (getHeight() - wallHeight) / 2);

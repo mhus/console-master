@@ -19,6 +19,11 @@ import lombok.NoArgsConstructor;
 public class EntryInfo {
 
     /**
+     * Minimum allowed height for walls to ensure visibility.
+     */
+    public static final double MIN_HEIGHT = 0.5;
+
+    /**
      * True if this entry represents a wall that blocks vision and movement.
      */
     @Builder.Default
@@ -167,6 +172,25 @@ public class EntryInfo {
     public void setBackgroundColor(AnsiColor backgroundColor) {
         this.backgroundColorLight = backgroundColor;
         this.backgroundColorDark = backgroundColor;
+    }
+
+    /**
+     * Set the height of the wall with minimum height validation.
+     * Height will be clamped to MIN_HEIGHT if it's below the minimum.
+     *
+     * @param height the desired height (must be >= MIN_HEIGHT)
+     */
+    public void setHeight(double height) {
+        this.height = Math.max(height, MIN_HEIGHT);
+    }
+
+    /**
+     * Get the effective height for rendering (ensures minimum height).
+     *
+     * @return the height, guaranteed to be at least MIN_HEIGHT
+     */
+    public double getEffectiveHeight() {
+        return Math.max(height, MIN_HEIGHT);
     }
 
     // Predefined common entry types

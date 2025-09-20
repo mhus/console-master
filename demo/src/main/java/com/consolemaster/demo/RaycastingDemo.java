@@ -82,7 +82,13 @@ public class RaycastingDemo {
         createCheckerboardFloorMapProvider(),
 
         // Background color demonstration map
-        createBackgroundColorDemoMapProvider()
+        createBackgroundColorDemoMapProvider(),
+
+        // Wall height demonstration map
+        createWallHeightDemoMapProvider(),
+
+        // Large area with ascending wall heights in center
+        createLargeAreaWithAscendingHeightsMapProvider()
     };
 
     /**
@@ -889,6 +895,274 @@ public class RaycastingDemo {
         map[8][4] = glassBg;
 
         return new DefaultMapProvider("Background Colors Demo", map);
+    }
+
+    /**
+     * Creates a map provider to demonstrate wall heights.
+     */
+    private static MapProvider createWallHeightDemoMapProvider() {
+        EntryInfo[][] map = new EntryInfo[10][12];
+
+        // Initialize with stone floor
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.createFloor();
+            }
+        }
+
+        // Create border walls with standard height (1.0)
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Create walls with different heights to demonstrate the height feature
+
+        // Column 1: Low walls (minimum height 0.5)
+        EntryInfo lowWall = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('▄')
+                .name("Low Wall")
+                .colorLight(AnsiColor.BRIGHT_BLACK)
+                .colorDark(AnsiColor.BLACK)
+                .height(EntryInfo.MIN_HEIGHT) // Uses minimum height constant
+                .build();
+
+        for (int y = 2; y <= 7; y++) {
+            map[y][2] = lowWall;
+        }
+
+        // Column 2: Medium walls (0.7)
+        EntryInfo mediumWall = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Medium Wall")
+                .colorLight(AnsiColor.CYAN)
+                .colorDark(AnsiColor.BLUE)
+                .height(0.7)
+                .build();
+
+        for (int y = 2; y <= 7; y++) {
+            map[y][4] = mediumWall;
+        }
+
+        // Column 3: Standard walls (1.0)
+        for (int y = 2; y <= 7; y++) {
+            map[y][6] = EntryInfo.createStoneWall(); // Default height 1.0
+        }
+
+        // Column 4: Tall walls (1.5)
+        EntryInfo tallWall = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('█')
+                .name("Tall Wall")
+                .colorLight(AnsiColor.RED)
+                .colorDark(AnsiColor.BRIGHT_RED)
+                .height(1.5)
+                .build();
+
+        for (int y = 2; y <= 7; y++) {
+            map[y][8] = tallWall;
+        }
+
+        // Column 5: Very tall walls (2.0)
+        EntryInfo veryTallWall = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Very Tall Wall")
+                .colorLight(AnsiColor.BRIGHT_MAGENTA)
+                .colorDark(AnsiColor.MAGENTA)
+                .height(2.0)
+                .build();
+
+        for (int y = 2; y <= 7; y++) {
+            map[y][10] = veryTallWall;
+        }
+
+        // Add some test walls with below-minimum height (should be clamped to MIN_HEIGHT)
+        EntryInfo belowMinWall = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('░')
+                .name("Below Min Wall")
+                .colorLight(AnsiColor.YELLOW)
+                .colorDark(AnsiColor.BRIGHT_YELLOW)
+                .height(0.2) // Below minimum, should be clamped to 0.5
+                .build();
+
+        map[3][3] = belowMinWall;
+        map[3][5] = belowMinWall;
+
+        // Add trees with their natural height (1.3)
+        map[5][3] = EntryInfo.createTree();
+        map[5][5] = EntryInfo.createTree();
+        map[5][7] = EntryInfo.createTree();
+        map[5][9] = EntryInfo.createTree();
+
+        // Add mixed height walls for interesting visual effect
+        EntryInfo mixedWall1 = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('▒')
+                .name("Mixed Wall 1")
+                .colorLight(AnsiColor.GREEN)
+                .colorDark(AnsiColor.BRIGHT_GREEN)
+                .height(0.8)
+                .build();
+
+        EntryInfo mixedWall2 = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Mixed Wall 2")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .height(1.3)
+                .build();
+
+        // Create a zigzag pattern with alternating heights
+        map[7][3] = mixedWall1;
+        map[7][4] = mixedWall2;
+        map[7][5] = mixedWall1;
+        map[7][6] = mixedWall2;
+        map[7][7] = mixedWall1;
+        map[7][8] = mixedWall2;
+        map[7][9] = mixedWall1;
+
+        return new DefaultMapProvider("Wall Heights Demo", map);
+    }
+
+    /**
+     * Creates a map provider with a large area and ascending wall heights.
+     */
+    private static MapProvider createLargeAreaWithAscendingHeightsMapProvider() {
+        EntryInfo[][] map = new EntryInfo[15][20];
+
+        // Initialize with stone floor for the entire area
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.createFloor();
+            }
+        }
+
+        // Create very tall border walls (height 5.0) around the entire perimeter
+        EntryInfo tallBorderWall = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('█')
+                .name("Tall Border Wall")
+                .colorLight(AnsiColor.BRIGHT_WHITE)
+                .colorDark(AnsiColor.WHITE)
+                .height(5.0)
+                .build();
+
+        // Top and bottom borders
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = tallBorderWall;
+            map[map.length - 1][x] = tallBorderWall;
+        }
+        // Left and right borders
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = tallBorderWall;
+            map[y][map[0].length - 1] = tallBorderWall;
+        }
+
+        // Create 3x3 grid of walls in the center with ascending heights
+        int centerX = map[0].length / 2 - 1; // Start position for 3x3 grid
+        int centerY = map.length / 2 - 1;
+
+        // Heights for the 3x3 grid (ascending from 0.6 to 3.0)
+        double[][] heights = {
+            {0.6, 0.8, 1.0},
+            {1.2, 1.5, 1.8},
+            {2.1, 2.5, 3.0}
+        };
+
+        // Colors for visual variety
+        AnsiColor[][] colors = {
+            {AnsiColor.YELLOW, AnsiColor.BRIGHT_YELLOW, AnsiColor.GREEN},
+            {AnsiColor.BRIGHT_GREEN, AnsiColor.CYAN, AnsiColor.BRIGHT_CYAN},
+            {AnsiColor.BLUE, AnsiColor.MAGENTA, AnsiColor.BRIGHT_MAGENTA}
+        };
+
+        // Characters for visual variety
+        char[][] characters = {
+            {'▄', '▓', '█'},
+            {'▒', '█', '▓'},
+            {'█', '▓', '█'}
+        };
+
+        // Place the 3x3 ascending height walls
+        for (int gridY = 0; gridY < 3; gridY++) {
+            for (int gridX = 0; gridX < 3; gridX++) {
+                int mapX = centerX + gridX;
+                int mapY = centerY + gridY;
+
+                map[mapY][mapX] = EntryInfo.builder()
+                        .isWall(true)
+                        .isWalkThrough(false)
+                        .isTransparent(false)
+                        .character(characters[gridY][gridX])
+                        .name("Ascending Wall " + (gridY * 3 + gridX + 1))
+                        .colorLight(colors[gridY][gridX])
+                        .colorDark(colors[gridY][gridX])
+                        .height(heights[gridY][gridX])
+                        .build();
+            }
+        }
+
+        // Add some decorative elements around the center for better spatial orientation
+
+        // Add trees in corners of the large area
+        EntryInfo decorativeTree = EntryInfo.createTree();
+        map[3][3] = decorativeTree;
+        map[3][map[0].length - 4] = decorativeTree;
+        map[map.length - 4][3] = decorativeTree;
+        map[map.length - 4][map[0].length - 4] = decorativeTree;
+
+        // Add low walls to create pathways
+        EntryInfo lowPathWall = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('▄')
+                .name("Path Wall")
+                .colorLight(AnsiColor.BRIGHT_BLACK)
+                .colorDark(AnsiColor.BLACK)
+                .height(0.5)
+                .build();
+
+        // Create cross-shaped pathways leading to the center
+        for (int x = centerX - 2; x <= centerX + 4; x++) {
+            if (x >= 2 && x < map[0].length - 2 &&
+                (x < centerX || x > centerX + 2)) { // Don't block the 3x3 center
+                map[centerY + 1][x] = lowPathWall;
+            }
+        }
+        for (int y = centerY - 2; y <= centerY + 4; y++) {
+            if (y >= 2 && y < map.length - 2 &&
+                (y < centerY || y > centerY + 2)) { // Don't block the 3x3 center
+                map[y][centerX + 1] = lowPathWall;
+            }
+        }
+
+        return new DefaultMapProvider("Large Area with Ascending Heights", map);
     }
 
     public static void main(String[] args) {

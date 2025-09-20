@@ -388,6 +388,74 @@ class RaycastingCanvasTest {
     }
 
     @Test
+    void testWallHeightFeature() {
+        // Test minimum height enforcement
+        EntryInfo belowMinWall = EntryInfo.builder()
+                .height(0.2) // Below minimum
+                .build();
+
+        assertEquals(0.2, belowMinWall.getHeight(), 0.01); // Raw value stored
+        assertEquals(EntryInfo.MIN_HEIGHT, belowMinWall.getEffectiveHeight(), 0.01); // Effective height clamped
+
+        // Test normal height
+        EntryInfo normalWall = EntryInfo.builder()
+                .height(1.5)
+                .build();
+
+        assertEquals(1.5, normalWall.getHeight(), 0.01);
+        assertEquals(1.5, normalWall.getEffectiveHeight(), 0.01);
+
+        // Test minimum height exactly
+        EntryInfo minWall = EntryInfo.builder()
+                .height(EntryInfo.MIN_HEIGHT)
+                .build();
+
+        assertEquals(EntryInfo.MIN_HEIGHT, minWall.getHeight(), 0.01);
+        assertEquals(EntryInfo.MIN_HEIGHT, minWall.getEffectiveHeight(), 0.01);
+
+        // Test height setter with validation
+        EntryInfo testWall = EntryInfo.builder().build();
+        testWall.setHeight(0.1); // Below minimum
+        assertEquals(EntryInfo.MIN_HEIGHT, testWall.getHeight(), 0.01); // Should be clamped
+
+        testWall.setHeight(2.0); // Above minimum
+        assertEquals(2.0, testWall.getHeight(), 0.01); // Should be preserved
+    }
+
+    @Test
+    void testPredefinedWallHeights() {
+        // Test that predefined walls have correct heights
+        EntryInfo wall = EntryInfo.createWall();
+        assertEquals(1.0, wall.getHeight(), 0.01);
+        assertEquals(1.0, wall.getEffectiveHeight(), 0.01);
+
+        EntryInfo lowWall = EntryInfo.createLowWall();
+        assertEquals(0.5, lowWall.getHeight(), 0.01);
+        assertEquals(EntryInfo.MIN_HEIGHT, lowWall.getEffectiveHeight(), 0.01);
+
+        EntryInfo tree = EntryInfo.createTree();
+        assertEquals(1.3, tree.getHeight(), 0.01);
+        assertEquals(1.3, tree.getEffectiveHeight(), 0.01);
+
+        EntryInfo floor = EntryInfo.createFloor();
+        assertEquals(0.0, floor.getHeight(), 0.01);
+        assertEquals(EntryInfo.MIN_HEIGHT, floor.getEffectiveHeight(), 0.01); // Even floors get minimum height for effective height
+    }
+
+    @Test
+    void testMinHeightConstant() {
+        // Test that the minimum height constant is correctly defined
+        assertEquals(0.5, EntryInfo.MIN_HEIGHT, 0.01);
+
+        // Test that it's used correctly
+        EntryInfo testEntry = EntryInfo.builder()
+                .height(0.1)
+                .build();
+
+        assertTrue(testEntry.getEffectiveHeight() >= EntryInfo.MIN_HEIGHT);
+    }
+
+    @Test
     void testRegistryTextureProvider() {
         // Create multiple texture providers
         PictureTextureProvider provider1 = new PictureTextureProvider();
