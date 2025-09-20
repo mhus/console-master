@@ -281,6 +281,74 @@ public class EntryInfo {
     }
 
     /**
+     * Creates a tiling wall with dots pattern.
+     */
+    public static EntryInfo createDottedWall() {
+        return EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('•')
+                .name("Dotted Wall")
+                .colorLight(AnsiColor.BRIGHT_WHITE)
+                .colorDark(AnsiColor.WHITE)
+                .height(1.0)
+                .texture("tiling_dots")
+                .build();
+    }
+
+    /**
+     * Creates a tiling wall with hash pattern.
+     */
+    public static EntryInfo createHashWall() {
+        return EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('#')
+                .name("Hash Wall")
+                .colorLight(AnsiColor.BRIGHT_YELLOW)
+                .colorDark(AnsiColor.YELLOW)
+                .height(1.0)
+                .texture("tiling_hash")
+                .build();
+    }
+
+    /**
+     * Creates a tiling wall with wave pattern.
+     */
+    public static EntryInfo createWaveWall() {
+        return EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('~')
+                .name("Wave Wall")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .height(1.0)
+                .texture("tiling_waves")
+                .build();
+    }
+
+    /**
+     * Creates a tiling brick wall that repeats instead of scaling.
+     */
+    public static EntryInfo createTilingBrickWall() {
+        return EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('█')
+                .name("Tiling Brick Wall")
+                .colorLight(AnsiColor.RED)
+                .colorDark(AnsiColor.BRIGHT_RED)
+                .height(1.0)
+                .texture("tiling_brick")
+                .build();
+    }
+
+    /**
      * Creates an entry from a legacy character representation.
      *
      * @param character the legacy character

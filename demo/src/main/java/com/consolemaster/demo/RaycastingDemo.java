@@ -16,6 +16,7 @@ import com.consolemaster.raycasting.MapProvider;
 import com.consolemaster.raycasting.EntryInfo;
 import com.consolemaster.raycasting.PictureTextureProvider;
 import com.consolemaster.raycasting.RegistryTextureProvider;
+import com.consolemaster.raycasting.TilingTextureProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -49,6 +50,9 @@ public class RaycastingDemo {
 
         // Textured map with various textures
         createTexturedMapProvider(),
+
+        // Tiling texture demonstration map
+        createTilingTextureMapProvider(),
 
         // Complex maze map
         new DefaultMapProvider("Complex Maze", new String[]{
@@ -396,6 +400,67 @@ public class RaycastingDemo {
         return new DefaultMapProvider("Textured Map", map);
     }
 
+    /**
+     * Creates a tiling texture map provider showcasing various tiling textures.
+     */
+    private static MapProvider createTilingTextureMapProvider() {
+        EntryInfo[][] map = new EntryInfo[12][12];
+
+        // Initialize with grass texture
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isFallthrough(true)
+                        .isTransparent(true)
+                        .character(',')
+                        .name("Grass")
+                        .colorLight(AnsiColor.BRIGHT_GREEN)
+                        .colorDark(AnsiColor.GREEN)
+                        .height(0.0)
+                        .build();
+            }
+        }
+
+        // Add stone walls around the border
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Create different sections to showcase tiling textures
+
+        // Left section: Tiling brick walls
+        for (int y = 2; y <= 5; y++) {
+            map[y][3] = EntryInfo.createTilingBrickWall();
+        }
+
+        // Right section: Dotted walls
+        for (int y = 2; y <= 5; y++) {
+            map[y][8] = EntryInfo.createDottedWall();
+        }
+
+        // Center section: Hash pattern walls
+        for (int x = 4; x <= 7; x++) {
+            map[3][x] = EntryInfo.createHashWall();
+        }
+
+        // Bottom section: Wave pattern walls
+        for (int x = 4; x <= 7; x++) {
+            map[8][x] = EntryInfo.createWaveWall();
+        }
+
+        // Add some traditional scaling textured walls for comparison
+        map[6][3] = EntryInfo.createWoodenWall(); // Uses scaling texture
+        map[6][8] = EntryInfo.createBrickWall();  // Uses scaling texture
+
+        return new DefaultMapProvider("Tiling Texture Demo", map);
+    }
+
     public static void main(String[] args) {
         try {
             // Create the main screen canvas
@@ -580,10 +645,13 @@ public class RaycastingDemo {
      * Sets up the texture provider for the raycasting canvas.
      */
     private static void setupTextureProvider(RaycastingCanvas canvas) {
-        // Create a picture texture provider with various textures
+        // Create a picture texture provider with various textures (scaling)
         PictureTextureProvider pictureProvider = new PictureTextureProvider();
 
-        // Add wood texture
+        // Create a tiling texture provider with repeating patterns
+        TilingTextureProvider tilingProvider = new TilingTextureProvider();
+
+        // Add wood texture (scaling)
         String[] woodTexture = {
             "|||###|||",
             "###|||###",
@@ -593,7 +661,7 @@ public class RaycastingDemo {
         };
         pictureProvider.addTexture("wood", woodTexture);
 
-        // Add brick texture
+        // Add brick texture (scaling)
         String[] brickTexture = {
             "##  ##  ##",
             "  ##  ##  ",
@@ -603,7 +671,7 @@ public class RaycastingDemo {
         };
         pictureProvider.addTexture("brick", brickTexture);
 
-        // Add stone texture
+        // Add stone texture (scaling)
         String[] stoneTexture = {
             "█▓▒░░▒▓█",
             "▓▒░  ░▒▓",
@@ -615,7 +683,7 @@ public class RaycastingDemo {
         };
         pictureProvider.addTexture("stone", stoneTexture);
 
-        // Add metal texture
+        // Add metal texture (scaling)
         String[] metalTexture = {
             "========",
             "||||||||",
@@ -625,13 +693,44 @@ public class RaycastingDemo {
         };
         pictureProvider.addTexture("metal", metalTexture);
 
-        // Create registry provider and add the picture provider
+        // Add tiling patterns that look better when repeated
+        String[] tilingBrickPattern = {
+            "██  ██",
+            "  ██  ",
+            "██  ██"
+        };
+        tilingProvider.addTexture("tiling_brick", tilingBrickPattern);
+
+        String[] tilingDotPattern = {
+            "• ",
+            " •"
+        };
+        tilingProvider.addTexture("tiling_dots", tilingDotPattern);
+
+        String[] tilingHashPattern = {
+            "# ",
+            " #"
+        };
+        tilingProvider.addTexture("tiling_hash", tilingHashPattern);
+
+        String[] tilingWavePattern = {
+            "~~~~",
+            "    ",
+            "~~~~",
+            "    "
+        };
+        tilingProvider.addTexture("tiling_waves", tilingWavePattern);
+
+        // Create registry provider and add both providers
         RegistryTextureProvider registryProvider = new RegistryTextureProvider();
-        registryProvider.addProvider(pictureProvider);
+        registryProvider.addProvider(pictureProvider);  // Scaling textures first
+        registryProvider.addProvider(tilingProvider);   // Tiling textures second
 
         // Set the texture provider
         canvas.setTextureProvider(registryProvider);
 
-        log.info("Texture provider set up with " + pictureProvider.getTexturePaths().length + " textures");
+        log.info("Texture provider set up with {} scaling textures and {} tiling textures",
+                pictureProvider.getTexturePaths().length,
+                tilingProvider.getTexturePaths().length);
     }
 }
