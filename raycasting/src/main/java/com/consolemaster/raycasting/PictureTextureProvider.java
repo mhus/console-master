@@ -5,11 +5,11 @@ import java.util.Map;
 
 /**
  * A texture provider that manages picture textures from string arrays.
- * Textures are stored in a map and can be retrieved by path.
+ * Acts as a transformator that creates textures with specified dimensions and parameters.
  */
 public class PictureTextureProvider implements TextureProvider {
 
-    private final Map<String, PictureTexture> textures = new HashMap<>();
+    private final Map<String, String[]> textureDataMap = new HashMap<>();
 
     /**
      * Adds a texture to this provider.
@@ -19,35 +19,28 @@ public class PictureTextureProvider implements TextureProvider {
      */
     public void addTexture(String path, String[] textureData) {
         if (path != null && textureData != null) {
-            textures.put(path, new PictureTexture(path, textureData));
-        }
-    }
-
-    /**
-     * Adds a picture texture to this provider.
-     *
-     * @param path the path/name for the texture
-     * @param texture the picture texture
-     */
-    public void addTexture(String path, PictureTexture texture) {
-        if (path != null && texture != null) {
-            textures.put(path, texture);
+            textureDataMap.put(path, textureData.clone());
         }
     }
 
     @Override
-    public Texture getTexture(String path) {
-        return textures.get(path);
+    public Texture getTexture(String path, int width, int height, EntryInfo entry, boolean light) {
+        String[] textureData = textureDataMap.get(path);
+        if (textureData == null) {
+            return null;
+        }
+
+        return new PictureTexture(path, textureData, width, height, entry, light);
     }
 
     /**
      * Removes a texture from this provider.
      *
      * @param path the path of the texture to remove
-     * @return the removed texture, or null if not found
+     * @return true if the texture was removed, false if not found
      */
-    public PictureTexture removeTexture(String path) {
-        return textures.remove(path);
+    public boolean removeTexture(String path) {
+        return textureDataMap.remove(path) != null;
     }
 
     /**
@@ -57,7 +50,7 @@ public class PictureTextureProvider implements TextureProvider {
      * @return true if the texture exists
      */
     public boolean hasTexture(String path) {
-        return textures.containsKey(path);
+        return textureDataMap.containsKey(path);
     }
 
     /**
@@ -66,13 +59,13 @@ public class PictureTextureProvider implements TextureProvider {
      * @return array of texture paths
      */
     public String[] getTexturePaths() {
-        return textures.keySet().toArray(new String[0]);
+        return textureDataMap.keySet().toArray(new String[0]);
     }
 
     /**
      * Clears all textures from this provider.
      */
     public void clear() {
-        textures.clear();
+        textureDataMap.clear();
     }
 }

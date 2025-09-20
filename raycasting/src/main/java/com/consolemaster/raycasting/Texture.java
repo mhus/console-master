@@ -3,19 +3,18 @@ package com.consolemaster.raycasting;
 import com.consolemaster.StyledChar;
 
 /**
- * Interface for texture rendering in raycasting.
- * Textures provide visual representation for map entries and can be scaled to any size.
+ * Interface for texture rendering with coordinate-based access.
+ * Textures provide direct access to styled characters at specific coordinates.
  */
 public interface Texture {
 
     /**
-     * Generates a picture representation of this texture scaled to the specified dimensions.
+     * Gets the styled character at the specified coordinates.
+     * This method allows direct coordinate-based access to the texture data.
      *
-     * @param width the desired width of the texture
-     * @param height the desired height of the texture
-     * @param entry the entry info for color and lighting information
-     * @param light true for light rendering (vertical walls), false for dark (horizontal walls)
-     * @return a 2D array of styled characters representing the texture
+     * @param x the x coordinate (0-based)
+     * @param y the y coordinate (0-based)
+     * @return the styled character at the given position, or null if coordinates are out of bounds
      */
-    StyledChar[][] picture(int width, int height, EntryInfo entry, boolean light);
+    StyledChar getCharAt(int x, int y);
 }

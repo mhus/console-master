@@ -4,83 +4,79 @@ import com.consolemaster.AnsiColor;
 import com.consolemaster.StyledChar;
 
 /**
- * A texture implementation that uses string arrays as source data.
- * The texture is scaled to fit the requested dimensions and uses EntryInfo for coloring.
+ * A texture implementation that uses string arrays as source data with coordinate-based access.
+ * The texture provides direct access to styled characters at specific coordinates.
  */
 public class PictureTexture implements Texture {
 
     private final String[] textureData;
     private final String name;
+    private final int width;
+    private final int height;
+    private final EntryInfo entry;
+    private final boolean light;
 
     /**
-     * Creates a new picture texture from string array data.
+     * Creates a new picture texture from string array data with specified dimensions and rendering parameters.
      *
      * @param name the name of this texture
      * @param textureData array of strings representing the texture pattern
+     * @param width the target width for rendering
+     * @param height the target height for rendering
+     * @param entry the entry info for color and lighting information
+     * @param light true for light rendering, false for dark rendering
      */
-    public PictureTexture(String name, String[] textureData) {
+    public PictureTexture(String name, String[] textureData, int width, int height, EntryInfo entry, boolean light) {
         this.name = name;
         this.textureData = textureData != null ? textureData.clone() : new String[]{"#"};
+        this.width = width;
+        this.height = height;
+        this.entry = entry;
+        this.light = light;
     }
 
     @Override
-    public StyledChar[][] picture(int width, int height, EntryInfo entry, boolean light) {
-        if (width <= 0 || height <= 0) {
-            return new StyledChar[0][0];
+    public StyledChar getCharAt(int x, int y) {
+        // Check bounds
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            return null;
         }
-
-        StyledChar[][] result = new StyledChar[height][width];
 
         // Get source dimensions
         int sourceHeight = textureData.length;
         int sourceWidth = sourceHeight > 0 ? textureData[0].length() : 1;
 
-        // Ensure we have valid source dimensions
+        // Handle empty texture data
         if (sourceHeight == 0 || sourceWidth == 0) {
-            // Fill with default character
             char defaultChar = entry != null ? entry.getCharacter() : '#';
-            AnsiColor defaultColor = entry != null ? entry.getColor(light) : AnsiColor.WHITE;
-
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    result[y][x] = new StyledChar(defaultChar, defaultColor);
-                }
-            }
-            return result;
+            AnsiColor defaultColor = entry != null ? entry.getColor(!light) : AnsiColor.WHITE;
+            return new StyledChar(defaultChar, defaultColor);
         }
 
-        // Get colors from entry
+        // Map target coordinates to source coordinates
+        int sourceY = (y * sourceHeight) / height;
+        int sourceX = (x * sourceWidth) / width;
+
+        // Ensure we don't go out of bounds
+        sourceY = Math.min(sourceY, sourceHeight - 1);
+        sourceX = Math.min(sourceX, Math.min(sourceWidth - 1, textureData[sourceY].length() - 1));
+
+        // Get character from source
+        char textureChar;
+        if (sourceY >= 0 && sourceY < textureData.length &&
+            sourceX >= 0 && sourceX < textureData[sourceY].length()) {
+            textureChar = textureData[sourceY].charAt(sourceX);
+        } else {
+            textureChar = entry != null ? entry.getCharacter() : '#';
+        }
+
+        // Get color from entry
         AnsiColor textureColor = entry != null ? entry.getColor(!light) : AnsiColor.WHITE;
         if (textureColor == null) {
             textureColor = AnsiColor.WHITE;
         }
 
-        // Scale texture to fit dimensions
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                // Map target coordinates to source coordinates
-                int sourceY = (y * sourceHeight) / height;
-                int sourceX = (x * sourceWidth) / width;
-
-                // Ensure we don't go out of bounds
-                sourceY = Math.min(sourceY, sourceHeight - 1);
-                sourceX = Math.min(sourceX, Math.min(sourceWidth - 1, textureData[sourceY].length() - 1));
-
-                // Get character from source
-                char textureChar;
-                if (sourceY >= 0 && sourceY < textureData.length &&
-                    sourceX >= 0 && sourceX < textureData[sourceY].length()) {
-                    textureChar = textureData[sourceY].charAt(sourceX);
-                } else {
-                    textureChar = entry != null ? entry.getCharacter() : '#';
-                }
-
-                // Create styled character
-                result[y][x] = new StyledChar(textureChar, textureColor);
-            }
-        }
-
-        return result;
+        return new StyledChar(textureChar, textureColor);
     }
 
     /**
@@ -95,5 +91,19 @@ public class PictureTexture implements Texture {
      */
     public String[] getTextureData() {
         return textureData.clone();
+    }
+
+    /**
+     * Gets the configured width.
+     */
+    public int getWidth() {
+        return width;
+    }
+
+    /**
+     * Gets the configured height.
+     */
+    public int getHeight() {
+        return height;
     }
 }

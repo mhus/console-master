@@ -1,6 +1,7 @@
 package com.consolemaster.raycasting;
 
 import com.consolemaster.AnsiColor;
+import com.consolemaster.StyledChar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -199,21 +200,28 @@ class RaycastingCanvasTest {
         canvas.setTextureProvider(textureProvider);
         assertNotNull(canvas.getTextureProvider());
 
-        // Test texture retrieval
-        Texture retrievedTexture = canvas.getTextureProvider().getTexture("test");
-        assertNotNull(retrievedTexture);
-
-        // Test texture rendering
+        // Test texture retrieval with new transformator-based interface
         EntryInfo testEntry = EntryInfo.builder()
                 .colorLight(AnsiColor.WHITE)
                 .colorDark(AnsiColor.BRIGHT_BLACK)
                 .character('█')
                 .build();
 
-        var textureData = retrievedTexture.picture(3, 3, testEntry, true);
-        assertNotNull(textureData);
-        assertEquals(3, textureData.length);
-        assertEquals(3, textureData[0].length);
+        Texture retrievedTexture = canvas.getTextureProvider().getTexture("test", 3, 3, testEntry, true);
+        assertNotNull(retrievedTexture);
+
+        // Test coordinate-based access
+        StyledChar charAtOrigin = retrievedTexture.getCharAt(0, 0);
+        assertNotNull(charAtOrigin);
+        assertEquals('#', charAtOrigin.getCharacter());
+
+        StyledChar charAtMiddle = retrievedTexture.getCharAt(1, 1);
+        assertNotNull(charAtMiddle);
+        assertEquals(' ', charAtMiddle.getCharacter());
+
+        // Test bounds checking
+        StyledChar charOutOfBounds = retrievedTexture.getCharAt(10, 10);
+        assertNull(charOutOfBounds);
     }
 
     @Test
@@ -236,10 +244,16 @@ class RaycastingCanvasTest {
 
         canvas.setTextureProvider(registry);
 
-        // Test texture retrieval from different providers
-        assertNotNull(canvas.getTextureProvider().getTexture("wood"));
-        assertNotNull(canvas.getTextureProvider().getTexture("metal"));
-        assertNull(canvas.getTextureProvider().getTexture("nonexistent"));
+        // Test texture retrieval from different providers with transformator interface
+        EntryInfo testEntry = EntryInfo.builder()
+                .colorLight(AnsiColor.WHITE)
+                .colorDark(AnsiColor.BRIGHT_BLACK)
+                .character('█')
+                .build();
+
+        assertNotNull(canvas.getTextureProvider().getTexture("wood", 3, 3, testEntry, true));
+        assertNotNull(canvas.getTextureProvider().getTexture("metal", 3, 3, testEntry, true));
+        assertNull(canvas.getTextureProvider().getTexture("nonexistent", 3, 3, testEntry, true));
 
         // Test caching
         assertTrue(registry.hasTexture("wood"));
@@ -255,37 +269,45 @@ class RaycastingCanvasTest {
             "GHI"
         };
 
-        PictureTexture texture = new PictureTexture("TestTexture", textureData);
-        assertEquals("TestTexture", texture.getName());
-        assertArrayEquals(textureData, texture.getTextureData());
-
-        // Test texture scaling
+        // Test with the new coordinate-based interface
         EntryInfo entry = EntryInfo.builder()
                 .colorLight(AnsiColor.WHITE)
                 .colorDark(AnsiColor.BRIGHT_BLACK)
                 .character('█')
                 .build();
 
-        // Test 1x1 scaling
-        var result1x1 = texture.picture(1, 1, entry, true);
-        assertEquals(1, result1x1.length);
-        assertEquals(1, result1x1[0].length);
-        assertEquals('A', result1x1[0][0].getCharacter());
+        // Create texture with new transformator-based constructor
+        PictureTexture texture = new PictureTexture("TestTexture", textureData, 3, 3, entry, true);
+        assertEquals("TestTexture", texture.getName());
+        assertArrayEquals(textureData, texture.getTextureData());
+        assertEquals(3, texture.getWidth());
+        assertEquals(3, texture.getHeight());
 
-        // Test 6x6 scaling (2x upscale)
-        var result6x6 = texture.picture(6, 6, entry, true);
-        assertEquals(6, result6x6.length);
-        assertEquals(6, result6x6[0].length);
+        // Test coordinate-based access
+        StyledChar charAtOrigin = texture.getCharAt(0, 0);
+        assertNotNull(charAtOrigin);
+        assertEquals('A', charAtOrigin.getCharacter());
 
-        // Test edge cases
-        var resultEmpty = texture.picture(0, 0, entry, true);
-        assertEquals(0, resultEmpty.length);
+        StyledChar charAtMiddle = texture.getCharAt(1, 1);
+        assertNotNull(charAtMiddle);
+        assertEquals('E', charAtMiddle.getCharacter());
+
+        StyledChar charAtBottomRight = texture.getCharAt(2, 2);
+        assertNotNull(charAtBottomRight);
+        assertEquals('I', charAtBottomRight.getCharacter());
+
+        // Test bounds checking
+        StyledChar charOutOfBounds = texture.getCharAt(10, 10);
+        assertNull(charOutOfBounds);
+
+        StyledChar charNegative = texture.getCharAt(-1, -1);
+        assertNull(charNegative);
 
         // Test with null texture data
-        PictureTexture nullTexture = new PictureTexture("Null", null);
-        var resultNull = nullTexture.picture(3, 3, entry, true);
-        assertEquals(3, resultNull.length);
-        assertEquals(3, resultNull[0].length);
+        PictureTexture nullTexture = new PictureTexture("Null", null, 3, 3, entry, true);
+        StyledChar nullResult = nullTexture.getCharAt(1, 1);
+        assertNotNull(nullResult);
+        assertEquals('#', nullResult.getCharacter()); // Should use default fallback when texture data is null
     }
 
     @Test

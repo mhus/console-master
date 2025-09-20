@@ -421,7 +421,8 @@ public class RaycastingCanvas extends Canvas {
         // Check if texture is available
         Texture texture = null;
         if (textureProvider != null && hitEntry.getTexture() != null) {
-            texture = textureProvider.getTexture(hitEntry.getTexture());
+            int wallHeight = wallEnd - wallStart + 1;
+            texture = textureProvider.getTexture(hitEntry.getTexture(), 1, wallHeight, hitEntry, !isVertical);
         }
 
         // If texture is available, render using texture
@@ -440,23 +441,18 @@ public class RaycastingCanvas extends Canvas {
                                          Texture texture, boolean isDarkSide, boolean isLeftEdge, boolean isRightEdge) {
         int wallHeight = wallEnd - wallStart + 1;
 
-        // Generate texture for the wall column (1 pixel wide, wallHeight tall)
-        StyledChar[][] textureData = texture.picture(1, wallHeight, hitEntry, !isDarkSide);
-
         for (int y = wallStart; y <= wallEnd; y++) {
             int textureY = y - wallStart;
 
-            // Get character and color from texture
+            // Get character and color directly from texture using coordinates
+            StyledChar textureChar = texture.getCharAt(0, textureY);
+
             char charToDraw = hitEntry.getCharacter();
             AnsiColor colorToDraw = hitEntry.getColor(isDarkSide);
 
-            if (textureData.length > 0 && textureData[0].length > 0 &&
-                textureY >= 0 && textureY < textureData.length) {
-                StyledChar textureChar = textureData[textureY][0];
-                if (textureChar != null) {
-                    charToDraw = textureChar.getCharacter();
-                    colorToDraw = textureChar.getForegroundColor();
-                }
+            if (textureChar != null) {
+                charToDraw = textureChar.getCharacter();
+                colorToDraw = textureChar.getForegroundColor();
             }
 
             // Apply edge rendering if enabled
