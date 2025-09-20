@@ -70,8 +70,26 @@ public class CloudsBackgroundProvider implements BackgroundProvider, AnimationTi
     }
 
     private StyledChar generateCloudChar(int x, int y) {
-        // Calculate noise value with time offset for movement
-        double noiseValue = perlinNoise((x + time) * cloudScale, y * cloudScale);
+        // Convert screen coordinates to world coordinates considering player angle
+        // Calculate the viewing direction for this pixel
+        double screenCenterX = width / 2.0;
+        double screenCenterY = height / 2.0;
+
+        // Normalized screen coordinates (-1 to 1)
+        double normalizedX = (x - screenCenterX) / screenCenterX;
+        double normalizedY = (y - screenCenterY) / screenCenterY;
+
+        // Calculate the world angle for this pixel (considering FOV)
+        double fov = Math.PI / 3.0; // 60 degrees FOV to match raycasting
+        double pixelAngle = playerAngle + normalizedX * (fov / 2.0);
+
+        // Create a cylindrical projection for the sky
+        // Use the angle and height to create sky coordinates
+        double skyX = pixelAngle * 10.0; // Scale factor for sky "distance"
+        double skyY = normalizedY * 5.0 + y * 0.1; // Height-based coordinate
+
+        // Calculate noise value with time offset for movement and player rotation
+        double noiseValue = perlinNoise((skyX + time) * cloudScale, skyY * cloudScale);
 
         // Normalize noise value to 0-1 range
         noiseValue = (noiseValue + 1.0) / 2.0;

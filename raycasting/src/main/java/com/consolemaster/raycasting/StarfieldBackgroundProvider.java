@@ -39,14 +39,17 @@ public class StarfieldBackgroundProvider implements BackgroundProvider, Animatio
     private Random random = new Random();
     private int canvasWidth = 80; // Default canvas width
     private int canvasHeight = 25; // Default canvas height
-    private double playerAngle;
+    private double playerAngle = 0.0; // Current player viewing angle
 
     public StarfieldBackgroundProvider() {
+        initializeStars();
+        // No automatic registration - let application handle it
     }
 
     public StarfieldBackgroundProvider(int canvasWidth, int canvasHeight) {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
+        initializeStars();
         // No automatic registration - let application handle it
     }
 
@@ -54,6 +57,7 @@ public class StarfieldBackgroundProvider implements BackgroundProvider, Animatio
         this.starSpeed = starSpeed;
         this.starDensity = starDensity;
         this.numStars = numStars;
+        initializeStars();
         // No automatic registration - let application handle it
     }
 
@@ -65,13 +69,15 @@ public class StarfieldBackgroundProvider implements BackgroundProvider, Animatio
     }
 
     private Star createRandomStar() {
-        double x = random.nextDouble() * canvasWidth * 2; // Extended width for smooth scrolling
-        double y = random.nextDouble() * canvasHeight;
+        // Create stars in spherical coordinates around the player
+        // Random angle (0 to 2π) and elevation (-π/2 to π/2)
+        double angle = random.nextDouble() * Math.PI * 2;
+        double elevation = (random.nextDouble() - 0.5) * Math.PI; // -π/2 to π/2
         double brightness = random.nextDouble();
         double twinklePhase = random.nextDouble() * Math.PI * 2;
         double twinkleSpeed = 0.1 + random.nextDouble() * 0.2;
 
-        return new Star(x, y, brightness, twinklePhase, twinkleSpeed);
+        return new Star(angle, elevation, brightness, twinklePhase, twinkleSpeed);
     }
 
     @Override
@@ -86,32 +92,47 @@ public class StarfieldBackgroundProvider implements BackgroundProvider, Animatio
 
     @Override
     public StyledChar getBackground(int x, int y) {
-        // Find the closest star to this position
-        Star closestStar = null;
-        double closestDistance = Double.MAX_VALUE;
+        // Convert screen coordinates to viewing angles
+        double screenCenterX = canvasWidth / 2.0;
+        double screenCenterY = canvasHeight / 2.0;
 
+        // Normalized screen coordinates (-1 to 1)
+        double normalizedX = (x - screenCenterX) / screenCenterX;
+        double normalizedY = (y - screenCenterY) / screenCenterY;
+
+        // Calculate the world angle for this pixel (considering FOV)
+        double fov = Math.PI / 3.0; // 60 degrees FOV to match raycasting
+        double pixelAngle = playerAngle + normalizedX * (fov / 2.0);
+        double pixelElevation = normalizedY * (Math.PI / 6.0); // Vertical FOV of 30 degrees
+
+        // Find stars visible at this viewing direction
         for (Star star : stars) {
-            double distance = Math.sqrt(Math.pow(star.x - x, 2) + Math.pow(star.y - y, 2));
-            if (distance < closestDistance && distance < 1.0) { // Star must be very close to position
-                closestDistance = distance;
-                closestStar = star;
+            // Calculate angular distance between pixel direction and star position
+            double angleDiff = Math.abs(star.angle - pixelAngle);
+            // Handle angle wrapping (shortest path around circle)
+            if (angleDiff > Math.PI) {
+                angleDiff = 2 * Math.PI - angleDiff;
             }
-        }
 
-        if (closestStar != null) {
-            // Calculate twinkling effect
-            double twinkle = Math.sin(closestStar.twinklePhase) * 0.3 + 0.7; // 0.4 to 1.0
-            double effectiveBrightness = closestStar.brightness * twinkle;
+            double elevationDiff = Math.abs(star.elevation - pixelElevation);
 
-            // Select character based on brightness
-            int charIndex = (int) (effectiveBrightness * (starChars.length - 1));
-            charIndex = Math.max(0, Math.min(charIndex, starChars.length - 1));
+            // Check if star is visible at this pixel (within angular tolerance)
+            double angularTolerance = 0.1; // Adjust this to control star size
+            if (angleDiff < angularTolerance && elevationDiff < angularTolerance) {
+                // Calculate twinkling effect
+                double twinkle = Math.sin(star.twinklePhase) * 0.3 + 0.7; // 0.4 to 1.0
+                double effectiveBrightness = star.brightness * twinkle;
 
-            // Select color based on brightness
-            int colorIndex = (int) (effectiveBrightness * (starColors.length - 1));
-            colorIndex = Math.max(0, Math.min(colorIndex, starColors.length - 1));
+                // Select character based on brightness
+                int charIndex = (int) (effectiveBrightness * (starChars.length - 1));
+                charIndex = Math.max(0, Math.min(charIndex, starChars.length - 1));
 
-            return new StyledChar(starChars[charIndex], starColors[colorIndex], skyColor, null);
+                // Select color based on brightness
+                int colorIndex = (int) (effectiveBrightness * (starColors.length - 1));
+                colorIndex = Math.max(0, Math.min(colorIndex, starColors.length - 1));
+
+                return new StyledChar(starChars[charIndex], starColors[colorIndex], skyColor, null);
+            }
         }
 
         // No star at this position - return sky
@@ -120,17 +141,12 @@ public class StarfieldBackgroundProvider implements BackgroundProvider, Animatio
 
     @Override
     public boolean tick() {
-        // Move stars and update twinkling
+        // Update twinkling for all stars
         for (Star star : stars) {
-            star.x -= starSpeed;
             star.twinklePhase += star.twinkleSpeed;
 
-            // Reset star position when it moves off screen
-            if (star.x < -10) {
-                star.x = canvasWidth + 10 + random.nextDouble() * 20;
-                star.y = random.nextDouble() * canvasHeight;
-                star.brightness = random.nextDouble();
-            }
+            // Slowly rotate the starfield (optional effect)
+            // star.angle += starSpeed * 0.001; // Very slow rotation
         }
 
         return true; // Continue animation
@@ -140,14 +156,15 @@ public class StarfieldBackgroundProvider implements BackgroundProvider, Animatio
      * Internal class representing a single star in the starfield.
      */
     private static class Star {
-        double x, y;
+        double angle; // Angle around the vertical axis (azimuth)
+        double elevation; // Elevation angle from the horizontal plane
         double brightness;
         double twinklePhase;
         double twinkleSpeed;
 
-        Star(double x, double y, double brightness, double twinklePhase, double twinkleSpeed) {
-            this.x = x;
-            this.y = y;
+        Star(double angle, double elevation, double brightness, double twinklePhase, double twinkleSpeed) {
+            this.angle = angle;
+            this.elevation = elevation;
             this.brightness = brightness;
             this.twinklePhase = twinklePhase;
             this.twinkleSpeed = twinkleSpeed;

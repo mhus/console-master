@@ -1043,24 +1043,4 @@ public class RaycastingCanvas extends Canvas {
         return true;
     }
 
-    /**
-     * Render the background using the configured BackgroundProvider.
-     * The background is rendered for areas where no floor or ceiling is displayed.
-     * XXX
-     */
-    private void renderBackground(Graphics graphics) {
-        if (backgroundProvider == null) return;
-
-        // Render background for the entire canvas - it will be overwritten by walls, floors, and ceilings
-        for (int x = 0; x < getWidth(); x++) {
-            for (int y = 0; y < getHeight(); y++) {
-                StyledChar bgChar = backgroundProvider.getBackground(x, y);
-                if (bgChar != null) {
-                    graphics.drawStyledChar(x, y, bgChar.getCharacter(),
-                                          bgChar.getForegroundColor(),
-                                          bgChar.getBackgroundColor());
-                }
-            }
-        }
-    }
 }
