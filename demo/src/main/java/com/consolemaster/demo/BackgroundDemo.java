@@ -1,5 +1,6 @@
 package com.consolemaster.demo;
 
+import com.consolemaster.AnimationThrottle;
 import com.consolemaster.ScreenCanvas;
 import com.consolemaster.ProcessLoop;
 import com.consolemaster.KeyEvent;
@@ -29,6 +30,7 @@ public class BackgroundDemo {
     private SolidColorBackgroundProvider solidBackground;
     private CloudsBackgroundProvider cloudsBackground;
     private StarfieldBackgroundProvider starfieldBackground;
+    private AnimationThrottle startfieldThrottle;
 
     // Current background type
     private BackgroundType currentBackground = BackgroundType.SOLID;
@@ -100,9 +102,10 @@ public class BackgroundDemo {
 
         // Create animated starfield background
         starfieldBackground = new StarfieldBackgroundProvider(80, 25);
-        starfieldBackground.setStarSpeed(0.3);
+        starfieldBackground.setRotationSpeed(0.3);
         starfieldBackground.setNumStars(150);
         starfieldBackground.setSkyColor(AnsiColor.BLACK);
+        startfieldThrottle = AnimationThrottle.withDelaySeconds(starfieldBackground, 1);
     }
 
     private void setupMap() {
@@ -186,7 +189,7 @@ public class BackgroundDemo {
         if (currentBackground == BackgroundType.CLOUDS) {
             processLoop.removeAnimationTicker(cloudsBackground);
         } else if (currentBackground == BackgroundType.STARFIELD) {
-            processLoop.removeAnimationTicker(starfieldBackground);
+            processLoop.removeAnimationTicker(startfieldThrottle);
         }
 
         // Set new background
@@ -203,7 +206,7 @@ public class BackgroundDemo {
                 break;
             case STARFIELD:
                 provider = starfieldBackground;
-                processLoop.addAnimationTicker(starfieldBackground);
+                processLoop.addAnimationTicker(startfieldThrottle);
                 break;
             default:
                 provider = solidBackground;
