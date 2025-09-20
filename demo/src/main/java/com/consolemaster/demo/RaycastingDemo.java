@@ -31,7 +31,7 @@ public class RaycastingDemo {
     private static String lastAction = "Demo Started";
     private static RaycastingCanvas raycastingCanvas;
     private static int currentMapIndex = 0;
-    private static char[] wallEdgeStyles = {'│', '#', '*', '+'};
+    private static final char[] wallEdgeStyles = {'│', '#', '*', '+'};
     private static int currentWallEdgeStyleIndex = 0;
 
     // Different map providers to showcase
@@ -73,7 +73,13 @@ public class RaycastingDemo {
         createNaturalLandscapeProvider(),
 
         // Castle dungeon with mixed entry types
-        createCastleMapProvider()
+        createCastleMapProvider(),
+
+        // Floor texture demonstration map
+        createFloorTextureMapProvider(),
+
+        // Checkerboard floor pattern map
+        createCheckerboardFloorMapProvider()
     };
 
     /**
@@ -461,6 +467,307 @@ public class RaycastingDemo {
         return new DefaultMapProvider("Tiling Texture Demo", map);
     }
 
+    /**
+     * Sets up the texture provider for the raycasting canvas.
+     */
+    private static void setupTextureProvider(RaycastingCanvas canvas) {
+        // Create a picture texture provider with various textures (scaling)
+        PictureTextureProvider pictureProvider = new PictureTextureProvider();
+
+        // Create a tiling texture provider with repeating patterns
+        TilingTextureProvider tilingProvider = new TilingTextureProvider();
+
+        // Add wood texture (scaling)
+        String[] woodTexture = {
+            "|||###|||",
+            "###|||###",
+            "|||###|||",
+            "###|||###",
+            "|||###|||"
+        };
+        pictureProvider.addTexture("wood", woodTexture);
+
+        // Add brick texture (scaling)
+        String[] brickTexture = {
+            "##  ##  ##",
+            "  ##  ##  ",
+            "##  ##  ##",
+            "  ##  ##  ",
+            "##  ##  ##"
+        };
+        pictureProvider.addTexture("brick", brickTexture);
+
+        // Add stone texture (scaling)
+        String[] stoneTexture = {
+            "█▓▒░░▒▓█",
+            "▓▒░  ░▒▓",
+            "▒░    ░▒",
+            "░      ░",
+            "▒░    ░▒",
+            "▓▒░  ░▒▓",
+            "█▓▒░░▒▓█"
+        };
+        pictureProvider.addTexture("stone", stoneTexture);
+
+        // Add metal texture (scaling)
+        String[] metalTexture = {
+            "========",
+            "||||||||",
+            "--------",
+            "||||||||",
+            "========"
+        };
+        pictureProvider.addTexture("metal", metalTexture);
+
+        // ===== FLOOR TEXTURES =====
+
+        // Add simple floor texture pattern
+        String[] floorTexture = {
+            "░░▒▒░░",
+            "░▒▓▓▒░",
+            "▒▓██▓▒",
+            "▒▓██▓▒",
+            "░▒▓▓▒░",
+            "░░▒▒░░"
+        };
+        pictureProvider.addTexture("floor", floorTexture);
+
+        // Add stone floor texture
+        String[] stoneFloorTexture = {
+            "▓▓░░▓▓",
+            "▓░  ░▓",
+            "░    ░",
+            "░    ░",
+            "▓░  ░▓",
+            "▓▓░░▓▓"
+        };
+        pictureProvider.addTexture("stone_floor", stoneFloorTexture);
+
+        // Add wooden floor texture
+        String[] woodFloorTexture = {
+            "|||||||",
+            "-------",
+            "|||||||",
+            "-------",
+            "|||||||"
+        };
+        pictureProvider.addTexture("wood_floor", woodFloorTexture);
+
+        // Add tiling patterns that look better when repeated
+        String[] tilingBrickPattern = {
+            "██  ██",
+            "  ██  ",
+            "██  ██"
+        };
+        tilingProvider.addTexture("tiling_brick", tilingBrickPattern);
+
+        String[] dotPattern = {
+            " ● ",
+            "   ",
+            " ● "
+        };
+        tilingProvider.addTexture("dots", dotPattern);
+
+        String[] hashPattern = {
+            "###",
+            "# #",
+            "###"
+        };
+        tilingProvider.addTexture("hash", hashPattern);
+
+        String[] wavePattern = {
+            "~~~",
+            "   ",
+            "~~~"
+        };
+        tilingProvider.addTexture("wave", wavePattern);
+
+        // Floor tiling patterns
+        String[] tilingFloorPattern = {
+            "▓▓▓",
+            "▓░▓",
+            "▓▓▓"
+        };
+        tilingProvider.addTexture("tiling_floor", tilingFloorPattern);
+
+        String[] checkerFloorPattern = {
+            "██",
+            "  "
+        };
+        tilingProvider.addTexture("checker_floor", checkerFloorPattern);
+
+        String[] grassFloorPattern = {
+            ",,'",
+            "',,"
+        };
+        tilingProvider.addTexture("grass_floor", grassFloorPattern);
+
+        // Create a combined registry texture provider
+        RegistryTextureProvider registryProvider = new RegistryTextureProvider();
+
+        // Register picture textures (scaling)
+        registryProvider.addProvider(pictureProvider);
+
+        // Register tiling textures (repeating)
+        registryProvider.addProvider(tilingProvider);
+
+        // Set the combined provider
+        canvas.setTextureProvider(registryProvider);
+    }
+
+    /**
+     * Creates a floor texture demonstration map.
+     */
+    private static MapProvider createFloorTextureMapProvider() {
+        EntryInfo[][] map = new EntryInfo[12][16];
+
+        // Initialize with different floor texture areas
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                if (x < 4) {
+                    // Stone floor area
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('.')
+                            .name("Stone Floor")
+                            .colorLight(AnsiColor.WHITE)
+                            .colorDark(AnsiColor.BRIGHT_BLACK)
+                            .height(0.0)
+                            .texture("stone_floor")
+                            .build();
+                } else if (x < 8) {
+                    // Wooden floor area
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('=')
+                            .name("Wood Floor")
+                            .colorLight(AnsiColor.YELLOW)
+                            .colorDark(AnsiColor.BRIGHT_YELLOW)
+                            .height(0.0)
+                            .texture("wood_floor")
+                            .build();
+                } else if (x < 12) {
+                    // Tiled floor area
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('▓')
+                            .name("Tiled Floor")
+                            .colorLight(AnsiColor.CYAN)
+                            .colorDark(AnsiColor.BLUE)
+                            .height(0.0)
+                            .texture("tiling_floor")
+                            .build();
+                } else {
+                    // Grass floor area
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character(',')
+                            .name("Grass Floor")
+                            .colorLight(AnsiColor.BRIGHT_GREEN)
+                            .colorDark(AnsiColor.GREEN)
+                            .height(0.0)
+                            .texture("grass_floor")
+                            .build();
+                }
+            }
+        }
+
+        // Add walls around the border
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Add some interior walls to showcase floor textures better
+        for (int y = 3; y <= 8; y++) {
+            map[y][4] = EntryInfo.createWoodenWall();
+            map[y][8] = EntryInfo.createBrickWall();
+            map[y][12] = EntryInfo.createMetalWall();
+        }
+
+        // Add doorways
+        map[5][4] = EntryInfo.createFloor();
+        map[6][4] = EntryInfo.createFloor();
+        map[5][8] = EntryInfo.createFloor();
+        map[6][8] = EntryInfo.createFloor();
+        map[5][12] = EntryInfo.createFloor();
+        map[6][12] = EntryInfo.createFloor();
+
+        return new DefaultMapProvider("Floor Textures Demo", map);
+    }
+
+    /**
+     * Creates a checkerboard floor pattern map.
+     */
+    private static MapProvider createCheckerboardFloorMapProvider() {
+        EntryInfo[][] map = new EntryInfo[10][10];
+
+        // Create checkerboard pattern
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                if ((x + y) % 2 == 0) {
+                    // White squares
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('█')
+                            .name("White Tile")
+                            .colorLight(AnsiColor.BRIGHT_WHITE)
+                            .colorDark(AnsiColor.WHITE)
+                            .height(0.0)
+                            .texture("checker_floor")
+                            .build();
+                } else {
+                    // Black squares
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('▓')
+                            .name("Black Tile")
+                            .colorLight(AnsiColor.BRIGHT_BLACK)
+                            .colorDark(AnsiColor.BLACK)
+                            .height(0.0)
+                            .texture("checker_floor")
+                            .build();
+                }
+            }
+        }
+
+        // Add walls around the border
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Add a few interior walls
+        map[3][3] = EntryInfo.createBrickWall();
+        map[3][4] = EntryInfo.createBrickWall();
+        map[3][5] = EntryInfo.createBrickWall();
+        map[6][3] = EntryInfo.createWoodenWall();
+        map[6][4] = EntryInfo.createWoodenWall();
+        map[6][5] = EntryInfo.createWoodenWall();
+
+        return new DefaultMapProvider("Checkerboard Floor", map);
+    }
+
     public static void main(String[] args) {
         try {
             // Create the main screen canvas
@@ -639,98 +946,5 @@ public class RaycastingDemo {
         button.setContent(buttonText);
 
         return button;
-    }
-
-    /**
-     * Sets up the texture provider for the raycasting canvas.
-     */
-    private static void setupTextureProvider(RaycastingCanvas canvas) {
-        // Create a picture texture provider with various textures (scaling)
-        PictureTextureProvider pictureProvider = new PictureTextureProvider();
-
-        // Create a tiling texture provider with repeating patterns
-        TilingTextureProvider tilingProvider = new TilingTextureProvider();
-
-        // Add wood texture (scaling)
-        String[] woodTexture = {
-            "|||###|||",
-            "###|||###",
-            "|||###|||",
-            "###|||###",
-            "|||###|||"
-        };
-        pictureProvider.addTexture("wood", woodTexture);
-
-        // Add brick texture (scaling)
-        String[] brickTexture = {
-            "##  ##  ##",
-            "  ##  ##  ",
-            "##  ##  ##",
-            "  ##  ##  ",
-            "##  ##  ##"
-        };
-        pictureProvider.addTexture("brick", brickTexture);
-
-        // Add stone texture (scaling)
-        String[] stoneTexture = {
-            "█▓▒░░▒▓█",
-            "▓▒░  ░▒▓",
-            "▒░    ░▒",
-            "░      ░",
-            "▒░    ░▒",
-            "▓▒░  ░▒▓",
-            "█▓▒░░▒▓█"
-        };
-        pictureProvider.addTexture("stone", stoneTexture);
-
-        // Add metal texture (scaling)
-        String[] metalTexture = {
-            "========",
-            "||||||||",
-            "--------",
-            "||||||||",
-            "========"
-        };
-        pictureProvider.addTexture("metal", metalTexture);
-
-        // Add tiling patterns that look better when repeated
-        String[] tilingBrickPattern = {
-            "██  ██",
-            "  ██  ",
-            "██  ██"
-        };
-        tilingProvider.addTexture("tiling_brick", tilingBrickPattern);
-
-        String[] tilingDotPattern = {
-            "• ",
-            " •"
-        };
-        tilingProvider.addTexture("tiling_dots", tilingDotPattern);
-
-        String[] tilingHashPattern = {
-            "# ",
-            " #"
-        };
-        tilingProvider.addTexture("tiling_hash", tilingHashPattern);
-
-        String[] tilingWavePattern = {
-            "~~~~",
-            "    ",
-            "~~~~",
-            "    "
-        };
-        tilingProvider.addTexture("tiling_waves", tilingWavePattern);
-
-        // Create registry provider and add both providers
-        RegistryTextureProvider registryProvider = new RegistryTextureProvider();
-        registryProvider.addProvider(pictureProvider);  // Scaling textures first
-        registryProvider.addProvider(tilingProvider);   // Tiling textures second
-
-        // Set the texture provider
-        canvas.setTextureProvider(registryProvider);
-
-        log.info("Texture provider set up with {} scaling textures and {} tiling textures",
-                pictureProvider.getTexturePaths().length,
-                tilingProvider.getTexturePaths().length);
     }
 }
