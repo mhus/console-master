@@ -73,6 +73,11 @@ public class EntryInfo {
     private String texture;
 
     /**
+     * Instructions for texture rendering. Null means default behavior.
+     */
+    private String textureInstructions;
+
+    /**
      * Get the appropriate color based on lighting conditions.
      *
      * @param isDark true if dark color should be used (e.g., horizontal walls)
@@ -255,6 +260,23 @@ public class EntryInfo {
                 .colorLight(AnsiColor.BRIGHT_GREEN)
                 .colorDark(AnsiColor.GREEN)
                 .height(1.3)
+                .build();
+    }
+
+    /**
+     * Creates a wooden wall with natural wood colors.
+     */
+    public static EntryInfo createWoodenWall() {
+        return EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Wooden Wall")
+                .colorLight(AnsiColor.YELLOW)
+                .colorDark(AnsiColor.BRIGHT_YELLOW)
+                .height(1.0)
+                .texture("wood")
                 .build();
     }
 

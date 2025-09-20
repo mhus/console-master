@@ -14,6 +14,8 @@ import com.consolemaster.raycasting.RaycastingCanvas;
 import com.consolemaster.raycasting.DefaultMapProvider;
 import com.consolemaster.raycasting.MapProvider;
 import com.consolemaster.raycasting.EntryInfo;
+import com.consolemaster.raycasting.PictureTextureProvider;
+import com.consolemaster.raycasting.RegistryTextureProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -44,6 +46,9 @@ public class RaycastingDemo {
 
         // Advanced map with different EntryInfo types
         createAdvancedMapProvider(),
+
+        // Textured map with various textures
+        createTexturedMapProvider(),
 
         // Complex maze map
         new DefaultMapProvider("Complex Maze", new String[]{
@@ -334,6 +339,63 @@ public class RaycastingDemo {
         return new DefaultMapProvider("Natural Landscape", map);
     }
 
+    /**
+     * Creates a textured map provider showcasing various textures.
+     */
+    private static MapProvider createTexturedMapProvider() {
+        EntryInfo[][] map = new EntryInfo[10][10];
+
+        // Initialize with grass texture
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isFallthrough(true)
+                        .isTransparent(true)
+                        .character(',')
+                        .name("Grass")
+                        .colorLight(AnsiColor.BRIGHT_GREEN)
+                        .colorDark(AnsiColor.GREEN)
+                        .height(0.0)
+                        .build();
+            }
+        }
+
+        // Add stone walls around the border
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Add some wooden walls
+        for (int i = 2; i < 8; i++) {
+            map[i][3] = EntryInfo.createWoodenWall();
+            map[i][6] = EntryInfo.createWoodenWall();
+        }
+
+        // Add a water area
+        for (int y = 4; y <= 5; y++) {
+            for (int x = 1; x <= 8; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isFallthrough(true)
+                        .isTransparent(true)
+                        .character('~')
+                        .name("Water")
+                        .colorLight(AnsiColor.BRIGHT_CYAN)
+                        .colorDark(AnsiColor.CYAN)
+                        .height(0.0)
+                        .build();
+            }
+        }
+
+        return new DefaultMapProvider("Textured Map", map);
+    }
+
     public static void main(String[] args) {
         try {
             // Create the main screen canvas
@@ -364,6 +426,9 @@ public class RaycastingDemo {
             raycastingCanvas.setFloorColor(AnsiColor.YELLOW);
             raycastingCanvas.setCeilingColor(AnsiColor.BLUE);
             raycastingCanvas.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
+
+            // Setup texture provider
+            setupTextureProvider(raycastingCanvas);
 
             // Create status panel
             Text statusText = new Text("statusText", 0, 0, "", Text.Alignment.LEFT);
@@ -509,5 +574,64 @@ public class RaycastingDemo {
         button.setContent(buttonText);
 
         return button;
+    }
+
+    /**
+     * Sets up the texture provider for the raycasting canvas.
+     */
+    private static void setupTextureProvider(RaycastingCanvas canvas) {
+        // Create a picture texture provider with various textures
+        PictureTextureProvider pictureProvider = new PictureTextureProvider();
+
+        // Add wood texture
+        String[] woodTexture = {
+            "|||###|||",
+            "###|||###",
+            "|||###|||",
+            "###|||###",
+            "|||###|||"
+        };
+        pictureProvider.addTexture("wood", woodTexture);
+
+        // Add brick texture
+        String[] brickTexture = {
+            "##  ##  ##",
+            "  ##  ##  ",
+            "##  ##  ##",
+            "  ##  ##  ",
+            "##  ##  ##"
+        };
+        pictureProvider.addTexture("brick", brickTexture);
+
+        // Add stone texture
+        String[] stoneTexture = {
+            "█▓▒░░▒▓█",
+            "▓▒░  ░▒▓",
+            "▒░    ░▒",
+            "░      ░",
+            "▒░    ░▒",
+            "▓▒░  ░▒▓",
+            "█▓▒░░▒▓█"
+        };
+        pictureProvider.addTexture("stone", stoneTexture);
+
+        // Add metal texture
+        String[] metalTexture = {
+            "========",
+            "||||||||",
+            "--------",
+            "||||||||",
+            "========"
+        };
+        pictureProvider.addTexture("metal", metalTexture);
+
+        // Create registry provider and add the picture provider
+        RegistryTextureProvider registryProvider = new RegistryTextureProvider();
+        registryProvider.addProvider(pictureProvider);
+
+        // Set the texture provider
+        canvas.setTextureProvider(registryProvider);
+
+        log.info("Texture provider set up with " + pictureProvider.getTexturePaths().length + " textures");
     }
 }

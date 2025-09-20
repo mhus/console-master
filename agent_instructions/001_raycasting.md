@@ -58,7 +58,7 @@ Implementiere:
 Implementiere Unterstützung für Texturen in RaycastingCanvas.
 
 Erstelle ein Interface TextureProvider mit der Methode:
-- getTexture(path: string): Texture
+- getTexture(path: string, width: number, height: number, EntryInfo entry, boolean light): Texture
 
 Erstelle die Klasse PictureTextureProvider, die Texturen als
 String Arrays verwaltet und rendert mittels PictureTexture. Wobei
@@ -66,7 +66,7 @@ die Texture immer auf die gesamte Fläche skaliert wird. Texturen können
 gestaucht und gestreckt werden.
 
 Interfacer Texture folgende Methoden:
-- picture(width: number, height: number, EntryInfo entry, boolean light): StyledChar[][]
+- getCharAt(int x, int y): StyledChar
 
 Der parameter light gibt an, ob die Textur hell werden soll.
 
@@ -87,4 +87,18 @@ Passe RaycastingCanvasDemo an, um Texturen zu demonstrieren. Erstelle eine neue
 Map mit verschiedenen Texturen.
 
 Passe den Test RaycastingCanvasTest an, um Texturen zu testen.
+```
+
+```text
+Die Struktur soll umgestellt werden:
+
+Erstelle ein Interface TextureProvider mit der Methode:
+- getTexture(path: string, width: number, height: number, EntryInfo entry, boolean light): Texture
+
+Interfacer Texture folgende Methoden:
+- getCharAt(int x, int y): StyledChar
+
+Damit kann das Interface TextureProvider als reiner Transformator
+genutzt werden der die eingeghenden Koordinaten auf das orginale
+Bild transformiert.
 ```

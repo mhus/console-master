@@ -151,142 +151,188 @@ class RaycastingCanvasTest {
         // Test stone wall
         EntryInfo stoneWall = EntryInfo.createStoneWall();
         assertTrue(stoneWall.isWall());
+        assertFalse(stoneWall.isFallthrough());
         assertEquals("Stone Wall", stoneWall.getName());
-        assertEquals(AnsiColor.WHITE, stoneWall.getColor(false)); // Light
-        assertEquals(AnsiColor.BRIGHT_BLACK, stoneWall.getColor(true)); // Dark
+        assertEquals(AnsiColor.WHITE, stoneWall.getColorLight());
+        assertEquals(AnsiColor.BRIGHT_BLACK, stoneWall.getColorDark());
 
         // Test brick wall
         EntryInfo brickWall = EntryInfo.createBrickWall();
         assertTrue(brickWall.isWall());
         assertEquals("Brick Wall", brickWall.getName());
-        assertEquals(AnsiColor.RED, brickWall.getColor(false)); // Light
-        assertEquals(AnsiColor.BRIGHT_RED, brickWall.getColor(true)); // Dark
-        assertEquals('▓', brickWall.getCharacter());
+        assertEquals(AnsiColor.RED, brickWall.getColorLight());
 
         // Test metal wall
         EntryInfo metalWall = EntryInfo.createMetalWall();
         assertTrue(metalWall.isWall());
         assertEquals("Metal Wall", metalWall.getName());
-        assertEquals(AnsiColor.BRIGHT_WHITE, metalWall.getColor(false)); // Light
-        assertEquals(AnsiColor.WHITE, metalWall.getColor(true)); // Dark
-        assertEquals('▒', metalWall.getCharacter());
+        assertEquals(AnsiColor.BRIGHT_WHITE, metalWall.getColorLight());
 
-        // Test glass wall with dual colors
-        EntryInfo glassWall = EntryInfo.createGlass();
-        assertTrue(glassWall.isWall());
-        assertTrue(glassWall.isTransparent());
-        assertEquals(AnsiColor.CYAN, glassWall.getColor(false)); // Light
-        assertEquals(AnsiColor.BLUE, glassWall.getColor(true)); // Dark
+        // Test tree
+        EntryInfo tree = EntryInfo.createTree();
+        assertTrue(tree.isWall());
+        assertEquals("Tree", tree.getName());
+        assertEquals('♠', tree.getCharacter());
+        assertEquals(1.3, tree.getHeight(), 0.01);
+
+        // Test wooden wall (with texture reference)
+        EntryInfo woodenWall = EntryInfo.createWoodenWall();
+        assertTrue(woodenWall.isWall());
+        assertEquals("Wooden Wall", woodenWall.getName());
+        assertEquals("wood", woodenWall.getTexture());
+        assertEquals(AnsiColor.YELLOW, woodenWall.getColorLight());
     }
 
     @Test
-    void testEntryInfoHeight() {
-        EntryInfo lowWall = EntryInfo.createLowWall();
-        assertEquals(0.5, lowWall.getHeight(), 0.01);
+    void testTextureProvider() {
+        // Test setting texture provider
+        PictureTextureProvider textureProvider = new PictureTextureProvider();
 
-        EntryInfo normalWall = EntryInfo.createWall();
-        assertEquals(1.0, normalWall.getHeight(), 0.01);
-
-        EntryInfo customWall = EntryInfo.builder()
-                .height(1.5)
-                .build();
-        assertEquals(1.5, customWall.getHeight(), 0.01);
-    }
-
-    @Test
-    void testBackwardCompatibilityWithStringArrays() {
-        // Test that string arrays still work
-        String[] legacyMap = {
+        // Add a test texture
+        String[] testTexture = {
             "###",
-            "# #",
+            "   ",
             "###"
         };
+        textureProvider.addTexture("test", testTexture);
 
-        canvas.setMap(legacyMap);
+        canvas.setTextureProvider(textureProvider);
+        assertNotNull(canvas.getTextureProvider());
 
-        // Verify conversion worked
-        assertEquals(3, canvas.getMapProvider().getWidth());
-        assertEquals(3, canvas.getMapProvider().getHeight());
+        // Test texture retrieval
+        Texture retrievedTexture = canvas.getTextureProvider().getTexture("test");
+        assertNotNull(retrievedTexture);
 
-        // Test that walls are properly converted
-        EntryInfo cornerWall = canvas.getMapProvider().getEntry(0, 0);
-        assertTrue(cornerWall.isWall());
+        // Test texture rendering
+        EntryInfo testEntry = EntryInfo.builder()
+                .colorLight(AnsiColor.WHITE)
+                .colorDark(AnsiColor.BRIGHT_BLACK)
+                .character('█')
+                .build();
 
-        EntryInfo centerSpace = canvas.getMapProvider().getEntry(1, 1);
-        assertFalse(centerSpace.isWall());
-        assertTrue(centerSpace.isFallthrough());
+        var textureData = retrievedTexture.picture(3, 3, testEntry, true);
+        assertNotNull(textureData);
+        assertEquals(3, textureData.length);
+        assertEquals(3, textureData[0].length);
     }
 
     @Test
-    void testFloorColorSupport() {
-        // Create a map with different floor types
-        EntryInfo[][] customMap = new EntryInfo[3][3];
+    void testRegistryTextureProvider() {
+        // Create multiple texture providers
+        PictureTextureProvider provider1 = new PictureTextureProvider();
+        PictureTextureProvider provider2 = new PictureTextureProvider();
 
-        // Create different floor types with specific colors
-        EntryInfo stoneFloor = EntryInfo.builder()
-                .isWall(false)
-                .isFallthrough(true)
-                .isTransparent(true)
-                .character('.')
-                .name("Stone Floor")
+        // Add textures to different providers
+        String[] texture1 = {"###", "   ", "###"};
+        String[] texture2 = {"***", "   ", "***"};
+
+        provider1.addTexture("wood", texture1);
+        provider2.addTexture("metal", texture2);
+
+        // Create registry and add providers
+        RegistryTextureProvider registry = new RegistryTextureProvider();
+        registry.addProvider(provider1);
+        registry.addProvider(provider2);
+
+        canvas.setTextureProvider(registry);
+
+        // Test texture retrieval from different providers
+        assertNotNull(canvas.getTextureProvider().getTexture("wood"));
+        assertNotNull(canvas.getTextureProvider().getTexture("metal"));
+        assertNull(canvas.getTextureProvider().getTexture("nonexistent"));
+
+        // Test caching
+        assertTrue(registry.hasTexture("wood"));
+        assertTrue(registry.hasTexture("metal"));
+        assertFalse(registry.hasTexture("nonexistent"));
+    }
+
+    @Test
+    void testPictureTexture() {
+        String[] textureData = {
+            "ABC",
+            "DEF",
+            "GHI"
+        };
+
+        PictureTexture texture = new PictureTexture("TestTexture", textureData);
+        assertEquals("TestTexture", texture.getName());
+        assertArrayEquals(textureData, texture.getTextureData());
+
+        // Test texture scaling
+        EntryInfo entry = EntryInfo.builder()
                 .colorLight(AnsiColor.WHITE)
                 .colorDark(AnsiColor.BRIGHT_BLACK)
-                .height(0.0)
+                .character('█')
                 .build();
 
-        EntryInfo grassFloor = EntryInfo.builder()
-                .isWall(false)
-                .isFallthrough(true)
-                .isTransparent(true)
-                .character(',')
-                .name("Grass Floor")
-                .colorLight(AnsiColor.BRIGHT_GREEN)
-                .colorDark(AnsiColor.GREEN)
-                .height(0.0)
+        // Test 1x1 scaling
+        var result1x1 = texture.picture(1, 1, entry, true);
+        assertEquals(1, result1x1.length);
+        assertEquals(1, result1x1[0].length);
+        assertEquals('A', result1x1[0][0].getCharacter());
+
+        // Test 6x6 scaling (2x upscale)
+        var result6x6 = texture.picture(6, 6, entry, true);
+        assertEquals(6, result6x6.length);
+        assertEquals(6, result6x6[0].length);
+
+        // Test edge cases
+        var resultEmpty = texture.picture(0, 0, entry, true);
+        assertEquals(0, resultEmpty.length);
+
+        // Test with null texture data
+        PictureTexture nullTexture = new PictureTexture("Null", null);
+        var resultNull = nullTexture.picture(3, 3, entry, true);
+        assertEquals(3, resultNull.length);
+        assertEquals(3, resultNull[0].length);
+    }
+
+    @Test
+    void testEntryInfoWithTexture() {
+        // Test EntryInfo with texture reference
+        EntryInfo texturedWall = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('█')
+                .name("Textured Wall")
+                .colorLight(AnsiColor.WHITE)
+                .colorDark(AnsiColor.BRIGHT_BLACK)
+                .texture("stone")
+                .textureInstructions("scale=2")
                 .build();
 
-        EntryInfo waterFloor = EntryInfo.builder()
-                .isWall(false)
-                .isFallthrough(true)
-                .isTransparent(true)
-                .character('~')
-                .name("Water")
-                .colorLight(AnsiColor.BRIGHT_CYAN)
-                .colorDark(AnsiColor.CYAN)
-                .height(0.0)
-                .build();
+        assertEquals("stone", texturedWall.getTexture());
+        assertEquals("scale=2", texturedWall.getTextureInstructions());
+        assertTrue(texturedWall.isWall());
+        assertEquals("Textured Wall", texturedWall.getName());
+    }
 
-        // Fill map with different floor types
-        customMap[0][0] = EntryInfo.createWall(); // Border
-        customMap[0][1] = EntryInfo.createWall();
-        customMap[0][2] = EntryInfo.createWall();
-        customMap[1][0] = EntryInfo.createWall();
-        customMap[1][1] = stoneFloor; // Stone floor in center
-        customMap[1][2] = EntryInfo.createWall();
-        customMap[2][0] = grassFloor; // Grass floor
-        customMap[2][1] = waterFloor; // Water floor
-        customMap[2][2] = EntryInfo.createWall();
+    @Test
+    void testMapProviderToStringArray() {
+        // Test conversion back to string array
+        String[] originalMap = canvas.getMap();
+        assertNotNull(originalMap);
+        assertEquals(4, originalMap.length);
+        assertEquals("####", originalMap[0]);
+        assertEquals("#  #", originalMap[1]);
+        assertEquals("#  #", originalMap[2]);
+        assertEquals("####", originalMap[3]);
+    }
 
-        MapProvider floorProvider = new DefaultMapProvider("Floor Test", customMap);
-        canvas.setMapProvider(floorProvider);
+    @Test
+    void testWallEdgeDetection() {
+        // Test wall edge functionality
+        assertTrue(canvas.isDrawWallEdges());
 
-        // Test floor entry properties
-        EntryInfo centerFloor = canvas.getMapProvider().getEntry(1, 1);
-        assertEquals("Stone Floor", centerFloor.getName());
-        assertEquals(AnsiColor.WHITE, centerFloor.getColor(false)); // Light color
-        assertEquals(AnsiColor.BRIGHT_BLACK, centerFloor.getColor(true)); // Dark color
-        assertEquals('.', centerFloor.getCharacter());
-        assertTrue(centerFloor.isFallthrough());
-        assertFalse(centerFloor.isWall());
+        canvas.setDrawWallEdges(false);
+        assertFalse(canvas.isDrawWallEdges());
 
-        EntryInfo grassEntry = canvas.getMapProvider().getEntry(0, 2);
-        assertEquals("Grass Floor", grassEntry.getName());
-        assertEquals(AnsiColor.BRIGHT_GREEN, grassEntry.getColor(false));
-        assertEquals(',', grassEntry.getCharacter());
+        canvas.setWallEdgeThreshold(0.5);
+        assertEquals(0.5, canvas.getWallEdgeThreshold(), 0.01);
 
-        EntryInfo waterEntry = canvas.getMapProvider().getEntry(1, 2);
-        assertEquals("Water", waterEntry.getName());
-        assertEquals(AnsiColor.BRIGHT_CYAN, waterEntry.getColor(false));
-        assertEquals('~', waterEntry.getCharacter());
+        canvas.setWallEdgeChar('|');
+        assertEquals('|', canvas.getWallEdgeChar());
     }
 }

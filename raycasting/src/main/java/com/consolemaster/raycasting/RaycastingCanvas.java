@@ -3,6 +3,7 @@ package com.consolemaster.raycasting;
 import com.consolemaster.Canvas;
 import com.consolemaster.Graphics;
 import com.consolemaster.AnsiColor;
+import com.consolemaster.StyledChar;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,6 +30,7 @@ public class RaycastingCanvas extends Canvas {
     private AnsiColor wallEdgeColor = AnsiColor.BRIGHT_WHITE; // Color for wall edges
     private boolean drawWallEdges = true; // Enable/disable wall edge drawing
     private double wallEdgeThreshold = 0.3; // Threshold for detecting wall edges
+    private TextureProvider textureProvider; // Texture provider for wall textures
 
     public RaycastingCanvas(String name, int width, int height) {
         super(name, width, height);
@@ -102,24 +104,9 @@ public class RaycastingCanvas extends Canvas {
                 graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
             }
 
-            // Draw wall with EntryInfo properties
-            for (int y = wallStart; y <= wallEnd; y++) {
-                // Use EntryInfo color based on wall orientation (light for vertical, dark for horizontal)
-                boolean isDarkSide = !result.isVerticalWall;
-                AnsiColor entryColor = hitEntry.getColor(isDarkSide);
-                AnsiColor colorToDraw = entryColor != null ? entryColor : getWallShade(correctedDistance, result.isVerticalWall);
-
-                // Use EntryInfo character or fall back to default wall char
-                char charToDraw = hitEntry.getCharacter() != ' ' ? hitEntry.getCharacter() : wallChar;
-
-                // Draw edge lines if enabled and this is an edge
-                if (drawWallEdges && (isLeftEdge || isRightEdge)) {
-                    charToDraw = wallEdgeChar;
-                    colorToDraw = wallEdgeColor;
-                }
-
-                graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
-            }
+            // Draw wall with EntryInfo properties and texture support
+            renderWallColumn(graphics, x, wallStart, wallEnd, hitEntry, result.isVerticalWall,
+                           correctedDistance, isLeftEdge, isRightEdge);
 
             // Draw floor with dynamic colors based on floor EntryInfo
             for (int y = wallEnd + 1; y < getHeight(); y++) {
@@ -423,5 +410,86 @@ public class RaycastingCanvas extends Canvas {
             map[y] = row.toString();
         }
         return map;
+    }
+
+    /**
+     * Render a column of the wall with support for textures and EntryInfo properties.
+     */
+    private void renderWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, EntryInfo hitEntry,
+                                  boolean isVertical, double distance, boolean isLeftEdge, boolean isRightEdge) {
+
+        // Check if texture is available
+        Texture texture = null;
+        if (textureProvider != null && hitEntry.getTexture() != null) {
+            texture = textureProvider.getTexture(hitEntry.getTexture());
+        }
+
+        // If texture is available, render using texture
+        if (texture != null) {
+            renderTexturedWallColumn(graphics, x, wallStart, wallEnd, hitEntry, texture, !isVertical, isLeftEdge, isRightEdge);
+        } else {
+            // Render without texture using EntryInfo properties
+            renderPlainWallColumn(graphics, x, wallStart, wallEnd, hitEntry, isVertical, distance, isLeftEdge, isRightEdge);
+        }
+    }
+
+    /**
+     * Render a textured wall column.
+     */
+    private void renderTexturedWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, EntryInfo hitEntry,
+                                         Texture texture, boolean isDarkSide, boolean isLeftEdge, boolean isRightEdge) {
+        int wallHeight = wallEnd - wallStart + 1;
+
+        // Generate texture for the wall column (1 pixel wide, wallHeight tall)
+        StyledChar[][] textureData = texture.picture(1, wallHeight, hitEntry, !isDarkSide);
+
+        for (int y = wallStart; y <= wallEnd; y++) {
+            int textureY = y - wallStart;
+
+            // Get character and color from texture
+            char charToDraw = hitEntry.getCharacter();
+            AnsiColor colorToDraw = hitEntry.getColor(isDarkSide);
+
+            if (textureData.length > 0 && textureData[0].length > 0 &&
+                textureY >= 0 && textureY < textureData.length) {
+                StyledChar textureChar = textureData[textureY][0];
+                if (textureChar != null) {
+                    charToDraw = textureChar.getCharacter();
+                    colorToDraw = textureChar.getForegroundColor();
+                }
+            }
+
+            // Apply edge rendering if enabled
+            if (drawWallEdges && (isLeftEdge || isRightEdge)) {
+                charToDraw = wallEdgeChar;
+                colorToDraw = wallEdgeColor;
+            }
+
+            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
+        }
+    }
+
+    /**
+     * Render a plain wall column without texture.
+     */
+    private void renderPlainWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, EntryInfo hitEntry,
+                                      boolean isVertical, double distance, boolean isLeftEdge, boolean isRightEdge) {
+        // Use EntryInfo color based on wall orientation (light for vertical, dark for horizontal)
+        boolean isDarkSide = !isVertical;
+        AnsiColor entryColor = hitEntry.getColor(isDarkSide);
+        AnsiColor colorToDraw = entryColor != null ? entryColor : getWallShade(distance, isVertical);
+
+        // Use EntryInfo character or fall back to default wall char
+        char charToDraw = hitEntry.getCharacter() != ' ' ? hitEntry.getCharacter() : wallChar;
+
+        // Draw edge lines if enabled and this is an edge
+        if (drawWallEdges && (isLeftEdge || isRightEdge)) {
+            charToDraw = wallEdgeChar;
+            colorToDraw = wallEdgeColor;
+        }
+
+        for (int y = wallStart; y <= wallEnd; y++) {
+            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
+        }
     }
 }
