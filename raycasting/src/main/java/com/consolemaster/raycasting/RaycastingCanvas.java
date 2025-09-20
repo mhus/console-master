@@ -493,19 +493,25 @@ public class RaycastingCanvas extends Canvas {
 
             char charToDraw = hitEntry.getCharacter();
             AnsiColor colorToDraw = hitEntry.getColor(isDarkSide);
+            AnsiColor backgroundColorToDraw = hitEntry.getBackgroundColor(isDarkSide);
 
             if (textureChar != null) {
                 charToDraw = textureChar.getCharacter();
                 colorToDraw = textureChar.getForegroundColor();
+                // Use texture background color if available, otherwise use EntryInfo background color
+                if (textureChar.getBackgroundColor() != null) {
+                    backgroundColorToDraw = textureChar.getBackgroundColor();
+                }
             }
 
             // Apply edge rendering if enabled
             if (drawWallEdges && (isLeftEdge || isRightEdge)) {
                 charToDraw = wallEdgeChar;
                 colorToDraw = wallEdgeColor;
+                // Keep background color from EntryInfo for edges
             }
 
-            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
+            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, backgroundColorToDraw);
         }
     }
 
@@ -519,6 +525,9 @@ public class RaycastingCanvas extends Canvas {
         AnsiColor entryColor = hitEntry.getColor(isDarkSide);
         AnsiColor colorToDraw = entryColor != null ? entryColor : getWallShade(distance, isVertical);
 
+        // Use EntryInfo background color based on wall orientation
+        AnsiColor backgroundColorToDraw = hitEntry.getBackgroundColor(isDarkSide);
+
         // Use EntryInfo character or fall back to default wall char
         char charToDraw = hitEntry.getCharacter() != ' ' ? hitEntry.getCharacter() : wallChar;
 
@@ -526,10 +535,11 @@ public class RaycastingCanvas extends Canvas {
         if (drawWallEdges && (isLeftEdge || isRightEdge)) {
             charToDraw = wallEdgeChar;
             colorToDraw = wallEdgeColor;
+            // Keep background color from EntryInfo for edges
         }
 
         for (int y = wallStart; y <= wallEnd; y++) {
-            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
+            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, backgroundColorToDraw);
         }
     }
 

@@ -79,7 +79,10 @@ public class RaycastingDemo {
         createFloorTextureMapProvider(),
 
         // Checkerboard floor pattern map
-        createCheckerboardFloorMapProvider()
+        createCheckerboardFloorMapProvider(),
+
+        // Background color demonstration map
+        createBackgroundColorDemoMapProvider()
     };
 
     /**
@@ -766,6 +769,126 @@ public class RaycastingDemo {
         map[6][5] = EntryInfo.createWoodenWall();
 
         return new DefaultMapProvider("Checkerboard Floor", map);
+    }
+
+    /**
+     * Creates a map provider to demonstrate background colors.
+     */
+    private static MapProvider createBackgroundColorDemoMapProvider() {
+        EntryInfo[][] map = new EntryInfo[10][12];
+
+        // Initialize with floors having different background colors
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                if (x == 0 || x == map[y].length - 1 || y == 0 || y == map.length - 1) {
+                    // Border walls with background colors
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(true)
+                            .isFallthrough(false)
+                            .isTransparent(false)
+                            .character('█')
+                            .name("Background Wall")
+                            .colorLight(AnsiColor.WHITE)
+                            .colorDark(AnsiColor.BRIGHT_BLACK)
+                            .backgroundColorLight(AnsiColor.BLUE)
+                            .backgroundColorDark(AnsiColor.CYAN)
+                            .height(1.0)
+                            .build();
+                } else {
+                    // Floor with different background color patterns
+                    AnsiColor bgColor = switch ((x + y) % 6) {
+                        case 0 -> AnsiColor.RED;
+                        case 1 -> AnsiColor.GREEN;
+                        case 2 -> AnsiColor.BLUE;
+                        case 3 -> AnsiColor.YELLOW;
+                        case 4 -> AnsiColor.MAGENTA;
+                        default -> AnsiColor.CYAN;
+                    };
+
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isFallthrough(true)
+                            .isTransparent(true)
+                            .character('·')
+                            .name("Colored Floor")
+                            .colorLight(AnsiColor.WHITE)
+                            .colorDark(AnsiColor.BRIGHT_WHITE)
+                            .backgroundColorLight(bgColor)
+                            .backgroundColorDark(bgColor)
+                            .height(0.0)
+                            .build();
+                }
+            }
+        }
+
+        // Add some special walls with different background colors
+        EntryInfo redBgWall = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Red Background Wall")
+                .colorLight(AnsiColor.BRIGHT_YELLOW)
+                .colorDark(AnsiColor.YELLOW)
+                .backgroundColorLight(AnsiColor.RED)
+                .backgroundColorDark(AnsiColor.BRIGHT_RED)
+                .height(1.0)
+                .build();
+
+        EntryInfo greenBgWall = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('▒')
+                .name("Green Background Wall")
+                .colorLight(AnsiColor.BRIGHT_WHITE)
+                .colorDark(AnsiColor.WHITE)
+                .backgroundColorLight(AnsiColor.GREEN)
+                .backgroundColorDark(AnsiColor.BRIGHT_GREEN)
+                .height(1.2)
+                .build();
+
+        EntryInfo purpleBgWall = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('░')
+                .name("Purple Background Wall")
+                .colorLight(AnsiColor.BLACK)
+                .colorDark(AnsiColor.BRIGHT_BLACK)
+                .backgroundColorLight(AnsiColor.MAGENTA)
+                .backgroundColorDark(AnsiColor.BRIGHT_MAGENTA)
+                .height(0.8)
+                .build();
+
+        // Place special background walls
+        map[3][3] = redBgWall;
+        map[3][4] = redBgWall;
+        map[6][8] = greenBgWall;
+        map[7][8] = greenBgWall;
+        map[5][5] = purpleBgWall;
+        map[5][6] = purpleBgWall;
+
+        // Add glass walls with background colors
+        EntryInfo glassBg = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(true)
+                .character('|')
+                .name("Colored Glass")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .backgroundColorLight(AnsiColor.BLUE)
+                .backgroundColorDark(AnsiColor.BRIGHT_BLUE)
+                .height(1.0)
+                .build();
+
+        map[2][7] = glassBg;
+        map[2][8] = glassBg;
+        map[8][3] = glassBg;
+        map[8][4] = glassBg;
+
+        return new DefaultMapProvider("Background Colors Demo", map);
     }
 
     public static void main(String[] args) {

@@ -62,6 +62,18 @@ public class EntryInfo {
     private AnsiColor colorDark;
 
     /**
+     * Light background color for rendering this entry (used for vertical walls or well-lit surfaces).
+     * Null means no background color.
+     */
+    private AnsiColor backgroundColorLight;
+
+    /**
+     * Dark background color for rendering this entry (used for horizontal walls or shadowed surfaces).
+     * Null means no background color or derive from backgroundColorLight.
+     */
+    private AnsiColor backgroundColorDark;
+
+    /**
      * Height of the wall (used for rendering). Default is 1.0 (full height).
      */
     @Builder.Default
@@ -115,6 +127,46 @@ public class EntryInfo {
     public void setColor(AnsiColor color) {
         this.colorLight = color;
         this.colorDark = color;
+    }
+
+    /**
+     * Get the appropriate background color based on lighting conditions.
+     *
+     * @param isDark true if dark background color should be used (e.g., horizontal walls)
+     * @return the appropriate background color or null if no background color is set
+     */
+    public AnsiColor getBackgroundColor(boolean isDark) {
+        if (isDark && backgroundColorDark != null) {
+            return backgroundColorDark;
+        } else if (!isDark && backgroundColorLight != null) {
+            return backgroundColorLight;
+        } else if (backgroundColorLight != null) {
+            // Fall back to light background color if dark is not available
+            return backgroundColorLight;
+        } else if (backgroundColorDark != null) {
+            // Fall back to dark background color if light is not available
+            return backgroundColorDark;
+        }
+        return null;
+    }
+
+    /**
+     * Get the light background color (for backward compatibility).
+     *
+     * @return the light background color
+     */
+    public AnsiColor getBackgroundColor() {
+        return getBackgroundColor(false);
+    }
+
+    /**
+     * Set both light and dark background colors to the same value.
+     *
+     * @param backgroundColor the background color to set for both light and dark
+     */
+    public void setBackgroundColor(AnsiColor backgroundColor) {
+        this.backgroundColorLight = backgroundColor;
+        this.backgroundColorDark = backgroundColor;
     }
 
     // Predefined common entry types

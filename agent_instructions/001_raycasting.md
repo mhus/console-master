@@ -102,3 +102,16 @@ Damit kann das Interface TextureProvider als reiner Transformator
 genutzt werden der die eingeghenden Koordinaten auf das orginale
 Bild transformiert.
 ```
+
+## 04 Background Colors
+
+```text
+Erweitere die Unterstützung für Farben in RaycastingCanvas um
+Hintergrundfarben. Im EntryInfo um die Eigenschaft:
+- backgroundColorLight: AnsiColor | null - Hintergrundfarbe des Eintrags bei Hell, default null
+- backgroundColorDark: AnsiColor | null - Hintergrundfarbe des Eintrags bei Dunkel, default null
+
+- Erweitere RaycastingCanvas um die Unterstützung für Hintergrundfarben.
+- Erweitere RaycastingCanvasDemo um die Demonstration von Hintergrundfarben.
+- Erweitere RaycastingCanvasTest um die Unterstützung für Hintergrundfarben.
+```

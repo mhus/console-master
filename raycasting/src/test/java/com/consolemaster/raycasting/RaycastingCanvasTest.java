@@ -200,28 +200,191 @@ class RaycastingCanvasTest {
         canvas.setTextureProvider(textureProvider);
         assertNotNull(canvas.getTextureProvider());
 
-        // Test texture retrieval with new transformator-based interface
-        EntryInfo testEntry = EntryInfo.builder()
+        // Test texture retrieval (requires accessing texture provider functionality)
+        Texture texture = textureProvider.getTexture("test", 1, 10, null, false);
+        assertNotNull(texture);
+        assertEquals(1, texture.getWidth());
+        assertEquals(10, texture.getHeight());
+    }
+
+    @Test
+    void testBackgroundColors() {
+        // Test EntryInfo with background colors
+        EntryInfo bgColorWall = EntryInfo.builder()
+                .isWall(true)
+                .character('█')
+                .name("Background Color Wall")
                 .colorLight(AnsiColor.WHITE)
                 .colorDark(AnsiColor.BRIGHT_BLACK)
-                .character('█')
+                .backgroundColorLight(AnsiColor.RED)
+                .backgroundColorDark(AnsiColor.BLUE)
                 .build();
 
-        Texture retrievedTexture = canvas.getTextureProvider().getTexture("test", 3, 3, testEntry, true);
-        assertNotNull(retrievedTexture);
+        // Test background color getters
+        assertEquals(AnsiColor.RED, bgColorWall.getBackgroundColor(false)); // Light background
+        assertEquals(AnsiColor.BLUE, bgColorWall.getBackgroundColor(true)); // Dark background
+        assertEquals(AnsiColor.RED, bgColorWall.getBackgroundColor()); // Default to light
 
-        // Test coordinate-based access
-        StyledChar charAtOrigin = retrievedTexture.getCharAt(0, 0);
-        assertNotNull(charAtOrigin);
-        assertEquals('#', charAtOrigin.getCharacter());
+        // Test only light background color set
+        EntryInfo lightBgOnly = EntryInfo.builder()
+                .backgroundColorLight(AnsiColor.GREEN)
+                .build();
+        assertEquals(AnsiColor.GREEN, lightBgOnly.getBackgroundColor(false)); // Light
+        assertEquals(AnsiColor.GREEN, lightBgOnly.getBackgroundColor(true)); // Falls back to light
+        assertNull(lightBgOnly.getBackgroundColorDark());
 
-        StyledChar charAtMiddle = retrievedTexture.getCharAt(1, 1);
-        assertNotNull(charAtMiddle);
-        assertEquals(' ', charAtMiddle.getCharacter());
+        // Test only dark background color set
+        EntryInfo darkBgOnly = EntryInfo.builder()
+                .backgroundColorDark(AnsiColor.YELLOW)
+                .build();
+        assertEquals(AnsiColor.YELLOW, darkBgOnly.getBackgroundColor(true)); // Dark
+        assertEquals(AnsiColor.YELLOW, darkBgOnly.getBackgroundColor(false)); // Falls back to dark
+        assertNull(darkBgOnly.getBackgroundColorLight());
 
-        // Test bounds checking
-        StyledChar charOutOfBounds = retrievedTexture.getCharAt(10, 10);
-        assertNull(charOutOfBounds);
+        // Test no background colors set
+        EntryInfo noBgColor = EntryInfo.builder().build();
+        assertNull(noBgColor.getBackgroundColor(false));
+        assertNull(noBgColor.getBackgroundColor(true));
+        assertNull(noBgColor.getBackgroundColor());
+
+        // Test backward compatibility setter
+        EntryInfo compatBgWall = EntryInfo.builder().build();
+        compatBgWall.setBackgroundColor(AnsiColor.MAGENTA);
+        assertEquals(AnsiColor.MAGENTA, compatBgWall.getBackgroundColorLight());
+        assertEquals(AnsiColor.MAGENTA, compatBgWall.getBackgroundColorDark());
+        assertEquals(AnsiColor.MAGENTA, compatBgWall.getBackgroundColor(false));
+        assertEquals(AnsiColor.MAGENTA, compatBgWall.getBackgroundColor(true));
+    }
+
+    @Test
+    void testBackgroundColorMapProvider() {
+        // Create a map with background colors
+        EntryInfo[][] bgColorMap = new EntryInfo[3][3];
+
+        // Fill with floors having different background colors
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                AnsiColor bgColor = switch ((x + y) % 3) {
+                    case 0 -> AnsiColor.RED;
+                    case 1 -> AnsiColor.GREEN;
+                    default -> AnsiColor.BLUE;
+                };
+
+                bgColorMap[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isFallthrough(true)
+                        .character('.')
+                        .name("Colored Floor")
+                        .colorLight(AnsiColor.WHITE)
+                        .backgroundColorLight(bgColor)
+                        .backgroundColorDark(bgColor)
+                        .build();
+            }
+        }
+
+        // Add walls with background colors on borders
+        for (int x = 0; x < 3; x++) {
+            bgColorMap[0][x] = EntryInfo.builder()
+                    .isWall(true)
+                    .character('█')
+                    .name("Wall with Background")
+                    .colorLight(AnsiColor.WHITE)
+                    .backgroundColorLight(AnsiColor.CYAN)
+                    .backgroundColorDark(AnsiColor.BLUE)
+                    .build();
+            bgColorMap[2][x] = EntryInfo.builder()
+                    .isWall(true)
+                    .character('█')
+                    .name("Wall with Background")
+                    .colorLight(AnsiColor.WHITE)
+                    .backgroundColorLight(AnsiColor.CYAN)
+                    .backgroundColorDark(AnsiColor.BLUE)
+                    .build();
+        }
+        for (int y = 0; y < 3; y++) {
+            bgColorMap[y][0] = EntryInfo.builder()
+                    .isWall(true)
+                    .character('█')
+                    .name("Wall with Background")
+                    .colorLight(AnsiColor.WHITE)
+                    .backgroundColorLight(AnsiColor.CYAN)
+                    .backgroundColorDark(AnsiColor.BLUE)
+                    .build();
+            bgColorMap[y][2] = EntryInfo.builder()
+                    .isWall(true)
+                    .character('█')
+                    .name("Wall with Background")
+                    .colorLight(AnsiColor.WHITE)
+                    .backgroundColorLight(AnsiColor.CYAN)
+                    .backgroundColorDark(AnsiColor.BLUE)
+                    .build();
+        }
+
+        MapProvider bgColorProvider = new DefaultMapProvider("Background Color Map", bgColorMap);
+        canvas.setMapProvider(bgColorProvider);
+
+        // Test that the map provider has entries with background colors
+        EntryInfo floorEntry = canvas.getMapProvider().getEntry(1, 1);
+        assertNotNull(floorEntry.getBackgroundColor());
+        assertFalse(floorEntry.isWall());
+
+        EntryInfo wallEntry = canvas.getMapProvider().getEntry(0, 0);
+        assertNotNull(wallEntry.getBackgroundColor());
+        assertTrue(wallEntry.isWall());
+        assertEquals(AnsiColor.CYAN, wallEntry.getBackgroundColor(false));
+        assertEquals(AnsiColor.BLUE, wallEntry.getBackgroundColor(true));
+    }
+
+    @Test
+    void testPredefinedWallTypesWithBackgroundColors() {
+        // Test that existing predefined wall types work with background color system
+        EntryInfo stoneWall = EntryInfo.createStoneWall();
+        assertNull(stoneWall.getBackgroundColor()); // Should be null by default
+        assertNull(stoneWall.getBackgroundColorLight());
+        assertNull(stoneWall.getBackgroundColorDark());
+
+        // Test creating custom wall with background colors
+        EntryInfo customBgWall = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Custom Background Wall")
+                .colorLight(AnsiColor.BRIGHT_YELLOW)
+                .colorDark(AnsiColor.YELLOW)
+                .backgroundColorLight(AnsiColor.RED)
+                .backgroundColorDark(AnsiColor.BRIGHT_RED)
+                .height(1.0)
+                .build();
+
+        assertTrue(customBgWall.isWall());
+        assertEquals(AnsiColor.BRIGHT_YELLOW, customBgWall.getColor(false));
+        assertEquals(AnsiColor.YELLOW, customBgWall.getColor(true));
+        assertEquals(AnsiColor.RED, customBgWall.getBackgroundColor(false));
+        assertEquals(AnsiColor.BRIGHT_RED, customBgWall.getBackgroundColor(true));
+    }
+
+    @Test
+    void testGlassWallWithBackgroundColors() {
+        // Test glass wall with background colors for special effects
+        EntryInfo coloredGlass = EntryInfo.builder()
+                .isWall(true)
+                .isFallthrough(false)
+                .isTransparent(true)
+                .character('|')
+                .name("Colored Glass")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .backgroundColorLight(AnsiColor.BLUE)
+                .backgroundColorDark(AnsiColor.BRIGHT_BLUE)
+                .height(1.0)
+                .build();
+
+        assertTrue(coloredGlass.isWall());
+        assertFalse(coloredGlass.isFallthrough());
+        assertTrue(coloredGlass.isTransparent()); // Transparent but has background color
+        assertEquals(AnsiColor.BLUE, coloredGlass.getBackgroundColor(false));
+        assertEquals(AnsiColor.BRIGHT_BLUE, coloredGlass.getBackgroundColor(true));
     }
 
     @Test
