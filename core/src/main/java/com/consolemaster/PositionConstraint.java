@@ -6,13 +6,25 @@ package com.consolemaster;
  */
 public class PositionConstraint implements LayoutConstraint {
 
+    public static final LayoutConstraint CENTER = new PositionConstraint(Position.CENTER);
+    public static final LayoutConstraint TOP_CENTER = new PositionConstraint(Position.TOP_CENTER);
+    public static final LayoutConstraint BOTTOM_CENTER = new PositionConstraint(Position.BOTTOM_CENTER);
+    public static final LayoutConstraint CENTER_LEFT = new PositionConstraint(Position.CENTER_LEFT);
+    public static final LayoutConstraint CENTER_RIGHT = new PositionConstraint(Position.CENTER_RIGHT);
+    public static final LayoutConstraint TOP_LEFT = new PositionConstraint(Position.TOP_LEFT);
+    public static final LayoutConstraint TOP_RIGHT = new PositionConstraint(Position.TOP_RIGHT);
+    public static final LayoutConstraint BOTTOM_LEFT = new PositionConstraint(Position.BOTTOM_LEFT);
+    public static final LayoutConstraint BOTTOM_RIGHT = new PositionConstraint(Position.BOTTOM_RIGHT);
+    public static final LayoutConstraint NORTH = new PositionConstraint(Position.TOP_CENTER);
+    public static final LayoutConstraint SOUTH = new PositionConstraint(Position.BOTTOM_CENTER);
+    public static final LayoutConstraint EAST = new PositionConstraint(Position.CENTER_RIGHT);
+    public static final LayoutConstraint WEST = new PositionConstraint(Position.CENTER_LEFT);
+
     public enum Position {
         TOP_LEFT, TOP_CENTER, TOP_RIGHT,
         CENTER_LEFT, CENTER, CENTER_RIGHT,
         BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT,
-        ABSOLUTE,  // Use absolute x, y coordinates
-        // BorderLayout compatibility aliases
-        NORTH, SOUTH, EAST, WEST
+        ABSOLUTE  // Use absolute x, y coordinates
     }
 
     private final Position position;

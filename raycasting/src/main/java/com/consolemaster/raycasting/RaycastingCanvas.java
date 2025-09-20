@@ -9,10 +9,14 @@ import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * A canvas that renders a 3D world using raycasting technique.
  * The world is represented by a MapProvider where '#' represents walls and ' ' represents empty space.
+ * Supports 8-directional sprite rendering for game objects.
  */
 @Getter
 @Setter
@@ -35,6 +39,11 @@ public class RaycastingCanvas extends Canvas {
     private double wallEdgeThreshold = 0.3; // Threshold for detecting wall edges
     private TextureProvider textureProvider; // Texture provider for wall textures
 
+    // GameObject support
+    private List<GameObject> gameObjects = new ArrayList<>();
+    private boolean renderGameObjects = true; // Enable/disable object rendering
+    private double[] zBuffer; // Z-buffer for depth testing with objects
+
     public RaycastingCanvas(String name, int width, int height) {
         super(name, width, height);
         this.mapProvider = new DefaultMapProvider();
@@ -54,6 +63,11 @@ public class RaycastingCanvas extends Canvas {
         int mapWidth = mapProvider.getWidth();
         int mapHeight = mapProvider.getHeight();
 
+        // Initialize Z-buffer for depth testing
+        if (zBuffer == null || zBuffer.length != getWidth()) {
+            zBuffer = new double[getWidth()];
+        }
+
         // Cache for textures per paint() call - key: texture name, value: texture
         Map<String, Texture> textureCache = new HashMap<>();
 
@@ -72,6 +86,10 @@ public class RaycastingCanvas extends Canvas {
             // Perform ray casting using DDA algorithm
             RaycastResult result = castRayDDA(rayDirX, rayDirY, mapWidth, mapHeight);
 
+            // Store distance in Z-buffer for object rendering
+            double correctedDistance = result.distance * Math.cos(rayAngle - playerAngle);
+            zBuffer[x] = correctedDistance;
+
             // Check if texture is available and load it once per entry
             Texture texture = null;
             int textureColumn = 0;
@@ -83,10 +101,11 @@ public class RaycastingCanvas extends Canvas {
                 texture = textureCache.get(textureKey);
                 if (texture == null) {
                     // Calculate wall height for texture loading using effective height
-                    double correctedDistance = result.distance * Math.cos(rayAngle - playerAngle);
-                    if (correctedDistance < 0.1) correctedDistance = 0.1;
-                    int baseWallHeight = (int) (getHeight() / correctedDistance);
-                    int wallHeight = (int) (baseWallHeight * result.hitEntry.getEffectiveHeight());
+                    double effectiveHeight = result.hitEntry.getEffectiveHeight();
+                    double correctedDistanceForHeight = correctedDistance;
+                    if (correctedDistanceForHeight < 0.1) correctedDistanceForHeight = 0.1;
+                    int baseWallHeight = (int) (getHeight() / correctedDistanceForHeight);
+                    int wallHeight = (int) (baseWallHeight * effectiveHeight);
 
                     // Load texture and cache it
                     texture = textureProvider.getTexture(textureKey, 1, wallHeight, result.hitEntry, !result.isVerticalWall);
@@ -152,77 +171,158 @@ public class RaycastingCanvas extends Canvas {
             // Draw floor with texture support
             renderFloorColumn(graphics, x, wallEnd + 1, getHeight() - 1, rayDirX, rayDirY, textureCache);
         }
+
+        // Third pass: Render game objects with sprite support
+        if (renderGameObjects && !gameObjects.isEmpty()) {
+            renderGameObjects(graphics);
+        }
     }
 
     /**
-     * Determines if a column represents a wall edge by comparing distances with neighboring columns.
+     * Renders all game objects using 8-directional sprites with proper depth sorting.
      */
-    private boolean isWallEdge(RaycastHit[] raycastHits, int x, boolean checkLeft) {
-        if (!drawWallEdges || raycastHits == null) {
-            return false;
+    private void renderGameObjects(Graphics graphics) {
+        List<ObjectRenderInfo> objectsToRender = new ArrayList<>();
+
+        // Calculate render info for all visible objects
+        for (GameObject obj : gameObjects) {
+            if (!obj.shouldRender(playerX, playerY)) {
+                continue;
+            }
+
+            double distance = obj.getDistanceTo(playerX, playerY);
+            double angleToObject = Math.atan2(obj.getY() - playerY, obj.getX() - playerX);
+
+            // Check if object is within field of view
+            double relativeAngle = angleToObject - playerAngle;
+            while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
+            while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+
+            // Only render objects within FOV (with some margin)
+            double fovMargin = fov / 2 + 0.5; // Add margin for sprite width
+            if (Math.abs(relativeAngle) <= fovMargin) {
+                // Get appropriate sprite for viewing angle
+                Sprite sprite = obj.getSpriteForViewAngle(angleToObject);
+                if (sprite != null) {
+                    objectsToRender.add(new ObjectRenderInfo(obj, sprite, distance, angleToObject));
+                }
+            }
         }
 
-        int neighborX = checkLeft ? x - 1 : x + 1;
+        // Sort objects by distance (far to near) for proper rendering order
+        objectsToRender.sort(Comparator.comparingDouble(info -> -info.distance));
 
-        // Check bounds
-        if (neighborX < 0 || neighborX >= raycastHits.length) {
-            return true; // Edge of screen is always an edge
+        // Render each object
+        for (ObjectRenderInfo renderInfo : objectsToRender) {
+            renderGameObject(graphics, renderInfo);
         }
-
-        RaycastHit current = raycastHits[x];
-        RaycastHit neighbor = raycastHits[neighborX];
-
-        if (current == null || neighbor == null) {
-            return false;
-        }
-
-        // Calculate difference in corrected distances
-        double currentDistance = current.result.distance * Math.cos(getCurrentRayAngle(x) - playerAngle);
-        double neighborDistance = neighbor.result.distance * Math.cos(getCurrentRayAngle(neighborX) - playerAngle);
-
-        // Edge detected if distance difference exceeds threshold
-        double distanceDiff = Math.abs(currentDistance - neighborDistance);
-        return distanceDiff > wallEdgeThreshold;
     }
 
     /**
-     * Calculate the ray angle for a given column x.
+     * Renders a single game object sprite with proper depth testing.
      */
-    private double getCurrentRayAngle(int x) {
-        return playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
+    private void renderGameObject(Graphics graphics, ObjectRenderInfo renderInfo) {
+        GameObject obj = renderInfo.gameObject;
+        Sprite sprite = renderInfo.sprite;
+        double distance = renderInfo.distance;
+
+        // Apply fish-eye correction
+        double correctedDistance = distance; // Objects don't need fish-eye correction
+
+        // Calculate sprite position on screen
+        double angleToObject = renderInfo.angleToObject;
+        double relativeAngle = angleToObject - playerAngle;
+        while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
+        while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+
+        // Calculate screen X position
+        int screenX = (int) ((relativeAngle / fov + 0.5) * getWidth());
+
+        // Calculate sprite size based on distance and sprite scale
+        double baseScale = obj.getSpriteProvider().getBaseScale() * sprite.getScale();
+        int spriteScreenHeight = (int) (getHeight() / correctedDistance * baseScale);
+        int spriteScreenWidth = (int) (sprite.getWidth() * spriteScreenHeight / (double) sprite.getHeight());
+
+        // Calculate sprite position (centered on object)
+        int spriteStartX = screenX - spriteScreenWidth / 2;
+        int spriteStartY = (getHeight() - spriteScreenHeight) / 2 + (int) (obj.getZOffset() * spriteScreenHeight);
+
+        // Render sprite pixels
+        for (int sy = 0; sy < spriteScreenHeight; sy++) {
+            int screenY = spriteStartY + sy;
+            if (screenY < 0 || screenY >= getHeight()) continue;
+
+            // Calculate sprite Y coordinate
+            int spriteY = (sy * sprite.getHeight()) / spriteScreenHeight;
+            spriteY = Math.max(0, Math.min(spriteY, sprite.getHeight() - 1));
+
+            for (int sx = 0; sx < spriteScreenWidth; sx++) {
+                int screenXPos = spriteStartX + sx;
+                if (screenXPos < 0 || screenXPos >= getWidth()) continue;
+
+                // Depth test against Z-buffer
+                if (correctedDistance >= zBuffer[screenXPos]) continue;
+
+                // Calculate sprite X coordinate
+                int spriteX = (sx * sprite.getWidth()) / spriteScreenWidth;
+                spriteX = Math.max(0, Math.min(spriteX, sprite.getWidth() - 1));
+
+                // Check if sprite pixel is transparent
+                if (sprite.isTransparentAt(spriteX, spriteY)) continue;
+
+                // Get sprite pixel data
+                char spriteChar = sprite.getCharAt(spriteX, spriteY);
+                AnsiColor fgColor = sprite.getForegroundColorAt(spriteX, spriteY);
+                AnsiColor bgColor = sprite.getBackgroundColorAt(spriteX, spriteY);
+
+                // Apply distance-based shading
+                fgColor = applySpriteShading(fgColor, correctedDistance);
+
+                // Render sprite pixel
+                graphics.drawStyledChar(screenXPos, screenY, spriteChar, fgColor, bgColor);
+            }
+        }
     }
 
     /**
-     * Result of a raycast operation.
+     * Applies distance-based shading to sprite colors.
      */
-    private static class RaycastResult {
+    private AnsiColor applySpriteShading(AnsiColor color, double distance) {
+        if (color == null) return null;
+
+        // Apply distance-based darkening
+        if (distance > 8.0) {
+            return AnsiColor.BLACK;
+        } else if (distance > 4.0) {
+            // Darken the color
+            return switch (color) {
+                case WHITE, BRIGHT_WHITE -> AnsiColor.BRIGHT_BLACK;
+                case YELLOW, BRIGHT_YELLOW -> AnsiColor.YELLOW;
+                case RED, BRIGHT_RED -> AnsiColor.RED;
+                case GREEN, BRIGHT_GREEN -> AnsiColor.GREEN;
+                case BLUE, BRIGHT_BLUE -> AnsiColor.BLUE;
+                case MAGENTA, BRIGHT_MAGENTA -> AnsiColor.MAGENTA;
+                case CYAN, BRIGHT_CYAN -> AnsiColor.CYAN;
+                default -> color;
+            };
+        }
+        return color;
+    }
+
+    /**
+     * Internal class for storing object render information.
+     */
+    private static class ObjectRenderInfo {
+        final GameObject gameObject;
+        final Sprite sprite;
         final double distance;
-        final boolean isVerticalWall;
-        final EntryInfo hitEntry;
+        final double angleToObject;
 
-        RaycastResult(double distance, boolean isVerticalWall, EntryInfo hitEntry) {
+        ObjectRenderInfo(GameObject gameObject, Sprite sprite, double distance, double angleToObject) {
+            this.gameObject = gameObject;
+            this.sprite = sprite;
             this.distance = distance;
-            this.isVerticalWall = isVerticalWall;
-            this.hitEntry = hitEntry;
-        }
-    }
-
-    /**
-     * Internal class that holds raycast result and cached texture data.
-     */
-    private static class RaycastHit {
-        final RaycastResult result;
-        final Texture texture;
-        final int textureColumn; // Pre-calculated texture column for this hit
-
-        RaycastHit(RaycastResult result, Texture texture, int textureColumn) {
-            this.result = result;
-            this.texture = texture;
-            this.textureColumn = textureColumn;
-        }
-
-        RaycastHit(RaycastResult result) {
-            this(result, null, 0);
+            this.angleToObject = angleToObject;
         }
     }
 
@@ -358,26 +458,6 @@ public class RaycastingCanvas extends Canvas {
         // Normalize angle to [0, 2π]
         while (playerAngle < 0) playerAngle += 2 * Math.PI;
         while (playerAngle >= 2 * Math.PI) playerAngle -= 2 * Math.PI;
-    }
-
-    /**
-     * Check if a position is valid for player movement.
-     * Uses EntryInfo properties to determine walkability.
-     */
-    public boolean isValidPosition(double x, double y) {
-        if (mapProvider == null) return false;
-
-        int mapX = (int) Math.floor(x);
-        int mapY = (int) Math.floor(y);
-
-        // Check bounds
-        if (mapX < 0 || mapX >= mapProvider.getWidth() || mapY < 0 || mapY >= mapProvider.getHeight()) {
-            return false;
-        }
-
-        // Check if the position allows movement using EntryInfo
-        EntryInfo entry = mapProvider.getEntry(mapX, mapY);
-        return entry.isWalkThrough();
     }
 
     /**
@@ -663,5 +743,163 @@ public class RaycastingCanvas extends Canvas {
         }
 
         return wallX;
+    }
+
+    /**
+     * Determines if a column represents a wall edge by comparing distances with neighboring columns.
+     */
+    private boolean isWallEdge(RaycastHit[] raycastHits, int x, boolean checkLeft) {
+        if (!drawWallEdges || raycastHits == null) {
+            return false;
+        }
+
+        int neighborX = checkLeft ? x - 1 : x + 1;
+
+        // Check bounds
+        if (neighborX < 0 || neighborX >= raycastHits.length) {
+            return true; // Edge of screen is always an edge
+        }
+
+        RaycastHit current = raycastHits[x];
+        RaycastHit neighbor = raycastHits[neighborX];
+
+        if (current == null || neighbor == null) {
+            return false;
+        }
+
+        // Calculate difference in corrected distances
+        double currentDistance = current.result.distance * Math.cos(getCurrentRayAngle(x) - playerAngle);
+        double neighborDistance = neighbor.result.distance * Math.cos(getCurrentRayAngle(neighborX) - playerAngle);
+
+        // Edge detected if distance difference exceeds threshold
+        double distanceDiff = Math.abs(currentDistance - neighborDistance);
+        return distanceDiff > wallEdgeThreshold;
+    }
+
+    /**
+     * Calculate the ray angle for a given column x.
+     */
+    private double getCurrentRayAngle(int x) {
+        return playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
+    }
+
+    /**
+     * Result of a raycast operation.
+     */
+    private static class RaycastResult {
+        final double distance;
+        final boolean isVerticalWall;
+        final EntryInfo hitEntry;
+
+        RaycastResult(double distance, boolean isVerticalWall, EntryInfo hitEntry) {
+            this.distance = distance;
+            this.isVerticalWall = isVerticalWall;
+            this.hitEntry = hitEntry;
+        }
+    }
+
+    /**
+     * Internal class that holds raycast result and cached texture data.
+     */
+    private static class RaycastHit {
+        final RaycastResult result;
+        final Texture texture;
+        final int textureColumn; // Pre-calculated texture column for this hit
+
+        RaycastHit(RaycastResult result, Texture texture, int textureColumn) {
+            this.result = result;
+            this.texture = texture;
+            this.textureColumn = textureColumn;
+        }
+
+        RaycastHit(RaycastResult result) {
+            this(result, null, 0);
+        }
+    }
+
+    /**
+     * Adds a game object to the world.
+     */
+    public void addGameObject(GameObject obj) {
+        if (obj != null && !gameObjects.contains(obj)) {
+            gameObjects.add(obj);
+        }
+    }
+
+    /**
+     * Removes a game object from the world.
+     */
+    public void removeGameObject(GameObject obj) {
+        gameObjects.remove(obj);
+    }
+
+    /**
+     * Gets all game objects in the world.
+     */
+    public List<GameObject> getGameObjects() {
+        return new ArrayList<>(gameObjects);
+    }
+
+    /**
+     * Clears all game objects from the world.
+     */
+    public void clearGameObjects() {
+        gameObjects.clear();
+    }
+
+    /**
+     * Finds the closest game object to the player within interaction range.
+     */
+    public GameObject getClosestInteractableObject(double maxDistance) {
+        GameObject closest = null;
+        double closestDistance = maxDistance;
+
+        for (GameObject obj : gameObjects) {
+            if (!obj.isInteractable()) continue;
+
+            double distance = obj.getDistanceTo(playerX, playerY);
+            if (distance < closestDistance) {
+                closest = obj;
+                closestDistance = distance;
+            }
+        }
+
+        return closest;
+    }
+
+    /**
+     * Checks collision with game objects during player movement.
+     */
+    public boolean isValidPosition(double x, double y) {
+        if (mapProvider == null) return false;
+
+        int mapX = (int) Math.floor(x);
+        int mapY = (int) Math.floor(y);
+
+        // Check bounds
+        if (mapX < 0 || mapX >= mapProvider.getWidth() || mapY < 0 || mapY >= mapProvider.getHeight()) {
+            return false;
+        }
+
+        // Check if the position allows movement using EntryInfo
+        EntryInfo entry = mapProvider.getEntry(mapX, mapY);
+        if (!entry.isWalkThrough()) {
+            return false;
+        }
+
+        // Check collision with solid game objects
+        for (GameObject obj : gameObjects) {
+            if (!obj.isSolid()) continue;
+
+            double distance = Math.sqrt((x - obj.getX()) * (x - obj.getX()) +
+                                      (y - obj.getY()) * (y - obj.getY()));
+
+            // Simple collision detection - objects have a radius of 0.3 units
+            if (distance < 0.3) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
