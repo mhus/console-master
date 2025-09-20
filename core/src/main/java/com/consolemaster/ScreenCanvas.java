@@ -16,7 +16,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class ScreenCanvas extends Composite {
+public class ScreenCanvas extends Canvas implements Composable {
 
     private static final int DEFAULT_MIN_WIDTH = 80;
     private static final int DEFAULT_MIN_HEIGHT = 24;
@@ -25,7 +25,7 @@ public class ScreenCanvas extends Composite {
     private final int minWidth;
     private final int minHeight;
     private Canvas warningCanvas;
-    private Canvas contentCanvas;
+    private Canvas content;
     private FocusManager focusManager;
     private final Map<String, Runnable> shortcuts = new HashMap<>();
     private final List<MouseManager> mouseManagers = new ArrayList<>();
@@ -50,40 +50,32 @@ public class ScreenCanvas extends Composite {
      * Creates a new ScreenCanvas with specified name and minimum size requirements.
      */
     public ScreenCanvas(String name, int minWidth, int minHeight) throws IOException {
-        super(name, 0, 0, 0, 0);
+        super(name, minWidth, minHeight);
         this.minWidth = minWidth;
         this.minHeight = minHeight;
         this.terminal = new NativeTerminal();
-
-        // Initialize screen dimensions
-        setWidth(terminal.getWidth());
-        setHeight(terminal.getHeight());
 
         // Initialize focus manager
         this.focusManager = new FocusManager(this);
 
         // Create warning canvas
         createWarningCanvas();
-        updateDisplay();
     }
 
     public void setContent(Canvas contentCanvas) {
-        if (this.contentCanvas != null) {
-            removeChild(this.contentCanvas);
-            focusManager.onCanvasRemoved(this.contentCanvas);
+        if (this.content != null) {
+            focusManager.onCanvasRemoved(this.content);
         }
-        this.contentCanvas = contentCanvas;
+        this.content = contentCanvas;
         if (contentCanvas != null) {
             focusManager.onCanvasAdded(contentCanvas);
         }
-        updateDisplay();
     }
 
     public void updateSize() {
         terminal.updateSize();
         setWidth(terminal.getWidth());
         setHeight(terminal.getHeight());
-        updateDisplay();
     }
 
     public void render() {
@@ -100,8 +92,8 @@ public class ScreenCanvas extends Composite {
     /**
      * Gets the content canvas.
      */
-    public Canvas getContentCanvas() {
-        return contentCanvas;
+    public Canvas getContent() {
+        return content;
     }
 
     public void close() throws IOException {
@@ -161,21 +153,42 @@ public class ScreenCanvas extends Composite {
         };
     }
 
-    public void updateDisplay() {
-        removeAllChildren();
+    @Override
+    public void paint(Graphics graphics) {
+        for (Canvas child : getChildren()) {
+            if (child != null) {
+                child.paint(graphics);
+            }
+        }
+    }
 
-        if (meetsMinimumSize() && contentCanvas != null) {
-            addChild(contentCanvas);
-            addChild(overlayCanvas);
+    @Override
+    public int getChildCount() {
+        return getChildren().size();
+    }
+
+    @Override
+    public List<Canvas> getChildren() {
+        var children = new ArrayList<Canvas>(2);
+        if (meetsMinimumSize() && content != null) {
+            if (content != null) {
+                content.setWidth(getWidth());
+                content.setHeight(getHeight());
+                children.add(content);
+            }
+            if (overlayCanvas != null) {
+                overlayCanvas.setWidth(getWidth());
+                overlayCanvas.setHeight(getHeight());
+                children.add(overlayCanvas);
+            }
         } else if (warningCanvas != null) {
             if (warningCanvas != null) {
                 warningCanvas.setWidth(getWidth());
                 warningCanvas.setHeight(getHeight());
+                children.add(warningCanvas);
             }
-            addChild(warningCanvas);
         }
-
-
+        return children;
     }
 
     /**
@@ -185,20 +198,17 @@ public class ScreenCanvas extends Composite {
      * the screen's minimum size requirements.
      */
     public void pack() {
-        if (contentCanvas != null) {
+        if (content != null) {
             // Pack the content canvas first
-            contentCanvas.pack();
+            content.pack();
 
             // Update our minimum size based on content requirements
-            int newMinWidth = Math.max(DEFAULT_MIN_WIDTH, contentCanvas.getMinWidth());
-            int newMinHeight = Math.max(DEFAULT_MIN_HEIGHT, contentCanvas.getMinHeight());
+            int newMinWidth = Math.max(DEFAULT_MIN_WIDTH, content.getMinWidth());
+            int newMinHeight = Math.max(DEFAULT_MIN_HEIGHT, content.getMinHeight());
 
             // Store the new minimum requirements (note: these are final fields,
             // so we can't change them, but we can update the display logic)
             // For future versions, consider making minWidth/minHeight non-final
-
-            // Update the display with new requirements
-            updateDisplay();
         }
 
         // Also pack any other children (like warning canvas)
@@ -440,4 +450,5 @@ public class ScreenCanvas extends Composite {
     public boolean isMouseReportingEnabled() {
         return mouseReportingEnabled;
     }
+
 }

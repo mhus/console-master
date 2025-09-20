@@ -158,7 +158,7 @@ public class DefaultMouseManager implements MouseManager {
      * Finds the topmost canvas at the specified coordinates.
      */
     private CanvasMouseInfo findCanvasAt(int x, int y, ScreenCanvas screenCanvas) {
-        Canvas contentCanvas = screenCanvas.getContentCanvas();
+        Canvas contentCanvas = screenCanvas.getContent();
         if (contentCanvas != null) {
             return findCanvasAtRecursive(x, y, contentCanvas, null);
         }

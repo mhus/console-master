@@ -2,8 +2,11 @@ package com.consolemaster.demo;
 
 import com.consolemaster.AnsiColor;
 import com.consolemaster.AnsiFormat;
+import com.consolemaster.BorderLayout;
 import com.consolemaster.Canvas;
+import com.consolemaster.Composite;
 import com.consolemaster.Graphics;
+import com.consolemaster.PositionConstraint;
 import com.consolemaster.ScreenCanvas;
 import com.consolemaster.graphic3d.*;
 import java.math.BigDecimal;
@@ -22,8 +25,12 @@ public class Terrain3DDemo {
             // Create the main screen canvas with minimum size
             ScreenCanvas screen = new ScreenCanvas(80, 30);
 
+            // Create main container with BorderLayout
+            Composite mainContainer = new Composite("mainContainer",0,0,
+                    new BorderLayout(1));
+
             // Create header
-            Canvas header = new Canvas("header", screen.getWidth(), 3) {
+            Canvas header = new Canvas("header", 0, 3) {
                 @Override
                 public void paint(Graphics graphics) {
                     graphics.setForegroundColor(AnsiColor.BRIGHT_CYAN);
@@ -84,13 +91,15 @@ public class Terrain3DDemo {
             };
 
             // Set positions and add to screen (ScreenCanvas extends Composite)
-            header.setPosition(0, 0);
-            canvas3D.setPosition(0, 3);
-            controlsInfo.setPosition(0, screen.getHeight() - 3);
+            header.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.TOP_CENTER));
+            canvas3D.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.CENTER));
+            controlsInfo.setLayoutConstraint(new PositionConstraint(PositionConstraint.Position.BOTTOM_CENTER));
 
-            screen.addChild(header);
-            screen.addChild(canvas3D);
-            screen.addChild(controlsInfo);
+            mainContainer.addChild(header);
+            mainContainer.addChild(canvas3D);
+            mainContainer.addChild(controlsInfo);
+
+            screen.setContent(mainContainer);
 
             // Render and display
             screen.render();

@@ -58,7 +58,7 @@ public class GridOverlayDemo {
             mainComposite.addChild(gridOverlay);
 
             // Add the composite to the screen
-            screen.addChild(mainComposite);
+            screen.setContent(mainComposite);
 
             // Create and start the process loop
             ProcessLoop processLoop = new ProcessLoop(screen);

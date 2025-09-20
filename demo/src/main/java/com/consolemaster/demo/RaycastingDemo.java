@@ -5,7 +5,6 @@ import com.consolemaster.BorderLayout;
 import com.consolemaster.Box;
 import com.consolemaster.Composite;
 import com.consolemaster.DefaultBorder;
-import com.consolemaster.FlowLayout;
 import com.consolemaster.KeyEvent;
 import com.consolemaster.PositionConstraint;
 import com.consolemaster.ProcessLoop;
@@ -166,7 +165,7 @@ public class RaycastingDemo {
             mainContainer.addChild(statusBox);
 
             // Position the main container
-            screen.setContentCanvas(mainContainer);
+            screen.setContent(mainContainer);
 
             // Register keyboard shortcuts
             registerKeyboardControls(screen);

@@ -42,9 +42,7 @@ public class Graphic3DDemo {
             ScreenCanvas screen = new ScreenCanvas(100, 35);
 
             // Create main container with BorderLayout
-            Composite mainContainer = new Composite("mainContainer",
-                    screen.getWidth() - 2,
-                    screen.getHeight() - 2,
+            Composite mainContainer = new Composite("mainContainer",0,0,
                     new BorderLayout(1));
 
             // Create header

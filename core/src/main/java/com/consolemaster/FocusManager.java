@@ -173,8 +173,8 @@ public class FocusManager {
     private void updateFocusableCanvases() {
         focusableCanvases.clear();
 
-        if (screenCanvas.getContentCanvas() != null) {
-            collectFocusableCanvases(screenCanvas.getContentCanvas(), focusableCanvases);
+        if (screenCanvas.getContent() != null) {
+            collectFocusableCanvases(screenCanvas.getContent(), focusableCanvases);
         }
 
         // Remove any canvas that is no longer focusable or visible
