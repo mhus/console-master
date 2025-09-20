@@ -7,6 +7,9 @@ import com.consolemaster.StyledChar;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A canvas that renders a 3D world using raycasting technique.
  * The world is represented by a MapProvider where '#' represents walls and ' ' represents empty space.
@@ -51,10 +54,13 @@ public class RaycastingCanvas extends Canvas {
         int mapWidth = mapProvider.getWidth();
         int mapHeight = mapProvider.getHeight();
 
-        // Store raycast results for edge detection
-        RaycastResult[] raycastResults = new RaycastResult[getWidth()];
+        // Cache for textures per paint() call - key: texture name, value: texture
+        Map<String, Texture> textureCache = new HashMap<>();
 
-        // First pass: Cast rays and store results
+        // Store raycast hits with texture data for efficient rendering
+        RaycastHit[] raycastHits = new RaycastHit[getWidth()];
+
+        // First pass: Cast rays, load textures once per entry, and prepare hits
         for (int x = 0; x < getWidth(); x++) {
             // Calculate ray angle
             double rayAngle = playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
@@ -64,12 +70,48 @@ public class RaycastingCanvas extends Canvas {
             double rayDirY = Math.sin(rayAngle);
 
             // Perform ray casting using DDA algorithm
-            raycastResults[x] = castRayDDA(rayDirX, rayDirY, mapWidth, mapHeight);
+            RaycastResult result = castRayDDA(rayDirX, rayDirY, mapWidth, mapHeight);
+
+            // Check if texture is available and load it once per entry
+            Texture texture = null;
+            int textureColumn = 0;
+
+            if (textureProvider != null && result.hitEntry.getTexture() != null) {
+                String textureKey = result.hitEntry.getTexture();
+
+                // Get texture from cache or load it
+                texture = textureCache.get(textureKey);
+                if (texture == null) {
+                    // Calculate wall height for texture loading
+                    double correctedDistance = result.distance * Math.cos(rayAngle - playerAngle);
+                    if (correctedDistance < 0.1) correctedDistance = 0.1;
+                    int baseWallHeight = (int) (getHeight() / correctedDistance);
+                    int wallHeight = (int) (baseWallHeight * result.hitEntry.getHeight());
+
+                    // Load texture and cache it
+                    texture = textureProvider.getTexture(textureKey, 1, wallHeight, result.hitEntry, !result.isVerticalWall);
+                    if (texture != null) {
+                        textureCache.put(textureKey, texture);
+                    }
+                }
+
+                // Calculate the correct texture column based on wall hit position
+                if (texture != null) {
+                    // Calculate exact hit position on the wall (0.0 to 1.0)
+                    double wallX = calculateWallHitPosition(rayDirX, rayDirY, result);
+                    textureColumn = (int) (wallX * texture.getWidth());
+                    textureColumn = Math.max(0, Math.min(textureColumn, texture.getWidth() - 1));
+                }
+            }
+
+            // Create raycast hit with texture data
+            raycastHits[x] = new RaycastHit(result, texture, textureColumn);
         }
 
-        // Second pass: Render columns with edge detection
+        // Second pass: Render columns with cached texture data
         for (int x = 0; x < getWidth(); x++) {
-            RaycastResult result = raycastResults[x];
+            RaycastHit hit = raycastHits[x];
+            RaycastResult result = hit.result;
 
             // Calculate ray angle for fish-eye correction
             double rayAngle = playerAngle - (fov / 2) + ((double) x / getWidth()) * fov;
@@ -96,17 +138,16 @@ public class RaycastingCanvas extends Canvas {
             int wallEnd = Math.min(getHeight() - 1, (getHeight() + wallHeight) / 2);
 
             // Check if this column is a wall edge
-            boolean isLeftEdge = isWallEdge(raycastResults, x, true);
-            boolean isRightEdge = isWallEdge(raycastResults, x, false);
+            boolean isLeftEdge = isWallEdge(raycastHits, x, true);
+            boolean isRightEdge = isWallEdge(raycastHits, x, false);
 
             // Draw ceiling
             for (int y = 0; y < wallStart; y++) {
                 graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
             }
 
-            // Draw wall with EntryInfo properties and texture support
-            renderWallColumn(graphics, x, wallStart, wallEnd, hitEntry, result.isVerticalWall,
-                           correctedDistance, isLeftEdge, isRightEdge);
+            // Draw wall with cached texture data
+            renderWallColumn(graphics, x, wallStart, wallEnd, hit, correctedDistance, isLeftEdge, isRightEdge);
 
             // Draw floor with dynamic colors based on floor EntryInfo
             for (int y = wallEnd + 1; y < getHeight(); y++) {
@@ -147,28 +188,28 @@ public class RaycastingCanvas extends Canvas {
     /**
      * Determines if a column represents a wall edge by comparing distances with neighboring columns.
      */
-    private boolean isWallEdge(RaycastResult[] raycastResults, int x, boolean checkLeft) {
-        if (!drawWallEdges || raycastResults == null) {
+    private boolean isWallEdge(RaycastHit[] raycastHits, int x, boolean checkLeft) {
+        if (!drawWallEdges || raycastHits == null) {
             return false;
         }
 
         int neighborX = checkLeft ? x - 1 : x + 1;
 
         // Check bounds
-        if (neighborX < 0 || neighborX >= raycastResults.length) {
+        if (neighborX < 0 || neighborX >= raycastHits.length) {
             return true; // Edge of screen is always an edge
         }
 
-        RaycastResult current = raycastResults[x];
-        RaycastResult neighbor = raycastResults[neighborX];
+        RaycastHit current = raycastHits[x];
+        RaycastHit neighbor = raycastHits[neighborX];
 
         if (current == null || neighbor == null) {
             return false;
         }
 
         // Calculate difference in corrected distances
-        double currentDistance = current.distance * Math.cos(getCurrentRayAngle(x) - playerAngle);
-        double neighborDistance = neighbor.distance * Math.cos(getCurrentRayAngle(neighborX) - playerAngle);
+        double currentDistance = current.result.distance * Math.cos(getCurrentRayAngle(x) - playerAngle);
+        double neighborDistance = neighbor.result.distance * Math.cos(getCurrentRayAngle(neighborX) - playerAngle);
 
         // Edge detected if distance difference exceeds threshold
         double distanceDiff = Math.abs(currentDistance - neighborDistance);
@@ -194,6 +235,25 @@ public class RaycastingCanvas extends Canvas {
             this.distance = distance;
             this.isVerticalWall = isVerticalWall;
             this.hitEntry = hitEntry;
+        }
+    }
+
+    /**
+     * Internal class that holds raycast result and cached texture data.
+     */
+    private static class RaycastHit {
+        final RaycastResult result;
+        final Texture texture;
+        final int textureColumn; // Pre-calculated texture column for this hit
+
+        RaycastHit(RaycastResult result, Texture texture, int textureColumn) {
+            this.result = result;
+            this.texture = texture;
+            this.textureColumn = textureColumn;
+        }
+
+        RaycastHit(RaycastResult result) {
+            this(result, null, 0);
         }
     }
 
@@ -266,9 +326,9 @@ public class RaycastingCanvas extends Canvas {
         // Calculate distance
         double perpWallDist;
         if (!side) {
-            perpWallDist = (mapX - playerX + (1 - stepX) / 2) / rayDirX;
+            perpWallDist = (mapX - playerX + (1 - stepX) / 2.0) / rayDirX;
         } else {
-            perpWallDist = (mapY - playerY + (1 - stepY) / 2) / rayDirY;
+            perpWallDist = (mapY - playerY + (1 - stepY) / 2.0) / rayDirY;
         }
 
         return new RaycastResult(Math.abs(perpWallDist), !side, hitEntry);
@@ -415,37 +475,40 @@ public class RaycastingCanvas extends Canvas {
     /**
      * Render a column of the wall with support for textures and EntryInfo properties.
      */
-    private void renderWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, EntryInfo hitEntry,
-                                  boolean isVertical, double distance, boolean isLeftEdge, boolean isRightEdge) {
+    private void renderWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, RaycastHit hit,
+                                  double distance, boolean isLeftEdge, boolean isRightEdge) {
 
         // Check if texture is available
-        Texture texture = null;
-        if (textureProvider != null && hitEntry.getTexture() != null) {
-            int wallHeight = wallEnd - wallStart + 1;
-            texture = textureProvider.getTexture(hitEntry.getTexture(), 1, wallHeight, hitEntry, !isVertical);
-        }
+        Texture texture = hit.texture;
+        boolean isVertical = hit.result.isVerticalWall;
 
         // If texture is available, render using texture
         if (texture != null) {
-            renderTexturedWallColumn(graphics, x, wallStart, wallEnd, hitEntry, texture, !isVertical, isLeftEdge, isRightEdge);
+            renderTexturedWallColumn(graphics, x, wallStart, wallEnd, hit, !isVertical, isLeftEdge, isRightEdge);
         } else {
             // Render without texture using EntryInfo properties
-            renderPlainWallColumn(graphics, x, wallStart, wallEnd, hitEntry, isVertical, distance, isLeftEdge, isRightEdge);
+            renderPlainWallColumn(graphics, x, wallStart, wallEnd, hit.result.hitEntry, isVertical, distance, isLeftEdge, isRightEdge);
         }
     }
 
     /**
      * Render a textured wall column.
      */
-    private void renderTexturedWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, EntryInfo hitEntry,
-                                         Texture texture, boolean isDarkSide, boolean isLeftEdge, boolean isRightEdge) {
+    private void renderTexturedWallColumn(Graphics graphics, int x, int wallStart, int wallEnd, RaycastHit hit,
+                                         boolean isDarkSide, boolean isLeftEdge, boolean isRightEdge) {
         int wallHeight = wallEnd - wallStart + 1;
+        Texture texture = hit.texture;
+        EntryInfo hitEntry = hit.result.hitEntry;
+        int textureColumn = hit.textureColumn;
 
         for (int y = wallStart; y <= wallEnd; y++) {
-            int textureY = y - wallStart;
+            // Calculate Y coordinate in texture based on wall progress
+            double wallProgress = (double) (y - wallStart) / wallHeight;
+            int textureY = (int) (wallProgress * texture.getHeight());
+            textureY = Math.max(0, Math.min(textureY, texture.getHeight() - 1));
 
-            // Get character and color directly from texture using coordinates
-            StyledChar textureChar = texture.getCharAt(0, textureY);
+            // Get character and color from texture using the correct column
+            StyledChar textureChar = texture.getCharAt(textureColumn, textureY);
 
             char charToDraw = hitEntry.getCharacter();
             AnsiColor colorToDraw = hitEntry.getColor(isDarkSide);
@@ -487,5 +550,31 @@ public class RaycastingCanvas extends Canvas {
         for (int y = wallStart; y <= wallEnd; y++) {
             graphics.drawStyledChar(x, y, charToDraw, colorToDraw, null);
         }
+    }
+
+    /**
+     * Calculate the exact hit position on the wall (0.0 to 1.0).
+     */
+    private double calculateWallHitPosition(double rayDirX, double rayDirY, RaycastResult result) {
+        // Calculate the perpendicular wall distance
+        double perpWallDist = result.distance;
+
+        // Calculate exact hit position in world coordinates
+        double hitWorldX = playerX + perpWallDist * rayDirX;
+        double hitWorldY = playerY + perpWallDist * rayDirY;
+
+        // Calculate wall texture coordinate (0.0 to 1.0)
+        double wallX;
+        if (result.isVerticalWall) {
+            // Hit on vertical wall (NS side)
+            wallX = hitWorldY - Math.floor(hitWorldY);
+            if (rayDirX > 0) wallX = 1.0 - wallX; // Flip texture for consistency
+        } else {
+            // Hit on horizontal wall (EW side)
+            wallX = hitWorldX - Math.floor(hitWorldX);
+            if (rayDirY < 0) wallX = 1.0 - wallX; // Flip texture for consistency
+        }
+
+        return wallX;
     }
 }

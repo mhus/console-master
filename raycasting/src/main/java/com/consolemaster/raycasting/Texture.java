@@ -17,4 +17,8 @@ public interface Texture {
      * @return the styled character at the given position, or null if coordinates are out of bounds
      */
     StyledChar getCharAt(int x, int y);
+
+    int getWidth();
+
+    int getHeight();
 }
