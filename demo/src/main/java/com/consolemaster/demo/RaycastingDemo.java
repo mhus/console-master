@@ -88,7 +88,10 @@ public class RaycastingDemo {
         createWallHeightDemoMapProvider(),
 
         // Large area with ascending wall heights in center
-        createLargeAreaWithAscendingHeightsMapProvider()
+        createLargeAreaWithAscendingHeightsMapProvider(),
+
+        // Ceiling demonstration map
+        createCeilingDemoMapProvider()
     };
 
     /**
@@ -1169,6 +1172,232 @@ public class RaycastingDemo {
         }
 
         return new DefaultMapProvider("Large Area with Ascending Heights", map);
+    }
+
+    /**
+     * Creates a ceiling demonstration map showcasing different ceiling types.
+     */
+    private static MapProvider createCeilingDemoMapProvider() {
+        EntryInfo[][] map = new EntryInfo[12][16];
+
+        // Initialize with basic floor (no ceiling by default)
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isWalkThrough(true)
+                        .isTransparent(true)
+                        .character('.')
+                        .name("Basic Floor")
+                        .colorLight(AnsiColor.WHITE)
+                        .colorDark(AnsiColor.BRIGHT_BLACK)
+                        .height(0.0)
+                        .build();
+            }
+        }
+
+        // Create border walls
+        for (int x = 0; x < map[0].length; x++) {
+            map[0][x] = EntryInfo.createStoneWall();
+            map[map.length - 1][x] = EntryInfo.createStoneWall();
+        }
+        for (int y = 0; y < map.length; y++) {
+            map[y][0] = EntryInfo.createStoneWall();
+            map[y][map[0].length - 1] = EntryInfo.createStoneWall();
+        }
+
+        // Room 1: Red Ceiling Area (top-left)
+        for (int y = 2; y <= 4; y++) {
+            for (int x = 2; x <= 6; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isWalkThrough(true)
+                        .isTransparent(true)
+                        .character('.')
+                        .name("Red Ceiling Room")
+                        .colorLight(AnsiColor.YELLOW)
+                        .colorDark(AnsiColor.BRIGHT_YELLOW)
+                        .height(0.0)
+                        .hasCeiling(true)
+                        .ceilingColorLight(AnsiColor.BRIGHT_BLUE)
+                        .ceilingColorDark(AnsiColor.BLUE)
+                        .ceilingHeight(1.0)
+                        .build();
+            }
+        }
+
+        // Room 2: Blue Vaulted Ceiling (top-right)
+        for (int y = 2; y <= 4; y++) {
+            for (int x = 9; x <= 13; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isWalkThrough(true)
+                        .isTransparent(true)
+                        .character(',')
+                        .name("Blue Vaulted Ceiling")
+                        .colorLight(AnsiColor.BRIGHT_GREEN)
+                        .colorDark(AnsiColor.GREEN)
+                        .height(0.0)
+                        .hasCeiling(true)
+                        .ceilingColorLight(AnsiColor.BRIGHT_BLUE)
+                        .ceilingColorDark(AnsiColor.BLUE)
+                        .ceilingHeight(1.5)
+                        .build();
+            }
+        }
+
+        // Room 3: Starry Night Ceiling (bottom-left)
+        for (int y = 7; y <= 9; y++) {
+            for (int x = 2; x <= 6; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isWalkThrough(true)
+                        .isTransparent(true)
+                        .character('~')
+                        .name("Starry Ceiling Room")
+                        .colorLight(AnsiColor.BRIGHT_CYAN)
+                        .colorDark(AnsiColor.CYAN)
+                        .height(0.0)
+                        .hasCeiling(true)
+                        .ceilingColorLight(AnsiColor.BRIGHT_WHITE)
+                        .ceilingColorDark(AnsiColor.WHITE)
+                        .ceilingBackgroundColorLight(AnsiColor.BLUE)
+                        .ceilingBackgroundColorDark(AnsiColor.BLUE)
+                        .ceilingHeight(1.2)
+                        .build();
+            }
+        }
+
+        // Room 4: Golden Palace Ceiling (bottom-right)
+        for (int y = 7; y <= 9; y++) {
+            for (int x = 9; x <= 13; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isWalkThrough(true)
+                        .isTransparent(true)
+                        .character('▓')
+                        .name("Golden Palace")
+                        .colorLight(AnsiColor.BRIGHT_YELLOW)
+                        .colorDark(AnsiColor.YELLOW)
+                        .height(0.0)
+                        .hasCeiling(true)
+                        .ceilingColorLight(AnsiColor.BRIGHT_YELLOW)
+                        .ceilingColorDark(AnsiColor.YELLOW)
+                        .ceilingBackgroundColorLight(AnsiColor.BLUE)
+                        .ceilingBackgroundColorDark(AnsiColor.BLUE)
+                        .ceilingHeight(2.0)
+                        .build();
+            }
+        }
+
+        // Central Hallway with Glass Ceiling
+        for (int y = 5; y <= 6; y++) {
+            for (int x = 2; x <= 13; x++) {
+                map[y][x] = EntryInfo.builder()
+                        .isWall(false)
+                        .isWalkThrough(true)
+                        .isTransparent(true)
+                        .character('·')
+                        .name("Glass Ceiling Hallway")
+                        .colorLight(AnsiColor.WHITE)
+                        .colorDark(AnsiColor.BRIGHT_BLACK)
+                        .height(0.0)
+                        .hasCeiling(true)
+                        .ceilingColorLight(AnsiColor.BRIGHT_CYAN)
+                        .ceilingColorDark(AnsiColor.CYAN)
+                        .ceilingBackgroundColorLight(AnsiColor.BLUE)
+                        .ceilingBackgroundColorDark(AnsiColor.BRIGHT_BLUE)
+                        .ceilingHeight(0.8)
+                        .build();
+            }
+        }
+
+        // Vertical Hallway connecting rooms
+        for (int y = 2; y <= 9; y++) {
+            for (int x = 7; x <= 8; x++) {
+                if (y < 5 || y > 6) { // Don't overwrite horizontal hallway
+                    map[y][x] = EntryInfo.builder()
+                            .isWall(false)
+                            .isWalkThrough(true)
+                            .isTransparent(true)
+                            .character('·')
+                            .name("Connecting Hallway")
+                            .colorLight(AnsiColor.WHITE)
+                            .colorDark(AnsiColor.BRIGHT_BLACK)
+                            .height(0.0)
+                            .hasCeiling(true)
+                            .ceilingCharacter('#')
+                            .ceilingColorLight(AnsiColor.BLUE)
+                            .ceilingColorDark(AnsiColor.BLUE)
+                            .ceilingHeight(1.0)
+                            .build();
+                }
+            }
+        }
+
+        // Add some decorative elements
+
+        // Central fountain with no ceiling (open to sky)
+        map[5][7] = EntryInfo.builder()
+                .isWall(false)
+                .isWalkThrough(true)
+                .isTransparent(true)
+                .character('○')
+                .name("Fountain")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .height(0.0)
+                .hasCeiling(false) // Open to sky
+                .build();
+
+        map[6][8] = EntryInfo.builder()
+                .isWall(false)
+                .isWalkThrough(true)
+                .isTransparent(true)
+                .character('○')
+                .name("Fountain")
+                .colorLight(AnsiColor.BRIGHT_CYAN)
+                .colorDark(AnsiColor.CYAN)
+                .height(0.0)
+                .hasCeiling(false) // Open to sky
+                .build();
+
+        // Add some columns with special ceilings above them
+        EntryInfo column = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('▓')
+                .name("Decorative Column")
+                .colorLight(AnsiColor.WHITE)
+                .colorDark(AnsiColor.BRIGHT_BLACK)
+                .height(1.5)
+                .build();
+
+        map[3][4] = column;
+        map[3][11] = column;
+        map[8][4] = column;
+        map[8][11] = column;
+
+        // Add room separators
+        EntryInfo doorway = EntryInfo.builder()
+                .isWall(true)
+                .isWalkThrough(false)
+                .isTransparent(false)
+                .character('│')
+                .name("Doorway")
+                .colorLight(AnsiColor.YELLOW)
+                .colorDark(AnsiColor.BRIGHT_YELLOW)
+                .height(0.8)
+                .build();
+
+        // Doorways between rooms (leaving openings for movement)
+        map[4][1] = doorway; // Left entrance to red ceiling room
+        map[4][14] = doorway; // Right entrance to blue ceiling room
+        map[8][1] = doorway; // Left entrance to starry room
+        map[8][14] = doorway; // Right entrance to golden room
+
+        return new DefaultMapProvider("Ceiling Demo - Different Ceiling Types", map);
     }
 
     public static void main(String[] args) {

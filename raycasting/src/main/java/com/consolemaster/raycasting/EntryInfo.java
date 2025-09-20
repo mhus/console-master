@@ -85,6 +85,49 @@ public class EntryInfo {
     private double height = 1.0;
 
     /**
+     * True if this entry has a ceiling that should be rendered.
+     */
+    @Builder.Default
+    private boolean hasCeiling = false;
+
+    /**
+     * Character used to render the ceiling.
+     */
+    @Builder.Default
+    private char ceilingCharacter = '░';
+
+    /**
+     * Light color for rendering the ceiling (used for well-lit ceiling surfaces).
+     * Null means use default ceiling color.
+     */
+    private AnsiColor ceilingColorLight;
+
+    /**
+     * Dark color for rendering the ceiling (used for shadowed ceiling surfaces).
+     * Null means use default ceiling color or derive from ceilingColorLight.
+     */
+    private AnsiColor ceilingColorDark;
+
+    /**
+     * Light background color for rendering the ceiling.
+     * Null means no background color.
+     */
+    private AnsiColor ceilingBackgroundColorLight;
+
+    /**
+     * Dark background color for rendering the ceiling.
+     * Null means no background color or derive from ceilingBackgroundColorLight.
+     */
+    private AnsiColor ceilingBackgroundColorDark;
+
+    /**
+     * Height of the ceiling above the floor. Default is 1.0.
+     * This determines where the ceiling starts relative to the floor.
+     */
+    @Builder.Default
+    private double ceilingHeight = 1.0;
+
+    /**
      * Path to texture file. Null means no texture.
      */
     private String texture;
@@ -191,6 +234,95 @@ public class EntryInfo {
      */
     public double getEffectiveHeight() {
         return Math.max(height, MIN_HEIGHT);
+    }
+
+    /**
+     * Get the appropriate ceiling color based on lighting conditions.
+     *
+     * @param isDark true if dark ceiling color should be used (e.g., shadowed ceiling surfaces)
+     * @return the appropriate ceiling color or null if no ceiling color is set
+     */
+    public AnsiColor getCeilingColor(boolean isDark) {
+        if (isDark && ceilingColorDark != null) {
+            return ceilingColorDark;
+        } else if (!isDark && ceilingColorLight != null) {
+            return ceilingColorLight;
+        } else if (ceilingColorLight != null) {
+            // Fall back to light ceiling color if dark is not available
+            return ceilingColorLight;
+        } else if (ceilingColorDark != null) {
+            // Fall back to dark ceiling color if light is not available
+            return ceilingColorDark;
+        }
+        return null;
+    }
+
+    /**
+     * Get the light ceiling color (for backward compatibility).
+     *
+     * @return the light ceiling color
+     */
+    public AnsiColor getCeilingColor() {
+        return getCeilingColor(false);
+    }
+
+    /**
+     * Set both light and dark ceiling colors to the same value.
+     *
+     * @param ceilingColor the ceiling color to set for both light and dark
+     */
+    public void setCeilingColor(AnsiColor ceilingColor) {
+        this.ceilingColorLight = ceilingColor;
+        this.ceilingColorDark = ceilingColor;
+    }
+
+    /**
+     * Get the appropriate ceiling background color based on lighting conditions.
+     *
+     * @param isDark true if dark ceiling background color should be used
+     * @return the appropriate ceiling background color or null if no ceiling background color is set
+     */
+    public AnsiColor getCeilingBackgroundColor(boolean isDark) {
+        if (isDark && ceilingBackgroundColorDark != null) {
+            return ceilingBackgroundColorDark;
+        } else if (!isDark && ceilingBackgroundColorLight != null) {
+            return ceilingBackgroundColorLight;
+        } else if (ceilingBackgroundColorLight != null) {
+            // Fall back to light ceiling background color if dark is not available
+            return ceilingBackgroundColorLight;
+        } else if (ceilingBackgroundColorDark != null) {
+            // Fall back to dark ceiling background color if light is not available
+            return ceilingBackgroundColorDark;
+        }
+        return null;
+    }
+
+    /**
+     * Get the light ceiling background color (for backward compatibility).
+     *
+     * @return the light ceiling background color
+     */
+    public AnsiColor getCeilingBackgroundColor() {
+        return getCeilingBackgroundColor(false);
+    }
+
+    /**
+     * Set both light and dark ceiling background colors to the same value.
+     *
+     * @param ceilingBackgroundColor the ceiling background color to set for both light and dark
+     */
+    public void setCeilingBackgroundColor(AnsiColor ceilingBackgroundColor) {
+        this.ceilingBackgroundColorLight = ceilingBackgroundColor;
+        this.ceilingBackgroundColorDark = ceilingBackgroundColor;
+    }
+
+    /**
+     * Set the ceiling height with validation.
+     *
+     * @param ceilingHeight the desired ceiling height (must be positive)
+     */
+    public void setCeilingHeight(double ceilingHeight) {
+        this.ceilingHeight = Math.max(ceilingHeight, 0.1);
     }
 
     // Predefined common entry types

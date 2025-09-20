@@ -39,6 +39,10 @@ public class RaycastingCanvas extends Canvas {
     private double wallEdgeThreshold = 0.3; // Threshold for detecting wall edges
     private TextureProvider textureProvider; // Texture provider for wall textures
 
+    // Ceiling rendering configuration
+    private boolean renderCeilings = true; // Enable/disable ceiling rendering from EntryInfo
+    private double defaultCeilingHeight = 1.0; // Default ceiling height when not specified in EntryInfo
+
     // GameObject support
     private List<GameObject> gameObjects = new ArrayList<>();
     private boolean renderGameObjects = true; // Enable/disable object rendering
@@ -160,10 +164,8 @@ public class RaycastingCanvas extends Canvas {
             boolean isLeftEdge = isWallEdge(raycastHits, x, true);
             boolean isRightEdge = isWallEdge(raycastHits, x, false);
 
-            // Draw ceiling
-            for (int y = 0; y < wallStart; y++) {
-                graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
-            }
+            // Draw ceiling with EntryInfo support
+            renderCeilingColumn(graphics, x, 0, wallStart - 1, rayDirX, rayDirY, textureCache);
 
             // Draw wall with cached texture data
             renderWallColumn(graphics, x, wallStart, wallEnd, hit, correctedDistance, isLeftEdge, isRightEdge, wallHeight);
@@ -713,6 +715,123 @@ public class RaycastingCanvas extends Canvas {
             // Check if floor entry has background color and use it if texture doesn't provide one
             if (backgroundColorToDraw == null && floorEntry != null) {
                 backgroundColorToDraw = floorEntry.getBackgroundColor(false); // Use light background for floor
+            }
+
+            graphics.drawStyledChar(x, y, charToDraw, colorToDraw, backgroundColorToDraw);
+        }
+    }
+
+    /**
+     * Render the ceiling column with support for EntryInfo-based ceilings and textures.
+     */
+    private void renderCeilingColumn(Graphics graphics, int x, int ceilingStart, int ceilingEnd, double rayDirX, double rayDirY,
+                                   Map<String, Texture> textureCache) {
+        if (!renderCeilings || ceilingEnd < ceilingStart) {
+            // Fill with default ceiling if ceiling rendering is disabled or invalid range
+            for (int y = ceilingStart; y <= ceilingEnd; y++) {
+                graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
+            }
+            return;
+        }
+
+        for (int y = ceilingStart; y <= ceilingEnd; y++) {
+            // Calculate ceiling position using ray casting (similar to floor but inverted)
+            // For ceiling, we calculate distance based on height above player eye level
+            double ceilingDistance = getHeight() / (getHeight() - 2.0 * y);
+
+            // Calculate ceiling world position
+            double ceilingX = playerX + ceilingDistance * rayDirX;
+            double ceilingY = playerY + ceilingDistance * rayDirY;
+
+            // Get ceiling EntryInfo at calculated position
+            int ceilingMapX = (int) Math.floor(ceilingX);
+            int ceilingMapY = (int) Math.floor(ceilingY);
+
+            // Default values
+            AnsiColor defaultCeilingColor = ceilingColor;
+            char defaultCeilingChar = ceilingChar;
+            EntryInfo ceilingEntry = null;
+            boolean hasCeilingAtPosition = false;
+
+            // Check if ceiling position is within map bounds and get EntryInfo
+            if (ceilingMapX >= 0 && ceilingMapX < mapProvider.getWidth() &&
+                ceilingMapY >= 0 && ceilingMapY < mapProvider.getHeight()) {
+                ceilingEntry = mapProvider.getEntry(ceilingMapX, ceilingMapY);
+
+                // Check if this entry has a ceiling defined
+                if (ceilingEntry.isHasCeiling()) {
+                    hasCeilingAtPosition = true;
+
+                    // Use ceiling-specific colors if available
+                    AnsiColor entryColor = ceilingEntry.getCeilingColor(false); // Use light color for ceiling
+                    if (entryColor != null) {
+                        defaultCeilingColor = entryColor;
+                    }
+
+                    // Use ceiling character if available
+                    defaultCeilingChar = ceilingEntry.getCeilingCharacter();
+                }
+            }
+
+            // If no ceiling is defined at this position, use default ceiling
+            if (!hasCeilingAtPosition) {
+                graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
+                continue;
+            }
+
+            // Check for ceiling texture - similar to floor texture handling
+            Texture texture = null;
+            String textureKey = null;
+
+            if (textureProvider != null && textureCache != null && ceilingEntry != null) {
+                // Check if ceiling entry has a texture
+                if (ceilingEntry.getTexture() != null) {
+                    textureKey = "ceiling_" + ceilingEntry.getTexture(); // Prefix to distinguish from wall/floor textures
+                }
+
+                texture = textureCache.get(textureKey);
+
+                if (texture == null && textureKey != null) {
+                    // Texture not cached, create a new one
+                    int ceilingHeight = 1; // Fixed height for ceiling texture
+                    texture = textureProvider.getTexture(ceilingEntry.getTexture(), 1, ceilingHeight, ceilingEntry, false);
+
+                    if (texture != null) {
+                        // Cache the newly created texture with ceiling prefix
+                        textureCache.put(textureKey, texture);
+                    }
+                }
+            }
+
+            // Draw the ceiling pixel
+            StyledChar ceilingPixel = null;
+            if (texture != null) {
+                // Calculate both texture coordinates based on ceiling position
+                double ceilingXFrac = ceilingX - Math.floor(ceilingX);
+                double ceilingYFrac = ceilingY - Math.floor(ceilingY);
+
+                int textureX = (int) (ceilingXFrac * texture.getWidth());
+                int textureY = (int) (ceilingYFrac * texture.getHeight());
+
+                textureX = Math.max(0, Math.min(textureX, texture.getWidth() - 1));
+                textureY = Math.max(0, Math.min(textureY, texture.getHeight() - 1));
+
+                ceilingPixel = texture.getCharAt(textureX, textureY);
+            }
+
+            char charToDraw = defaultCeilingChar;
+            AnsiColor colorToDraw = defaultCeilingColor;
+            AnsiColor backgroundColorToDraw = null;
+
+            if (ceilingPixel != null) {
+                charToDraw = ceilingPixel.getCharacter();
+                colorToDraw = ceilingPixel.getForegroundColor();
+                backgroundColorToDraw = ceilingPixel.getBackgroundColor();
+            }
+
+            // Check if ceiling entry has background color and use it if texture doesn't provide one
+            if (backgroundColorToDraw == null && ceilingEntry != null) {
+                backgroundColorToDraw = ceilingEntry.getCeilingBackgroundColor(false); // Use light background for ceiling
             }
 
             graphics.drawStyledChar(x, y, charToDraw, colorToDraw, backgroundColorToDraw);

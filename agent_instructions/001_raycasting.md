@@ -146,3 +146,13 @@ Implementiere dazu:
 Bitte schreibe sauberen, modularen Code, sodass ich später leicht weitere Objekte mit unterschiedlichen SpriteProvidern hinzufügen kann.
 Die Sprache ist [hier deine Programmiersprache einsetzen, z. B. Java oder Python].
 ```
+
+## 06 Decke
+
+```text
+Erweitere die RaycastingCanvas um die Unterstützung für Decken. Genauso wie es einen Floor gibt, 
+soll es auch eine Decke geben. Die Daten für eine Decke soll in EntryInfo definiert werden.
+
+Eine Decke ist Optional und wird nur gerendert, wenn sie definiert ist. Die Höhe der Decke ist
+konfigurierbar. Die Decke wird immer parallel zum Boden gerendert.
+```
