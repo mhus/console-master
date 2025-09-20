@@ -140,6 +140,12 @@ a warning Canvas is displayed instead of the actual content.
 - **MouseEvent**: Complete mouse event handling with buttons, actions, coordinates
 - **EventHandler Interface**: Components can implement to receive keyboard and mouse events
 
+### Animation System
+- **AnimationTicker**: Interface for animation components requiring regular updates (`tick(): boolean`)
+- **AnimationManager**: Manages all AnimationTicker instances in separate thread with configurable tick rate
+- **AnimationThrottle**: Throttling wrapper to control execution frequency of animations with configurable delays
+- **ProcessLoop Integration**: Automatic AnimationManager lifecycle management with `addAnimationTicker()`, `removeAnimationTicker()`, `setAnimationTicksPerSecond()`
+
 ### Output Capture System
 - **OutputCapture**: Thread-safe stdout/stderr stream redirection system
 - **ConsoleOutput Canvas**: Specialized canvas for displaying captured console output with multiple display modes

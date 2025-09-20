@@ -1,5 +1,5 @@
 
 
 ```text
-Ergäze die Änderungen in .github/copilot-instructions.md. Halte dich kurz.
+Ergänze die Änderungen in .github/copilot-instructions.md. Halte dich kurz.
 ```
