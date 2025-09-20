@@ -39,6 +39,8 @@ a warning Canvas is displayed instead of the actual content.
 - **Canvas**: Abstract base class for all drawable elements with position (x,y), size (width,height), visibility
 - **Composite**: Container for multiple child canvases with automatic layout management
 - **ScreenCanvas**: Main entry point that manages terminal and minimum size validation
+  - use setContent() to set the content canvas
+  - use screen.registerShortcut() to register global shortcuts, use KeyEvent.SpecialKey for special keys
 - **TextCanvas**: Simple text display implementation (legacy)
 - **Text**: Modern text component with advanced styling
 - **Box**: Specialized canvas with border support and single child containment

@@ -27,6 +27,9 @@ public class ProcessLoop {
     private final OutputCapture outputCapture = new OutputCapture();
     private boolean captureOutput = false;
 
+    // Animation management
+    private final AnimationManager animationManager = new AnimationManager();
+
     // Performance settings
     private int targetFPS = 30;
     private long frameTimeNanos;
@@ -54,6 +57,9 @@ public class ProcessLoop {
 
         // Set up default event handling
         inputHandler.setEventHandler(this::handleEvent);
+
+        // Set up animation manager redraw callback
+        animationManager.setRedrawCallback(this::requestRedraw);
 
         // Register shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -86,6 +92,9 @@ public class ProcessLoop {
             outputCapture.startCapture();
         }
 
+        // Start animation manager
+        animationManager.start();
+
         // Start input handler
         inputHandler.start();
 
@@ -103,6 +112,9 @@ public class ProcessLoop {
         if (!running.getAndSet(false)) {
             return; // Already stopped
         }
+
+        // Stop animation manager
+        animationManager.stop();
 
         // Stop input handler
         inputHandler.stop();
@@ -372,6 +384,9 @@ public class ProcessLoop {
             outputCapture.startCapture();
         }
 
+        // Start animation manager
+        animationManager.start();
+
         // Start input handler
         inputHandler.start();
 
@@ -382,5 +397,53 @@ public class ProcessLoop {
         Thread loopThread = new Thread(this::run, "ProcessLoop");
         loopThread.setDaemon(true);
         loopThread.start();
+    }
+
+    /**
+     * Adds an animation ticker to be managed.
+     *
+     * @param ticker the animation ticker to add
+     */
+    public void addAnimationTicker(AnimationTicker ticker) {
+        animationManager.addTicker(ticker);
+    }
+
+    /**
+     * Removes an animation ticker from management.
+     *
+     * @param ticker the animation ticker to remove
+     */
+    public void removeAnimationTicker(AnimationTicker ticker) {
+        animationManager.removeTicker(ticker);
+    }
+
+    /**
+     * Removes all animation tickers.
+     */
+    public void clearAnimationTickers() {
+        animationManager.clearTickers();
+    }
+
+    /**
+     * Returns the number of registered animation tickers.
+     */
+    public int getAnimationTickerCount() {
+        return animationManager.getTickerCount();
+    }
+
+    /**
+     * Sets the animation tick rate (ticks per second).
+     *
+     * @param ticksPerSecond the desired tick rate
+     */
+    public void setAnimationTicksPerSecond(int ticksPerSecond) {
+        animationManager.setTicksPerSecond(ticksPerSecond);
+    }
+
+    /**
+     * Gets the current animation tick rate.
+     */
+    public int getAnimationTicksPerSecond() {
+        return animationManager.getTicksPerSecond();
     }
 }

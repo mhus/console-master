@@ -156,3 +156,40 @@ soll es auch eine Decke geben. Die Daten für eine Decke soll in EntryInfo defin
 Eine Decke ist Optional und wird nur gerendert, wenn sie definiert ist. Die Höhe der Decke ist
 konfigurierbar. Die Decke wird immer parallel zum Boden gerendert.
 ```
+
+## 07 Animation
+
+```text
+Erstelle ein Interface AnimationTicker mit der Methode:
+- tick(): boolean
+
+Es wird true zurückgegeben, wenn die Animation das Update des Bildschirms erfordert.
+
+Ein AnimationManager hält alle AnimationTicker und ruft regelmäßig tick() auf. Dafür
+benutzt er einen eigenen Thread der bei start() gestartet wird und bei stop() gestoppt wird.
+
+Die Klasse ProcessLoop soll einen AnimationManager enthalten und diesen bei start() starten
+und bei stop() stoppen.
+```
+
+
+## 08 Hintergrund
+
+```text
+Erweitere die RaycastingCanvas um die Unterstützung für einen Hintergrund. Der Hintergrund wird immer gerendert, wenn kein Boden oder Decke
+gerendert wird. Der Hintergrund wird von einem BackgroundProvider bereitgestellt.
+
+Erstelle das Interface BackgroundProvider mit der Methode:
+- getBackground(x, y): StyledChar
+
+Erstelle die Klasse SolidColorBackgroundProvider, die einen einfarbigen Hintergrund bereitstellt.
+
+Erstelle die Klasse CloudsBackgroundProvider, die einen Himmel mit Wolken simuliert. Die Wolken bewegen sich langsam über den Bildschirm.
+Dafür wird eine einfache Perlin Noise Funktion verwendet.
+
+Erstelle die Klasse StarfieldBackgroundProvider, die einen Sternenhimmel simuliert. Die Sterne bewegen sich langsam über den Bildschirm.
+
+Für die Animation registriert sich der BackgroundProvider beim AnimationManager.
+```
+
+
