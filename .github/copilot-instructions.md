@@ -89,6 +89,21 @@ a warning Canvas is displayed instead of the actual content.
   - Player movement system with collision detection (forward/backward, strafing, rotation)
   - Support for complex 2D map layouts represented as string arrays
   - Automatic safe player positioning when changing maps
+- **MapProvider Interface**: Flexible map data abstraction for dynamic map systems
+  - `getEntry(x, y)`: Returns EntryInfo objects for each map position
+  - `getWidth()`, `getHeight()`, `getName()`: Map metadata access
+  - Support for both static and dynamic map generation
+- **DefaultMapProvider**: Standard implementation supporting string arrays and EntryInfo maps
+  - Automatic conversion from legacy string maps to EntryInfo objects
+  - Backward compatibility with existing map formats
+- **EntryInfo System**: Comprehensive map entry description with advanced properties
+  - `isWall`, `isFallthrough`, `isTransparent`: Collision and visibility properties
+  - `colorLight`, `colorDark`: Dual-color system for realistic lighting (vertical/horizontal walls)
+  - `character`, `name`, `height`: Visual and descriptive properties
+  - `texture`: Future texture mapping support
+  - Predefined entry types: Wall, Floor, Glass, Stone, Brick, Metal, Tree
+  - Dynamic floor rendering with EntryInfo-based colors and materials
+  - Automatic orientation-based color selection (light for vertical, dark for horizontal walls)
 
 ### Layout System
 - **Layout**: Interface for automatic component arrangement

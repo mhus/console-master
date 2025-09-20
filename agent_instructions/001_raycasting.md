@@ -51,3 +51,40 @@ Implementiere:
 - RaycastingCanvasTest anpassen
 - RaycastingCanvasDemo anpassen
 ```
+
+## 03 Textures
+
+```text
+Implementiere Unterstützung für Texturen in RaycastingCanvas.
+
+Erstelle ein Interface TextureProvider mit der Methode:
+- getTexture(path: string): Texture
+
+Erstelle die Klasse PictureTextureProvider, die Texturen als
+String Arrays verwaltet und rendert mittels PictureTexture. Wobei
+die Texture immer auf die gesamte Fläche skaliert wird. Texturen können
+gestaucht und gestreckt werden.
+
+Interfacer Texture folgende Methoden:
+- picture(width: number, height: number, EntryInfo entry, boolean light): StyledChar[][]
+
+Der parameter light gibt an, ob die Textur hell werden soll.
+
+Erstelle eine Klasse RegistryTextureProvider die mehrere TextureProvider
+verwaltet und die Textur von dem ersten Provider zurückgibt, der die Textur
+bereitstellen kann. Er cacht welcher Provider welche Textur bereitstellt. Als
+Farbe wird immer colorLight/colorDark aus EntryInfo verwendet.
+
+Passe EntryInfo an, um eine Textur zu referenzieren, erweitere um
+- texture: string | null - Pfad zu einer Textur, default null
+- textureInstructions: string | null - Anweisungen für die Textur, default null
+
+Passe RaycastingCanvas an, um Texturen zu unterstützen, wenn eine Textur
+referenziert wird in EntryInfo. Die Textur wird auf die gesamte Fläche transformiert
+und anstelle des Char und der Farbe verwendet.
+
+Passe RaycastingCanvasDemo an, um Texturen zu demonstrieren. Erstelle eine neue
+Map mit verschiedenen Texturen.
+
+Passe den Test RaycastingCanvasTest an, um Texturen zu testen.
+```
