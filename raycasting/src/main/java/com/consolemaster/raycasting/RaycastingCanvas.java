@@ -39,6 +39,10 @@ public class RaycastingCanvas extends Canvas {
     private double wallEdgeThreshold = 0.3; // Threshold for detecting wall edges
     private TextureProvider textureProvider; // Texture provider for wall textures
 
+    // Background rendering configuration
+    private BackgroundProvider backgroundProvider; // Provider for background rendering
+    private boolean renderBackground = true; // Enable/disable background rendering
+
     // Ceiling rendering configuration
     private boolean renderCeilings = true; // Enable/disable ceiling rendering from EntryInfo
     private double defaultCeilingHeight = 1.0; // Default ceiling height when not specified in EntryInfo
@@ -77,6 +81,11 @@ public class RaycastingCanvas extends Canvas {
 
         // Store raycast hits with texture data for efficient rendering
         RaycastHit[] raycastHits = new RaycastHit[getWidth()];
+
+        // Render background first if enabled - it will be overwritten by walls, floors, and ceilings
+        if (renderBackground && backgroundProvider != null) {
+            backgroundProvider.setDimensionAndAngle(getWidth(), getHeight(), playerAngle);
+        }
 
         // First pass: Cast rays, load textures once per entry, and prepare hits
         for (int x = 0; x < getWidth(); x++) {
@@ -729,6 +738,12 @@ public class RaycastingCanvas extends Canvas {
         if (!renderCeilings || ceilingEnd < ceilingStart) {
             // Fill with default ceiling if ceiling rendering is disabled or invalid range
             for (int y = ceilingStart; y <= ceilingEnd; y++) {
+                if (renderBackground && backgroundProvider != null) {
+                    // Let background provider handle ceiling area
+                    var backgroundChar = backgroundProvider.getBackground(x, y);
+                    graphics.drawStyledChar(x, y, backgroundChar.getCharacter(), backgroundChar.getForegroundColor(), backgroundChar.getBackgroundColor());
+                    continue;
+                }
                 graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
             }
             return;
@@ -775,6 +790,12 @@ public class RaycastingCanvas extends Canvas {
 
             // If no ceiling is defined at this position, use default ceiling
             if (!hasCeilingAtPosition) {
+                if (renderBackground && backgroundProvider != null) {
+                    // Let background provider handle ceiling area
+                    var backgroundChar = backgroundProvider.getBackground(x, y);
+                    graphics.drawStyledChar(x, y, backgroundChar.getCharacter(), backgroundChar.getForegroundColor(), backgroundChar.getBackgroundColor());
+                    continue;
+                }
                 graphics.drawStyledChar(x, y, ceilingChar, ceilingColor, null);
                 continue;
             }
@@ -1020,5 +1041,26 @@ public class RaycastingCanvas extends Canvas {
         }
 
         return true;
+    }
+
+    /**
+     * Render the background using the configured BackgroundProvider.
+     * The background is rendered for areas where no floor or ceiling is displayed.
+     * XXX
+     */
+    private void renderBackground(Graphics graphics) {
+        if (backgroundProvider == null) return;
+
+        // Render background for the entire canvas - it will be overwritten by walls, floors, and ceilings
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                StyledChar bgChar = backgroundProvider.getBackground(x, y);
+                if (bgChar != null) {
+                    graphics.drawStyledChar(x, y, bgChar.getCharacter(),
+                                          bgChar.getForegroundColor(),
+                                          bgChar.getBackgroundColor());
+                }
+            }
+        }
     }
 }
