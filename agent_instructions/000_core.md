@@ -135,3 +135,11 @@ Die Wände sind durch das Zeichen '#' definiert, die leeren Räume durch das Zei
 
 Erstelle auch eine Demo Klasse 'RaycastingDemo' im Modul 'demo', die die RaycastingCanvas.
 ```
+
+## 04 Demo Main
+
+```text
+Erstelle im Modul demo eine Main Klasse, die abfragt, welche demo gestartet werden soll.
+Die Auswahl erfolgt über die Konsole. Der Benutzer kann eine Zahl eingeben, um die
+entsprechende Demo zu starten.
+```
