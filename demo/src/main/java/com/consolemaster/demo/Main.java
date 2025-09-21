@@ -120,6 +120,27 @@ public class Main {
     }
 
     public static void main(String[] args) {
+
+        if (args.length > 0) {
+            // If a demo number is provided as an argument, run it directly
+            try {
+                int demoNumber = Integer.parseInt(args[0]);
+                DemoEntry demo = DEMOS.get(demoNumber);
+                if (demo != null) {
+                    System.out.println("=== Starte " + demo.name + " ===");
+                    System.out.println(demo.description);
+                    System.out.println();
+                    demo.runnable.run();
+                    System.out.println("\n=== Demo beendet ===");
+                } else {
+                    System.out.println("Ungültige Demo-Nummer. Bitte wähle eine Zahl zwischen 1 und " + DEMOS.size() + ".");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Bitte gib eine gültige Zahl als Argument ein.");
+            }
+            return;
+        }
+
         Scanner scanner = new Scanner(System.in);
 
         printMenu();

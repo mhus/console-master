@@ -143,3 +143,11 @@ Erstelle im Modul demo eine Main Klasse, die abfragt, welche demo gestartet werd
 Die Auswahl erfolgt über die Konsole. Der Benutzer kann eine Zahl eingeben, um die
 entsprechende Demo zu starten.
 ```
+
+```text
+Ich möchte die demo mit GraalVM nativ compilieren können. 
+Erstelle in der pom ein profil 'native' mit dem die demo 
+nativ compiliert werden kann. Erstelle ein script 
+'build_native.sh' das das native programm dann 
+compiliert.
+```
