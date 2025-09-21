@@ -238,6 +238,7 @@ public abstract class Terminal {
     }
 
     public void stop() {
+        clearScreen();
     }
 
     /**

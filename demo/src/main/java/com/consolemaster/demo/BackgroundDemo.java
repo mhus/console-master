@@ -14,6 +14,7 @@ import com.consolemaster.raycasting.CloudsBackgroundProvider;
 import com.consolemaster.raycasting.StarfieldBackgroundProvider;
 import com.consolemaster.raycasting.ConstellationBackgroundProvider;
 import com.consolemaster.raycasting.DayNightCycleBackgroundProvider;
+import com.consolemaster.raycasting.AlienPlanetBackgroundProvider;
 
 import java.io.IOException;
 
@@ -34,6 +35,7 @@ public class BackgroundDemo {
     private StarfieldBackgroundProvider starfieldBackground;
     private ConstellationBackgroundProvider constellationBackground;
     private DayNightCycleBackgroundProvider dayNightBackground;
+    private AlienPlanetBackgroundProvider alienPlanetBackground;
     private AnimationThrottle startfieldThrottle;
 
     // Current background type
@@ -44,7 +46,8 @@ public class BackgroundDemo {
         CLOUDS("Animated Clouds Background"),
         STARFIELD("Animated Starfield Background"),
         CONSTELLATION("Constellation Background"),
-        DAY_NIGHT_CYCLE("Day-Night Cycle with Weather");
+        DAY_NIGHT_CYCLE("Day-Night Cycle with Weather"),
+        ALIEN_PLANET("Alien Planet Environment");
 
         private final String description;
 
@@ -126,6 +129,16 @@ public class BackgroundDemo {
         dayNightBackground.setAutomaticWeather(true);
         dayNightBackground.setShowCelestialBodies(true);
         dayNightBackground.setCurrentTime(0.5); // Start at noon
+
+        // Create alien planet background (newly added)
+        alienPlanetBackground = new AlienPlanetBackgroundProvider(80, 25);
+        alienPlanetBackground.setAnimationSpeed(0.02);
+        alienPlanetBackground.setParticleDensity(0.8);
+        alienPlanetBackground.setAuroraBrightness(0.7);
+        alienPlanetBackground.setShowMoons(true);
+        alienPlanetBackground.setShowAurora(true);
+        alienPlanetBackground.setShowParticles(true);
+        alienPlanetBackground.setShowPulsar(true);
     }
 
     private void setupMap() {
@@ -177,6 +190,10 @@ public class BackgroundDemo {
 
         screen.registerShortcut("5", () -> {
             setBackground(BackgroundType.DAY_NIGHT_CYCLE);
+        });
+
+        screen.registerShortcut("6", () -> {
+            setBackground(BackgroundType.ALIEN_PLANET);
         });
 
         // Day-Night cycle specific controls
@@ -247,6 +264,8 @@ public class BackgroundDemo {
             processLoop.removeAnimationTicker(constellationBackground);
         } else if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
             processLoop.removeAnimationTicker(dayNightBackground);
+        } else if (currentBackground == BackgroundType.ALIEN_PLANET) {
+            processLoop.removeAnimationTicker(alienPlanetBackground);
         }
 
         // Set new background
@@ -272,6 +291,10 @@ public class BackgroundDemo {
             case DAY_NIGHT_CYCLE:
                 provider = dayNightBackground;
                 processLoop.addAnimationTicker(dayNightBackground);
+                break;
+            case ALIEN_PLANET:
+                provider = alienPlanetBackground;
+                processLoop.addAnimationTicker(alienPlanetBackground);
                 break;
             default:
                 provider = solidBackground;
@@ -300,6 +323,7 @@ public class BackgroundDemo {
         System.out.println("  3        - Animated starfield background");
         System.out.println("  4        - Constellation background");
         System.out.println("  5        - Day-Night cycle background");
+        System.out.println("  6        - Alien planet background");
         System.out.println();
         System.out.println("Day-Night Cycle Controls (when active):");
         System.out.println("  T        - Toggle time speed (slow/fast)");
