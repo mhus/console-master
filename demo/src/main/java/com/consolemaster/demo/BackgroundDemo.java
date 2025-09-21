@@ -12,6 +12,8 @@ import com.consolemaster.raycasting.BackgroundProvider;
 import com.consolemaster.raycasting.SolidColorBackgroundProvider;
 import com.consolemaster.raycasting.CloudsBackgroundProvider;
 import com.consolemaster.raycasting.StarfieldBackgroundProvider;
+import com.consolemaster.raycasting.ConstellationBackgroundProvider;
+import com.consolemaster.raycasting.DayNightCycleBackgroundProvider;
 
 import java.io.IOException;
 
@@ -30,6 +32,8 @@ public class BackgroundDemo {
     private SolidColorBackgroundProvider solidBackground;
     private CloudsBackgroundProvider cloudsBackground;
     private StarfieldBackgroundProvider starfieldBackground;
+    private ConstellationBackgroundProvider constellationBackground;
+    private DayNightCycleBackgroundProvider dayNightBackground;
     private AnimationThrottle startfieldThrottle;
 
     // Current background type
@@ -38,7 +42,9 @@ public class BackgroundDemo {
     private enum BackgroundType {
         SOLID("Solid Color Background"),
         CLOUDS("Animated Clouds Background"),
-        STARFIELD("Animated Starfield Background");
+        STARFIELD("Animated Starfield Background"),
+        CONSTELLATION("Constellation Background"),
+        DAY_NIGHT_CYCLE("Day-Night Cycle with Weather");
 
         private final String description;
 
@@ -106,6 +112,20 @@ public class BackgroundDemo {
         starfieldBackground.setNumStars(150);
         starfieldBackground.setSkyColor(AnsiColor.BLACK);
         startfieldThrottle = AnimationThrottle.withDelaySeconds(starfieldBackground, 1);
+
+        // Create animated constellation background
+        constellationBackground = new ConstellationBackgroundProvider(80, 25);
+        constellationBackground.setDriftSpeed(0.01);
+        constellationBackground.setTwinkleIntensity(0.3);
+        constellationBackground.setShowConstellationLines(true);
+        constellationBackground.setSkyColor(AnsiColor.BLACK);
+
+        // Create day-night cycle background
+        dayNightBackground = new DayNightCycleBackgroundProvider(80, 25);
+        dayNightBackground.setTimeSpeed(0.0001); // Slightly faster for demo
+        dayNightBackground.setAutomaticWeather(true);
+        dayNightBackground.setShowCelestialBodies(true);
+        dayNightBackground.setCurrentTime(0.5); // Start at noon
     }
 
     private void setupMap() {
@@ -151,6 +171,35 @@ public class BackgroundDemo {
             setBackground(BackgroundType.STARFIELD);
         });
 
+        screen.registerShortcut("4", () -> {
+            setBackground(BackgroundType.CONSTELLATION);
+        });
+
+        screen.registerShortcut("5", () -> {
+            setBackground(BackgroundType.DAY_NIGHT_CYCLE);
+        });
+
+        // Day-Night cycle specific controls
+        screen.registerShortcut("T", () -> {
+            toggleTimeSpeed();
+        });
+
+        screen.registerShortcut("W", () -> {
+            cycleWeather();
+        });
+
+        screen.registerShortcut("B", () -> {
+            adjustSunnyBias();
+        });
+
+        screen.registerShortcut("N", () -> {
+            setTimeToNight();
+        });
+
+        screen.registerShortcut("M", () -> {
+            setTimeToMidday();
+        });
+
         screen.registerShortcut(KeyEvent.SpecialKey.ARROW_UP.name(), () -> {
             raycastingCanvas.movePlayer(0.1);
         });
@@ -182,6 +231,10 @@ public class BackgroundDemo {
         screen.registerShortcut("H", () -> {
             showHelp();
         });
+
+        screen.registerShortcut("B", () -> {
+            adjustSunnyBias();
+        });
     }
 
     private void setBackground(BackgroundType backgroundType) {
@@ -190,6 +243,10 @@ public class BackgroundDemo {
             processLoop.removeAnimationTicker(cloudsBackground);
         } else if (currentBackground == BackgroundType.STARFIELD) {
             processLoop.removeAnimationTicker(startfieldThrottle);
+        } else if (currentBackground == BackgroundType.CONSTELLATION) {
+            processLoop.removeAnimationTicker(constellationBackground);
+        } else if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
+            processLoop.removeAnimationTicker(dayNightBackground);
         }
 
         // Set new background
@@ -208,6 +265,14 @@ public class BackgroundDemo {
                 provider = starfieldBackground;
                 processLoop.addAnimationTicker(startfieldThrottle);
                 break;
+            case CONSTELLATION:
+                provider = constellationBackground;
+                processLoop.addAnimationTicker(constellationBackground);
+                break;
+            case DAY_NIGHT_CYCLE:
+                provider = dayNightBackground;
+                processLoop.addAnimationTicker(dayNightBackground);
+                break;
             default:
                 provider = solidBackground;
         }
@@ -225,7 +290,7 @@ public class BackgroundDemo {
     private void showHelp() {
         System.out.println("\n=== Background Demo Controls ===");
         System.out.println("Movement:");
-        System.out.println("  W/S      - Move forward/backward");
+        System.out.println("  ↑/↓      - Move forward/backward");
         System.out.println("  A/D      - Strafe left/right");
         System.out.println("  ←/→      - Turn left/right");
         System.out.println();
@@ -233,6 +298,15 @@ public class BackgroundDemo {
         System.out.println("  1        - Solid color background");
         System.out.println("  2        - Animated clouds background");
         System.out.println("  3        - Animated starfield background");
+        System.out.println("  4        - Constellation background");
+        System.out.println("  5        - Day-Night cycle background");
+        System.out.println();
+        System.out.println("Day-Night Cycle Controls (when active):");
+        System.out.println("  T        - Toggle time speed (slow/fast)");
+        System.out.println("  W        - Cycle weather (sunny→cloudy→rainy→stormy)");
+        System.out.println("  B        - Adjust sunny weather bias (low→med→high→very high)");
+        System.out.println("  N        - Set time to night (midnight)");
+        System.out.println("  M        - Set time to midday (noon)");
         System.out.println();
         System.out.println("Options:");
         System.out.println("  C        - Toggle ceiling rendering");
@@ -241,7 +315,89 @@ public class BackgroundDemo {
         System.out.println();
         System.out.println("Current background: " + currentBackground.getDescription());
         System.out.println("Ceiling rendering: " + (raycastingCanvas.isRenderCeilings() ? "ON" : "OFF"));
+
+        // Show additional info for Day-Night cycle
+        if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
+            System.out.println();
+            System.out.println("Day-Night Cycle Status:");
+            System.out.println("  Time: " + dayNightBackground.getTimeString());
+            System.out.println("  Weather: " + dayNightBackground.getCurrentWeatherString());
+            System.out.println("  Auto Weather: " + (dayNightBackground.isAutomaticWeather() ? "ON" : "OFF"));
+        }
+
         System.out.println("===============================\n");
     }
 
+    private void toggleTimeSpeed() {
+        if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
+            double currentSpeed = dayNightBackground.getTimeSpeed();
+            double newSpeed = currentSpeed <= 0.0001 ? 0.001 : 0.0001; // Toggle between slow and fast
+            dayNightBackground.setTimeSpeed(newSpeed);
+            System.out.println("Time speed: " + (newSpeed > 0.0001 ? "FAST" : "SLOW"));
+        }
+    }
+
+    private void cycleWeather() {
+        if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
+            DayNightCycleBackgroundProvider.WeatherType[] weathers =
+                DayNightCycleBackgroundProvider.WeatherType.values();
+            DayNightCycleBackgroundProvider.WeatherType current = dayNightBackground.getCurrentWeather();
+
+            // Find next weather type
+            int currentIndex = 0;
+            for (int i = 0; i < weathers.length; i++) {
+                if (weathers[i] == current) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            DayNightCycleBackgroundProvider.WeatherType nextWeather =
+                weathers[(currentIndex + 1) % weathers.length];
+            dayNightBackground.setWeather(nextWeather);
+            System.out.println("Weather: " + nextWeather.getName());
+        }
+    }
+
+    private void setTimeToNight() {
+        if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
+            dayNightBackground.setTimeOfDay(0.0); // Midnight
+            System.out.println("Time set to: " + dayNightBackground.getTimeString() + " (Night)");
+        }
+    }
+
+    private void setTimeToMidday() {
+        if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
+            dayNightBackground.setTimeOfDay(0.5); // Noon
+            System.out.println("Time set to: " + dayNightBackground.getTimeString() + " (Midday)");
+        }
+    }
+
+    private void adjustSunnyBias() {
+        if (currentBackground == BackgroundType.DAY_NIGHT_CYCLE) {
+            double currentBias = dayNightBackground.getSunnyWeatherBias();
+            // Cycle through different bias levels: 0.3 -> 0.5 -> 0.7 -> 0.9 -> 0.3
+            double newBias;
+            if (currentBias < 0.4) {
+                newBias = 0.5; // Low -> Medium
+            } else if (currentBias < 0.6) {
+                newBias = 0.7; // Medium -> High
+            } else if (currentBias < 0.8) {
+                newBias = 0.9; // High -> Very High
+            } else {
+                newBias = 0.3; // Very High -> Low
+            }
+
+            dayNightBackground.setSunnyWeatherBias(newBias);
+            String biasLevel = getBiasLevelName(newBias);
+            System.out.println("Sunny weather bias: " + biasLevel + " (" + Math.round(newBias * 100) + "%)");
+        }
+    }
+
+    private String getBiasLevelName(double bias) {
+        if (bias < 0.4) return "LOW";
+        if (bias < 0.6) return "MEDIUM";
+        if (bias < 0.8) return "HIGH";
+        return "VERY HIGH";
+    }
 }
